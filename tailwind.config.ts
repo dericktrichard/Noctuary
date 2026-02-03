@@ -50,8 +50,8 @@ const config: Config = {
         sm: 'calc(var(--radius) - 4px)',
       },
       fontFamily: {
-        serif: ['var(--font-playfair)', 'serif'],
-        sans: ['var(--font-inter)', 'sans-serif'],
+        serif: ['var(--font-philosopher)', 'serif'],
+        sans: ['var(--font-nunito)', 'sans-serif'],
       },
       backdropBlur: {
         glass: '24px',
