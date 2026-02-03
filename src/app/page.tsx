@@ -20,13 +20,13 @@ export default function HomePage() {
 
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center animate-slide-up">
-            
+            <a
               href="#commission"
               className="inline-flex items-center justify-center px-8 py-4 text-lg font-medium bg-white text-black rounded-lg hover:bg-white/90 transition-colors"
             >
               Commission Now
             </a>
-            
+            <a
               href="#pricing"
               className="inline-flex items-center justify-center px-8 py-4 text-lg font-medium glass-card rounded-lg hover:bg-white/10 transition-colors"
             >
@@ -107,7 +107,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* The Author's Pact */}
+      {/* The Authors Pact */}
       <section className="py-24 px-4 bg-white/5">
         <div className="max-w-4xl mx-auto">
           <h2 className="font-serif text-4xl md:text-5xl font-bold text-center mb-12">
