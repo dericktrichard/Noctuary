@@ -1,0 +1,88 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum PoemType {
+  QUICK
+  CUSTOM
+}
+
+enum Status {
+  PENDING
+  WRITING
+  DELIVERED
+  CANCELLED
+}
+
+model Order {
+  id String @id @default(uuid())
+
+  // Client Info
+  email String
+
+  // Order Configuration
+  type     PoemType
+  status   Status   @default(PENDING)
+  
+  // Commission Details
+  topic        String?
+  title        String?
+  mood         String?
+  recipient    String?
+  instructions String?  @db.Text
+  urgency      Int?     // Hours (6, 12, 24)
+
+  // Payment
+  pricePaid       Decimal  @db.Decimal(10, 2)
+  currency        String   // USD or KES
+  paymentMethod   String?  // PayPal, M-Pesa
+  paymentId       String?  // External payment reference
+  paymentVerified Boolean  @default(false)
+
+  // Delivery
+  poemContent String?   @db.Text
+  deliveredAt DateTime?
+  deadline    DateTime? // Calculated based on urgency
+
+  // Metadata
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([email])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model SampleWork {
+  id String @id @default(uuid())
+
+  title     String
+  excerpt   String   @db.Text // First few lines for preview
+  content   String   @db.Text // Full poem
+  imageUrl  String
+  mood      String?
+  isVisible Boolean  @default(true)
+  sortOrder Int      @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isVisible, sortOrder])
+}
+
+model Admin {
+  id String @id @default(uuid())
+
+  email         String   @unique
+  supabaseUid   String   @unique
+  name          String?
+  
+  createdAt DateTime @default(now())
+  lastLoginAt DateTime?
+}
