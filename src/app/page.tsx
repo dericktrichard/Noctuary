@@ -1,3 +1,5 @@
+import { CommissionForm } from '@/components/features/commission-form';
+
 export default function HomePage() {
   return (
     <main className="min-h-screen bg-background">
@@ -147,7 +149,19 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Placeholder for Commission Form */}
+      {/* Commission Form */}
+      <section id="commission" className="py-24 px-4">
+        <div className="max-w-6xl mx-auto">
+          <h2 className="font-serif text-4xl md:text-5xl font-bold text-center mb-4">
+            Commission Your Poem
+          </h2>
+          <p className="text-center text-white/60 mb-12 max-w-2xl mx-auto">
+            Choose between a quick poem for simple occasions or a fully customized piece crafted specifically for your needs.
+          </p>
+          
+          <CommissionForm />
+        </div>
+      </section>
       <section id="commission" className="py-24 px-4">
         <div className="max-w-2xl mx-auto text-center glass-card rounded-xl p-12">
           <h2 className="font-serif text-4xl font-bold mb-6">
