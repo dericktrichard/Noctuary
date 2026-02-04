@@ -40,7 +40,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="dark">
-      <body className={`${nunito.variable} ${philosopher.variable} font-sans antialiased`}>
+      <body className={`${philosopher.variable} ${nunito.variable} font-serif antialiased`}>
         {children}
       </body>
     </html>
