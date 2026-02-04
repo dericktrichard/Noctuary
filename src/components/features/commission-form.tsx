@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+// import Label as a valid React component
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { GlassCard } from '@/components/ui/card';
@@ -284,7 +285,7 @@ export function CommissionForm() {
                   max={24}
                   step={6}
                   value={[urgency]}
-                  onValueChange={(value) => {
+                  onValueChange={(value: number[]) => {
                     setUrgency(value[0]);
                     customForm.setValue('urgency', value[0]);
                   }}
