@@ -148,8 +148,7 @@ export async function sendOrderConfirmation(
 export async function sendPoemDelivery(
   orderId: string,
   email: string,
-  poemContent: string,
-  orderType: string
+  poemContent: string
 ) {
   const magicLink = generateMagicLink(orderId, email);
 

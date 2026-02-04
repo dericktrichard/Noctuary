@@ -6,6 +6,8 @@ if (!SECRET) {
   throw new Error('MAGIC_LINK_SECRET environment variable is not set');
 }
 
+const VALIDATED_SECRET = SECRET as string;
+
 /**
  * Generate a signed token for magic link
  * Format: {orderId}.{email}.{timestamp}.{signature}
@@ -14,7 +16,7 @@ export function generateMagicLinkToken(orderId: string, email: string): string {
   const timestamp = Date.now();
   const payload = `${orderId}.${email}.${timestamp}`;
   
-  const signature = createHmac('sha256', SECRET)
+  const signature = createHmac('sha256', VALIDATED_SECRET)
     .update(payload)
     .digest('base64url');
   
@@ -48,7 +50,7 @@ export function verifyMagicLinkToken(token: string):
     
     // Verify signature
     const payload = `${orderId}.${email}.${timestamp}`;
-    const expectedSignature = createHmac('sha256', SECRET)
+    const expectedSignature = createHmac('sha256', VALIDATED_SECRET)
       .update(payload)
       .digest('base64url');
     
