@@ -3,9 +3,9 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-// import Label as a valid React component
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { GlassCard } from '@/components/ui/card';
@@ -16,11 +16,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Slider } from '@/components/ui/slider';
-import { QuickPoemSchema, CustomPoemSchema } from '@/lib/validations/schemas';
+import { z } from 'zod';
 import { calculatePrice, getDeliveryHours } from '@/lib/pricing';
 import { formatCurrency } from '@/lib/utils';
-import type { QuickPoemInput, CustomPoemInput } from '@/lib/validations/schemas';
+import { Zap, Sparkles } from 'lucide-react';
 
 type PoemType = 'QUICK' | 'CUSTOM';
 
@@ -35,102 +34,171 @@ const MOODS = [
   'Melancholic',
 ];
 
+// Simplified schemas
+const QuickPoemFormSchema = z.object({
+  type: z.literal('QUICK'),
+  email: z.string().email('Please enter a valid email address'),
+  currency: z.enum(['USD', 'KES']),
+});
+
+const CustomPoemFormSchema = z.object({
+  type: z.literal('CUSTOM'),
+  email: z.string().email('Please enter a valid email address'),
+  title: z.string().min(3, 'Title must be at least 3 characters').max(100),
+  mood: z.string().min(1, 'Please select a mood'),
+  instructions: z.string().optional(),
+  budget: z.number().min(1.99).max(4.99),
+  currency: z.enum(['USD', 'KES']),
+});
+
+type QuickPoemForm = z.infer<typeof QuickPoemFormSchema>;
+type CustomPoemForm = z.infer<typeof CustomPoemFormSchema>;
+
 export function CommissionForm() {
   const [poemType, setPoemType] = useState<PoemType>('CUSTOM');
   const [currency, setCurrency] = useState<'USD' | 'KES'>('USD');
-  const [urgency, setUrgency] = useState<number>(24);
+  const [customBudget, setCustomBudget] = useState<number>(1.99);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Calculate price in real-time
-  const price = calculatePrice(poemType, currency, poemType === 'CUSTOM' ? urgency : undefined);
-  const deliveryHours = getDeliveryHours(poemType, poemType === 'CUSTOM' ? urgency : undefined);
+  // Calculate delivery time based on budget for custom poems
+  const calculateDeliveryTime = (budget: number): number => {
+    if (budget >= 4.99) return 6;
+    if (budget >= 2.99) return 12;
+    return 24;
+  };
 
-  // Form for Quick Poem
-  const quickForm = useForm<QuickPoemInput>({
-    resolver: zodResolver(QuickPoemSchema),
+  const deliveryTime = poemType === 'CUSTOM' ? calculateDeliveryTime(customBudget) : 24;
+  const quickPrice = calculatePrice('QUICK', currency);
+
+  // Quick Poem Form
+  const quickForm = useForm<QuickPoemForm>({
+    resolver: zodResolver(QuickPoemFormSchema),
     defaultValues: {
       type: 'QUICK',
       email: '',
-      topic: '',
-      paymentMethod: 'paypal',
       currency: 'USD',
     },
   });
 
-  // Form for Custom Poem
-  const customForm = useForm<CustomPoemInput>({
-    resolver: zodResolver(CustomPoemSchema),
+  // Custom Poem Form
+  const customForm = useForm<CustomPoemForm>({
+    resolver: zodResolver(CustomPoemFormSchema),
     defaultValues: {
       type: 'CUSTOM',
       email: '',
       title: '',
-      topic: '',
       mood: '',
-      recipient: '',
       instructions: '',
-      urgency: 24,
-      paymentMethod: 'paypal',
+      budget: 1.99,
       currency: 'USD',
     },
   });
 
-  const handleQuickSubmit = async (data: QuickPoemInput) => {
+  const handleQuickSubmit = async (data: QuickPoemForm) => {
     setIsSubmitting(true);
     console.log('Quick Poem Submission:', data);
-    // TODO: Implement payment and order creation
-    alert('Quick poem form submitted! Payment integration coming next.');
+    alert('Quick poem commissioned! Payment integration coming soon.');
     setIsSubmitting(false);
   };
 
-  const handleCustomSubmit = async (data: CustomPoemInput) => {
+  const handleCustomSubmit = async (data: CustomPoemForm) => {
     setIsSubmitting(true);
-    console.log('Custom Poem Submission:', data);
-    // TODO: Implement payment and order creation
-    alert('Custom poem form submitted! Payment integration coming next.');
+    console.log('Custom Poem Submission:', { ...data, deliveryTime });
+    alert('Custom poem commissioned! Payment integration coming soon.');
     setIsSubmitting(false);
   };
 
   return (
-    <div className="max-w-3xl mx-auto">
-      {/* Type Selection */}
-      <div className="grid md:grid-cols-2 gap-4 mb-8">
-        <button
+    <div className="max-w-4xl mx-auto">
+      {/* Type Selection Cards */}
+      <div className="grid md:grid-cols-2 gap-6 mb-12">
+        {/* Quick Poem Card */}
+        <motion.button
           type="button"
           onClick={() => setPoemType('QUICK')}
-          className={`glass-card p-6 rounded-xl transition-all duration-300 text-left ${
-            poemType === 'QUICK' ? 'border-2 border-white/40 bg-white/10' : 'hover:bg-white/5'
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          className={`text-left p-8 rounded-2xl transition-all duration-300 ${
+            poemType === 'QUICK'
+              ? 'glass-light border-2 border-white/30'
+              : 'glass-card border border-white/10 hover:bg-white/[0.06]'
           }`}
         >
+          <div className="flex items-start justify-between mb-4">
+            <div className="w-12 h-12 glass-card rounded-xl flex items-center justify-center">
+              <Zap className="w-6 h-6" />
+            </div>
+            {poemType === 'QUICK' && (
+              <div className="px-3 py-1 bg-white text-black rounded-full text-xs font-caption font-bold">
+                SELECTED
+              </div>
+            )}
+          </div>
+          
           <h3 className="font-serif text-2xl font-bold mb-2">Quick Poem</h3>
-          <p className="text-white/60 mb-4">24-hour delivery</p>
-          <p className="text-3xl font-bold">{formatCurrency(calculatePrice('QUICK', currency), currency)}</p>
-        </button>
+          <p className="text-white/60 font-caption text-sm mb-4">
+            A poetic surprise—no details needed
+          </p>
+          
+          <div className="flex items-baseline gap-2">
+            <span className="text-3xl font-bold">{formatCurrency(quickPrice, currency)}</span>
+            <span className="text-white/50 font-caption text-sm">• 24h delivery</span>
+          </div>
+        </motion.button>
 
-        <button
+        {/* Custom Poem Card */}
+        <motion.button
           type="button"
           onClick={() => setPoemType('CUSTOM')}
-          className={`glass-card p-6 rounded-xl transition-all duration-300 text-left ${
-            poemType === 'CUSTOM' ? 'border-2 border-white/40 bg-white/10' : 'hover:bg-white/5'
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          className={`text-left p-8 rounded-2xl transition-all duration-300 ${
+            poemType === 'CUSTOM'
+              ? 'glass-light border-2 border-white/30'
+              : 'glass-card border border-white/10 hover:bg-white/[0.06]'
           }`}
         >
-          <div className="inline-block px-2 py-1 bg-white/10 rounded-full text-xs mb-2">
-            Most Popular
+          <div className="flex items-start justify-between mb-4">
+            <div className="w-12 h-12 glass-card rounded-xl flex items-center justify-center">
+              <Sparkles className="w-6 h-6" />
+            </div>
+            <div className="flex flex-col items-end gap-1">
+              <div className="px-3 py-1 bg-white/10 rounded-full text-xs font-caption">
+                POPULAR
+              </div>
+              {poemType === 'CUSTOM' && (
+                <div className="px-3 py-1 bg-white text-black rounded-full text-xs font-caption font-bold">
+                  SELECTED
+                </div>
+              )}
+            </div>
           </div>
+          
           <h3 className="font-serif text-2xl font-bold mb-2">Custom Poem</h3>
-          <p className="text-white/60 mb-4">6-24 hour delivery</p>
-          <p className="text-3xl font-bold">
-            {formatCurrency(calculatePrice('CUSTOM', currency, 24), currency)} - {formatCurrency(calculatePrice('CUSTOM', currency, 6), currency)}
+          <p className="text-white/60 font-caption text-sm mb-4">
+            Personalized with your vision
           </p>
-        </button>
+          
+          <div className="flex items-baseline gap-2">
+            <span className="text-3xl font-bold">
+              {formatCurrency(calculatePrice('CUSTOM', currency, 24), currency)} - {formatCurrency(calculatePrice('CUSTOM', currency, 6), currency)}
+            </span>
+          </div>
+          <p className="text-white/50 font-caption text-sm mt-2">
+            6-24h delivery • You choose
+          </p>
+        </motion.button>
       </div>
 
       {/* Currency Toggle */}
-      <div className="flex justify-center gap-4 mb-8">
+      <div className="flex justify-center gap-3 mb-8">
         <button
           type="button"
           onClick={() => setCurrency('USD')}
-          className={`px-6 py-2 rounded-lg transition-colors ${
-            currency === 'USD' ? 'bg-white text-black' : 'glass-card'
+          className={`px-6 py-2 rounded-lg font-caption transition-all ${
+            currency === 'USD'
+              ? 'bg-white text-black font-bold'
+              : 'glass-card hover:bg-white/10'
           }`}
         >
           USD ($)
@@ -138,8 +206,10 @@ export function CommissionForm() {
         <button
           type="button"
           onClick={() => setCurrency('KES')}
-          className={`px-6 py-2 rounded-lg transition-colors ${
-            currency === 'KES' ? 'bg-white text-black' : 'glass-card'
+          className={`px-6 py-2 rounded-lg font-caption transition-all ${
+            currency === 'KES'
+              ? 'bg-white text-black font-bold'
+              : 'glass-card hover:bg-white/10'
           }`}
         >
           KES (Ksh)
@@ -147,172 +217,161 @@ export function CommissionForm() {
       </div>
 
       {/* Form Content */}
-      <GlassCard className="p-8">
+      <GlassCard className="p-8 md:p-10">
         {poemType === 'QUICK' ? (
+          /* QUICK POEM FORM */
           <form onSubmit={quickForm.handleSubmit(handleQuickSubmit)} className="space-y-6">
             <div>
-              <Label htmlFor="quick-email">Email Address</Label>
+              <Label htmlFor="quick-email" className="text-lg font-caption">Email Address</Label>
+              <p className="text-white/50 text-sm font-caption mb-3">
+                We'll send your poetic surprise here
+              </p>
               <Input
                 id="quick-email"
                 type="email"
                 placeholder="your@email.com"
+                className="h-12"
                 {...quickForm.register('email')}
               />
               {quickForm.formState.errors.email && (
-                <p className="text-red-400 text-sm mt-1">{quickForm.formState.errors.email.message}</p>
+                <p className="text-red-400 text-sm mt-2 font-caption">
+                  {quickForm.formState.errors.email.message}
+                </p>
               )}
             </div>
 
-            <div>
-              <Label htmlFor="quick-topic">Poem Topic</Label>
-              <Input
-                id="quick-topic"
-                placeholder="e.g., Birthday wishes for my mom"
-                maxLength={100}
-                {...quickForm.register('topic')}
-              />
-              {quickForm.formState.errors.topic && (
-                <p className="text-red-400 text-sm mt-1">{quickForm.formState.errors.topic.message}</p>
-              )}
-              <p className="text-white/40 text-sm mt-1 font-caption">
-                {quickForm.watch('topic')?.length || 0}/100 characters
-              </p>
-            </div>
-
-            <div className="glass-light rounded-lg p-6">
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-lg">Total:</span>
-                <span className="text-3xl font-bold">{formatCurrency(price, currency)}</span>
+            <div className="glass-light rounded-xl p-6 space-y-3">
+              <div className="flex justify-between items-center">
+                <span className="font-caption text-white/70">Total Price:</span>
+                <span className="text-3xl font-bold">{formatCurrency(quickPrice, currency)}</span>
               </div>
-              <p className="text-white/60 text-sm font-caption">Delivery in {deliveryHours} hours</p>
+              <div className="flex justify-between items-center text-sm">
+                <span className="font-caption text-white/50">Delivery:</span>
+                <span className="font-caption text-white/70">Within 24 hours</span>
+              </div>
             </div>
 
-            <Button type="submit" className="w-full" size="lg" disabled={isSubmitting}>
+            <Button type="submit" className="w-full h-12 text-lg" size="lg" disabled={isSubmitting}>
               {isSubmitting ? 'Processing...' : 'Proceed to Payment'}
             </Button>
+
+            <p className="text-center text-white/40 text-sm font-caption">
+              Your poem will be a delightful surprise—no topic needed!
+            </p>
           </form>
         ) : (
+          /* CUSTOM POEM FORM */
           <form onSubmit={customForm.handleSubmit(handleCustomSubmit)} className="space-y-6">
             <div>
-              <Label htmlFor="custom-email">Email Address</Label>
+              <Label htmlFor="custom-email" className="text-lg font-caption">Email Address</Label>
               <Input
                 id="custom-email"
                 type="email"
                 placeholder="your@email.com"
+                className="h-12 mt-2"
                 {...customForm.register('email')}
               />
               {customForm.formState.errors.email && (
-                <p className="text-red-400 text-sm mt-1">{customForm.formState.errors.email.message}</p>
+                <p className="text-red-400 text-sm mt-2 font-caption">
+                  {customForm.formState.errors.email.message}
+                </p>
               )}
             </div>
 
-            <div>
-              <Label htmlFor="custom-title">Poem Title</Label>
-              <Input
-                id="custom-title"
-                placeholder="e.g., A Mother's Love"
-                maxLength={100}
-                {...customForm.register('title')}
-              />
-              {customForm.formState.errors.title && (
-                <p className="text-red-400 text-sm mt-1">{customForm.formState.errors.title.message}</p>
-              )}
+            <div className="grid md:grid-cols-2 gap-6">
+              <div>
+                <Label htmlFor="custom-title" className="text-lg font-caption">Poem Title</Label>
+                <Input
+                  id="custom-title"
+                  placeholder="e.g., Eternal Sunshine"
+                  className="h-12 mt-2"
+                  maxLength={100}
+                  {...customForm.register('title')}
+                />
+                {customForm.formState.errors.title && (
+                  <p className="text-red-400 text-sm mt-2 font-caption">
+                    {customForm.formState.errors.title.message}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <Label htmlFor="custom-mood" className="text-lg font-caption">Mood</Label>
+                <Select
+                  onValueChange={(value) => customForm.setValue('mood', value)}
+                  defaultValue={customForm.watch('mood')}
+                >
+                  <SelectTrigger id="custom-mood" className="h-12 mt-2">
+                    <SelectValue placeholder="Select mood" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {MOODS.map((mood) => (
+                      <SelectItem key={mood} value={mood}>
+                        {mood}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {customForm.formState.errors.mood && (
+                  <p className="text-red-400 text-sm mt-2 font-caption">
+                    {customForm.formState.errors.mood.message}
+                  </p>
+                )}
+              </div>
             </div>
 
             <div>
-              <Label htmlFor="custom-topic">Poem Topic / Details</Label>
-              <Textarea
-                id="custom-topic"
-                placeholder="Tell us what the poem should be about..."
-                rows={4}
-                maxLength={500}
-                {...customForm.register('topic')}
-              />
-              {customForm.formState.errors.topic && (
-                <p className="text-red-400 text-sm mt-1">{customForm.formState.errors.topic.message}</p>
-              )}
-              <p className="text-white/40 text-sm mt-1 font-caption">
-                {customForm.watch('topic')?.length || 0}/500 characters
-              </p>
-            </div>
-
-            <div>
-              <Label htmlFor="custom-mood">Mood</Label>
-              <Select
-                onValueChange={(value) => customForm.setValue('mood', value)}
-                defaultValue={customForm.watch('mood')}
-              >
-                <SelectTrigger id="custom-mood">
-                  <SelectValue placeholder="Select a mood" />
-                </SelectTrigger>
-                <SelectContent>
-                  {MOODS.map((mood) => (
-                    <SelectItem key={mood} value={mood}>
-                      {mood}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {customForm.formState.errors.mood && (
-                <p className="text-red-400 text-sm mt-1">{customForm.formState.errors.mood.message}</p>
-              )}
-            </div>
-
-            <div>
-              <Label htmlFor="custom-recipient">Recipient (Optional)</Label>
-              <Input
-                id="custom-recipient"
-                placeholder="e.g., Sarah"
-                {...customForm.register('recipient')}
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="custom-instructions">Special Instructions (Optional)</Label>
+              <Label htmlFor="custom-instructions" className="text-lg font-caption">
+                Special Instructions <span className="text-white/50 text-sm">(Optional)</span>
+              </Label>
               <Textarea
                 id="custom-instructions"
-                placeholder="Any specific style, references, or requirements..."
-                rows={3}
+                placeholder="Any specific themes, references, or style preferences..."
+                rows={4}
+                className="mt-2"
                 {...customForm.register('instructions')}
               />
             </div>
 
-            <div>
-              <Label>Delivery Speed</Label>
-              <div className="mt-4 mb-2">
-                <Slider
-                  min={6}
-                  max={24}
-                  step={6}
-                  value={[urgency]}
-                  onValueChange={(value: number[]) => {
-                    setUrgency(value[0]);
-                    customForm.setValue('urgency', value[0]);
-                  }}
-                />
+            <div className="glass-light rounded-xl p-6 space-y-4">
+              <div>
+                <Label htmlFor="custom-budget" className="text-lg font-caption">Your Budget</Label>
+                <p className="text-white/50 text-sm font-caption mb-3">
+                  Higher budget = Faster delivery
+                </p>
+                <div className="flex items-center gap-4">
+                  <span className="text-white/70 font-caption">$</span>
+                  <Input
+                    id="custom-budget"
+                    type="number"
+                    step="0.01"
+                    min="1.99"
+                    max="4.99"
+                    value={customBudget}
+                    onChange={(e) => {
+                      const value = parseFloat(e.target.value);
+                      setCustomBudget(value);
+                      customForm.setValue('budget', value);
+                    }}
+                    className="h-12 text-2xl font-bold"
+                  />
+                  <span className="text-white/70 font-caption">{currency}</span>
+                </div>
               </div>
-              <div className="flex justify-between text-sm font-caption">
-                <span className={urgency === 6 ? 'text-white font-bold' : 'text-white/60'}>
-                  6h - Priority
-                </span>
-                <span className={urgency === 12 ? 'text-white font-bold' : 'text-white/60'}>
-                  12h - Fast
-                </span>
-                <span className={urgency === 24 ? 'text-white font-bold' : 'text-white/60'}>
-                  24h - Standard
-                </span>
+
+              <div className="flex justify-between items-center pt-4 border-t border-white/10">
+                <span className="font-caption text-white/70">Estimated Delivery:</span>
+                <span className="text-xl font-bold">{deliveryTime} hours</span>
+              </div>
+
+              <div className="text-sm font-caption text-white/50 space-y-1">
+                <p>• ${currency === 'USD' ? '1.99' : '260'}: 24 hours (Standard)</p>
+                <p>• ${currency === 'USD' ? '2.99+' : '390+'}: 12 hours (Fast)</p>
+                <p>• ${currency === 'USD' ? '4.99+' : '650+'}: 6 hours (Priority)</p>
               </div>
             </div>
 
-            <div className="glass-light rounded-lg p-6">
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-lg">Total:</span>
-                <span className="text-3xl font-bold">{formatCurrency(price, currency)}</span>
-              </div>
-              <p className="text-white/60 text-sm font-caption">Delivery in {urgency} hours</p>
-            </div>
-
-            <Button type="submit" className="w-full" size="lg" disabled={isSubmitting}>
+            <Button type="submit" className="w-full h-12 text-lg" size="lg" disabled={isSubmitting}>
               {isSubmitting ? 'Processing...' : 'Proceed to Payment'}
             </Button>
           </form>
