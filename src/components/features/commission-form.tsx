@@ -17,9 +17,9 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { z } from 'zod';
-import { calculatePrice, getDeliveryHours } from '@/lib/pricing';
 import { formatCurrency } from '@/lib/utils';
 import { Zap, Sparkles } from 'lucide-react';
+import { calculatePrice, calculateDeliveryHoursFromBudget, PRICING } from '@/lib/pricing';
 
 type PoemType = 'QUICK' | 'CUSTOM';
 
@@ -57,17 +57,15 @@ type CustomPoemForm = z.infer<typeof CustomPoemFormSchema>;
 export function CommissionForm() {
   const [poemType, setPoemType] = useState<PoemType>('CUSTOM');
   const [currency, setCurrency] = useState<'USD' | 'KES'>('USD');
-  const [customBudget, setCustomBudget] = useState<number>(1.99);
+  const [customBudget, setCustomBudget] = useState<number>(
+    currency === 'USD' ? PRICING.CUSTOM.MIN_PRICE.USD : PRICING.CUSTOM.MIN_PRICE.KES
+  );
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Calculate delivery time based on budget for custom poems
-  const calculateDeliveryTime = (budget: number): number => {
-    if (budget >= 4.99) return 6;
-    if (budget >= 2.99) return 12;
-    return 24;
-  };
-
-  const deliveryTime = poemType === 'CUSTOM' ? calculateDeliveryTime(customBudget) : 24;
+  const deliveryTime = poemType === 'CUSTOM' 
+    ? calculateDeliveryHoursFromBudget(customBudget, currency) 
+    : 24;
   const quickPrice = calculatePrice('QUICK', currency);
 
   // Quick Poem Form
@@ -194,7 +192,10 @@ export function CommissionForm() {
       <div className="flex justify-center gap-3 mb-8">
         <button
           type="button"
-          onClick={() => setCurrency('USD')}
+          onClick={() => {
+            setCurrency('USD');
+            setCustomBudget(PRICING.CUSTOM.MIN_PRICE.USD);
+          }}
           className={`px-6 py-2 rounded-lg font-caption transition-all ${
             currency === 'USD'
               ? 'bg-white text-black font-bold'
@@ -205,7 +206,10 @@ export function CommissionForm() {
         </button>
         <button
           type="button"
-          onClick={() => setCurrency('KES')}
+          onClick={() => {
+            setCurrency('KES');
+            setCustomBudget(PRICING.CUSTOM.MIN_PRICE.KES);
+          }}
           className={`px-6 py-2 rounded-lg font-caption transition-all ${
             currency === 'KES'
               ? 'bg-white text-black font-bold'
@@ -334,41 +338,48 @@ export function CommissionForm() {
             </div>
 
             <div className="glass-light rounded-xl p-6 space-y-4">
+              <div className="glass-light rounded-xl p-6 space-y-4">
               <div>
                 <Label htmlFor="custom-budget" className="text-lg font-caption">Your Budget</Label>
                 <p className="text-white/50 text-sm font-caption mb-3">
-                  Higher budget = Faster delivery
+                  Higher budget = Faster delivery (Default: {formatCurrency(PRICING.CUSTOM.MIN_PRICE[currency], currency)})
                 </p>
-                <div className="flex items-center gap-4">
-                  <span className="text-white/70 font-caption">$</span>
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-white/70 font-caption text-lg">
+                    {currency === 'USD' ? '$' : 'Ksh'}
+                  </span>
                   <Input
                     id="custom-budget"
                     type="number"
                     step="0.01"
-                    min="1.99"
-                    max="4.99"
+                    min={currency === 'USD' ? PRICING.CUSTOM.MIN_PRICE.USD : PRICING.CUSTOM.MIN_PRICE.KES}
+                    max={currency === 'USD' ? PRICING.CUSTOM.MAX_PRICE.USD : PRICING.CUSTOM.MAX_PRICE.KES}
                     value={customBudget}
                     onChange={(e) => {
-                      const value = parseFloat(e.target.value);
+                      const value = parseFloat(e.target.value) || PRICING.CUSTOM.MIN_PRICE[currency];
                       setCustomBudget(value);
                       customForm.setValue('budget', value);
                     }}
-                    className="h-12 text-2xl font-bold"
+                    className="h-14 text-2xl font-bold pl-12"
+                    placeholder={PRICING.CUSTOM.MIN_PRICE[currency].toString()}
                   />
-                  <span className="text-white/70 font-caption">{currency}</span>
                 </div>
+                <p className="text-white/40 text-xs font-caption mt-2">
+                  Enter amount between {formatCurrency(PRICING.CUSTOM.MIN_PRICE[currency], currency)} - {formatCurrency(PRICING.CUSTOM.MAX_PRICE[currency], currency)}
+                </p>
               </div>
 
               <div className="flex justify-between items-center pt-4 border-t border-white/10">
                 <span className="font-caption text-white/70">Estimated Delivery:</span>
-                <span className="text-xl font-bold">{deliveryTime} hours</span>
+                <span className="text-2xl font-bold">{deliveryTime} hours</span>
               </div>
 
               <div className="text-sm font-caption text-white/50 space-y-1">
-                <p>• ${currency === 'USD' ? '1.99' : '260'}: 24 hours (Standard)</p>
-                <p>• ${currency === 'USD' ? '2.99+' : '390+'}: 12 hours (Fast)</p>
-                <p>• ${currency === 'USD' ? '4.99+' : '650+'}: 6 hours (Priority)</p>
+                <p>💡 Pricing Guide:</p>
+                <p>• {formatCurrency(PRICING.CUSTOM.MIN_PRICE[currency], currency)}: {PRICING.CUSTOM.MAX_HOURS} hours delivery</p>
+                <p>• {formatCurrency(PRICING.CUSTOM.MAX_PRICE[currency], currency)}: {PRICING.CUSTOM.MIN_HOURS} hours delivery</p>
               </div>
+            </div>
             </div>
 
             <Button type="submit" className="w-full h-12 text-lg" size="lg" disabled={isSubmitting}>

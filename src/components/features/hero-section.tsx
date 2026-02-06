@@ -2,7 +2,6 @@
 
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { ChevronDown } from 'lucide-react';
 
 export function HeroSection() {
   const scrollToCommission = () => {
@@ -26,22 +25,43 @@ export function HeroSection() {
 
       {/* Floating Particles */}
       <div className="absolute inset-0 overflow-hidden">
-        {[...Array(20)].map((_, i) => (
+        {[
+          { left: 10, top: 20 },
+          { left: 25, top: 60 },
+          { left: 45, top: 30 },
+          { left: 60, top: 70 },
+          { left: 75, top: 40 },
+          { left: 85, top: 80 },
+          { left: 15, top: 85 },
+          { left: 30, top: 15 },
+          { left: 50, top: 50 },
+          { left: 70, top: 25 },
+          { left: 90, top: 65 },
+          { left: 20, top: 75 },
+          { left: 40, top: 45 },
+          { left: 65, top: 90 },
+          { left: 80, top: 35 },
+          { left: 5, top: 55 },
+          { left: 35, top: 10 },
+          { left: 55, top: 95 },
+          { left: 95, top: 50 },
+          { left: 12, top: 40 },
+        ].map((pos, i) => (
           <motion.div
             key={i}
             className="absolute w-1 h-1 bg-white/20 rounded-full"
             style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
+              left: `${pos.left}%`,
+              top: `${pos.top}%`,
             }}
             animate={{
               y: [0, -30, 0],
               opacity: [0.2, 0.5, 0.2],
             }}
             transition={{
-              duration: 3 + Math.random() * 2,
+              duration: 3 + (i % 3),
               repeat: Infinity,
-              delay: Math.random() * 2,
+              delay: i * 0.2,
             }}
           />
         ))}
@@ -124,20 +144,21 @@ export function HeroSection() {
           </Button>
         </motion.div>
 
-        {/* Scroll Indicator */}
+        {/* Simple Mouse Scroll Indicator */}
         <motion.button
           onClick={scrollToNext}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.8, delay: 1 }}
-          className="absolute bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-white/40 hover:text-white/60 transition-colors"
+          className="absolute bottom-12 left-1/2 -translate-x-1/2"
+          aria-label="Scroll down"
         >
-          <span className="text-sm font-caption tracking-wider">EXPLORE</span>
           <motion.div
             animate={{ y: [0, 8, 0] }}
             transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+            className="w-6 h-10 rounded-full border-2 border-white/30 flex items-start justify-center p-2"
           >
-            <ChevronDown className="w-6 h-6" />
+            <div className="w-1.5 h-3 bg-white/50 rounded-full" />
           </motion.div>
         </motion.button>
       </div>

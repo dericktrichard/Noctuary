@@ -3,7 +3,6 @@
 import { motion } from 'framer-motion';
 import { GlassCard } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Quote } from 'lucide-react';
 
 // Mock sample poems - will be replaced with dynamic data from database
 const samplePoems = [
@@ -61,11 +60,7 @@ export function SampleWorks() {
               transition={{ duration: 0.6, delay: index * 0.1 }}
             >
               <GlassCard className="p-8 h-full flex flex-col group hover:bg-white/[0.08] transition-all duration-300 cursor-pointer">
-                {/* Quote Icon */}
-                <div className="mb-4">
-                  <Quote className="w-8 h-8 text-white/40 group-hover:text-white/60 transition-colors" />
-                </div>
-
+             
                 {/* Mood Badge */}
                 <div className="mb-4">
                   <span className="inline-block px-3 py-1 text-xs font-caption tracking-wider bg-white/10 rounded-full">
