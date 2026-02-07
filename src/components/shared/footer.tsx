@@ -37,45 +37,39 @@ export function Footer() {
   return (
     <footer className="border-t border-white/10 bg-white/[0.02]">
       <div className="max-w-7xl mx-auto px-4 py-16">
-        {/* Main Footer Content */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-12 mb-12">
-          {/* Brand Section */}
-          <div className="lg:col-span-2">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-12 mb-12">
+          <div>
             <Logo size="md" />
-            <p className="mt-6 text-white/60 font-caption leading-relaxed max-w-sm">
-              Premium poetry commissions crafted by human hands. Every word written with intention, 
-              never by algorithm.
+            <p className="mt-6 text-white/60 leading-relaxed">
+              Premium poetry commissions crafted by human hands. Every word written with intention, never by algorithm.
             </p>
-            
-            {/* Social Links */}
             <div className="flex gap-4 mt-6">
               {socialLinks.map((social) => {
                 const Icon = social.icon;
                 return (
-                <a
-                  key={social.label}
-                  href={social.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-10 h-10 glass-card rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors"
-                  aria-label={social.label}
-                >
-                  <Icon className="w-4 h-4" />
-                </a>
-              );
-            })}
+                  // --- FIX START: Added the opening <a> tag below ---
+                  <a
+                    key={social.label}
+                    href={social.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-10 h-10 glass-card rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors"
+                    aria-label={social.label}
+                  >
+                    <Icon className="w-4 h-4" />
+                  </a>
+                  // --- FIX END ---
+                );
+              })}
             </div>
+          </div>
 
-          {/* Company Links */}
           <div>
-            <h3 className="font-serif font-bold text-lg mb-4">Company</h3>
+            <h3 className="font-bold text-lg mb-4">Company</h3>
             <ul className="space-y-3">
               {footerLinks.company.map((link) => (
                 <li key={link.label}>
-                  <a
-                    href={link.href}
-                    className="text-white/60 hover:text-white font-caption text-sm transition-colors"
-                  >
+                  <a href={link.href} className="text-white/60 hover:text-white text-sm transition-colors">
                     {link.label}
                   </a>
                 </li>
@@ -83,16 +77,12 @@ export function Footer() {
             </ul>
           </div>
 
-          {/* Legal Links */}
           <div>
-            <h3 className="font-serif font-bold text-lg mb-4">Legal</h3>
+            <h3 className="font-bold text-lg mb-4">Legal</h3>
             <ul className="space-y-3">
               {footerLinks.legal.map((link) => (
                 <li key={link.label}>
-                  <a
-                    href={link.href}
-                    className="text-white/60 hover:text-white font-caption text-sm transition-colors"
-                  >
+                  <a href={link.href} className="text-white/60 hover:text-white text-sm transition-colors">
                     {link.label}
                   </a>
                 </li>
@@ -100,16 +90,12 @@ export function Footer() {
             </ul>
           </div>
 
-          {/* Support Links */}
           <div>
-            <h3 className="font-serif font-bold text-lg mb-4">Support</h3>
+            <h3 className="font-bold text-lg mb-4">Support</h3>
             <ul className="space-y-3">
               {footerLinks.support.map((link) => (
                 <li key={link.label}>
-                  <a
-                    href={link.href}
-                    className="text-white/60 hover:text-white font-caption text-sm transition-colors"
-                  >
+                  <a href={link.href} className="text-white/60 hover:text-white text-sm transition-colors">
                     {link.label}
                   </a>
                 </li>
@@ -118,18 +104,16 @@ export function Footer() {
           </div>
         </div>
 
-        {/* Divider */}
         <div className="border-t border-white/10 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-            <p className="text-white/40 font-caption text-sm">
+            <p className="text-white/40 text-sm">
               © {currentYear} Noctuary. All rights reserved. Human Ink, Digital Canvas.
             </p>
-            <p className="text-white/40 font-caption text-sm">
+            <p className="text-white/40 text-sm">
               Made with care for people who value authenticity.
             </p>
           </div>
         </div>
-      </div>
       </div>
     </footer>
   );
