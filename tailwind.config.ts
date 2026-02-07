@@ -50,6 +50,10 @@ const config: Config = {
         sm: 'calc(var(--radius) - 4px)',
       },
       fontFamily: {
+        // Direct aliases so you can use font-philosopher and font-nunito
+        philosopher: ['var(--font-philosopher)', 'serif'],
+        nunito: ['var(--font-nunito)', 'sans-serif'],
+        // Defaults
         sans: ['var(--font-philosopher)', 'serif'],
         serif: ['var(--font-philosopher)', 'serif'],
         caption: ['var(--font-nunito)', 'sans-serif'],
@@ -61,6 +65,7 @@ const config: Config = {
         'fade-in': 'fadeIn 0.6s ease-out',
         'slide-up': 'slideUp 0.8s ease-out',
         'float': 'float 3s ease-in-out infinite',
+        'pulse-slow': 'pulse 8s cubic-bezier(0.4, 0, 0.6, 1) infinite',
       },
       keyframes: {
         fadeIn: {
