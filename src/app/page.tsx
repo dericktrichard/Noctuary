@@ -36,7 +36,7 @@ export default function HomePage() {
                 Commission Your Poem
               </h2>
               <p className="text-white/60 font-caption text-lg max-w-2xl mx-auto">
-                Choose between a quick poetic surprise or a fully personalized piece crafted to your vision
+                A quick poetic piece or a custom art poetry for you.
               </p>
             </div>
             
@@ -48,21 +48,21 @@ export default function HomePage() {
         <section id="about" className="py-24 px-4 bg-white/[0.02]">
           <div className="max-w-4xl mx-auto text-center">
             <h2 className="font-serif text-4xl md:text-5xl font-bold mb-8">
-              About Noctuary
+              This is Noctuary
             </h2>
             <div className="space-y-6 text-white/70 font-caption text-lg leading-relaxed">
               <p>
-                Noctuary was born from a simple belief: that words matter, and that the human 
-                touch in writing creates connections that algorithms never can.
+                Noctuary was born from a simple belief: that the soul matter, and that the human 
+                touch in writing creates connections that ai never can.
               </p>
               <p>
                 In a world increasingly dominated by artificial intelligence, we stand as guardians 
-                of authentic expression. Every poem we create is written by a skilled poet who 
-                understands the weight of words, the rhythm of emotion, and the art of capturing 
-                what makes each moment unique.
+                of authentic expression. Every poem I create is written by me who dares claim to 
+                understand the weight of words, the rhythm of emotion, and the art of capturing 
+                what makes each piece unique.
               </p>
               <p className="text-white font-semibold">
-                We don't just write poems. We craft connections.
+                I don't just want to write poems. But craft connections.
               </p>
             </div>
           </div>

@@ -16,20 +16,20 @@ const philosopher = Philosopher({
 });
 
 export const metadata: Metadata = {
-  title: 'Noctuary - Human Ink, Digital Canvas',
-  description: 'Premium poetry commission platform. Every poem is crafted by human hands, never by algorithms. Order custom or quick poems for any occasion.',
+  title: 'Noctuary - human Ink_Soul.',
+  description: 'Honest poetry commission platform. Every poem is crafted by human hands, never by algorithms. Order custom or quick poems for any occasion.',
   keywords: ['poetry', 'custom poems', 'commission poetry', 'human-written', 'poet for hire'],
   authors: [{ name: 'Noctuary' }],
   openGraph: {
-    title: 'Noctuary - Human Ink, Digital Canvas',
-    description: 'Commission authentic, human-written poetry for any occasion.',
+    title: 'Noctuary - Human Ink_Soul',
+    description: 'Commission honest, human-written poetry for your heart.',
     type: 'website',
     locale: 'en_US',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Noctuary - Human Ink, Digital Canvas',
-    description: 'Commission authentic, human-written poetry for any occasion.',
+    title: 'Noctuary - Human Ink_Soul',
+    description: 'Commission honest, human-written poetry for your heart.',
   },
 };
 

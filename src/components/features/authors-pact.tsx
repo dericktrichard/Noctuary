@@ -8,12 +8,12 @@ const guarantees = [
   {
     icon: Shield,
     title: 'No AI',
-    description: 'Every word written by a human poet who understands emotion and nuance.',
+    description: 'Every word written by me, a human poet.',
   },
   {
     icon: Sparkles,
     title: 'No Templates',
-    description: 'Each poem is crafted uniquely for you, never from pre-written formulas.',
+    description: 'Each poem is crafted uniquely for you.',
   },
   {
     icon: Copyright,
@@ -23,7 +23,7 @@ const guarantees = [
   {
     icon: Users,
     title: 'Human Touch',
-    description: 'Authentic emotional expression from lived experience, not algorithms.',
+    description: 'Honest expression from lived and read experience.',
   },
 ];
 
@@ -32,9 +32,11 @@ export function AuthorsPact() {
     <section id="pact" className="py-24 px-4 relative overflow-hidden">
       {/* Subtle Background Pattern */}
       <div className="absolute inset-0 opacity-5">
-        <div className="absolute inset-0" style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-        }} />
+        <div className="absolute inset-0" 
+          style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+          }} 
+        />
       </div>
 
       <div className="max-w-7xl mx-auto relative z-10">
@@ -50,7 +52,7 @@ export function AuthorsPact() {
             The Author&apos;s Pact
           </h2>
           <p className="text-white/60 font-caption text-lg max-w-2xl mx-auto">
-            Our promise to you: authentic human creativity in every line
+            Trying to preserve human honesty in each piece.
           </p>
         </motion.div>
 
@@ -102,32 +104,24 @@ export function AuthorsPact() {
               <div className="space-y-6 text-white/80 font-caption leading-relaxed">
                 <p className="text-lg">
                   In an age where artificial intelligence can generate text in milliseconds, 
-                  <strong className="text-white"> we choose a different path.</strong>
+                  <strong className="text-white"> we choose a different - older path.</strong>
                 </p>
                 
-                <p>
-                  Every poem commissioned through Noctuary is written by a human poet—someone 
-                  who understands emotion, nuance, and the weight of words.
-                </p>
-
-                <div className="glass-light rounded-xl p-6 border border-white/10">
-                  <p className="font-serif text-xl font-bold text-white mb-3">
-                    This is our guarantee:
-                  </p>
-                  <p className="text-white/90">
-                    No AI. No templates. No shortcuts.
+                <div className="glass-light rounded-xl p-3 border border-white/10">
+                  <p className="font-serif text-xl text-white">
+                    This is my guarantee | Just honest human writing.
                   </p>
                 </div>
 
                 <p>
                   When you commission a poem, you&apos;re not just purchasing words arranged 
-                  aesthetically. You&apos;re investing in authentic human creativity, in the 
-                  vulnerability of expression, in the deliberate craft that comes only from 
-                  lived experience.
+                  aesthetically.<br/>
+                  You&apos;re investing in a dream of authentic human creativity,
+                  the vulnerability of expression, in the deliberate craft that is flawed and perfect. 
                 </p>
 
                 <p className="text-white font-semibold">
-                  This is our promise. This is Noctuary.
+                  This is my promise. This is Noctuary.
                 </p>
               </div>
             </GlassCard>
