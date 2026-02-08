@@ -2,7 +2,8 @@
 
 import { motion } from 'framer-motion';
 import { GlassCard } from '@/components/ui/card';
-import { Quote } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Quote, Star } from 'lucide-react';
 
 // Mock testimonials - will be replaced with dynamic data from database
 const testimonials = [
@@ -30,27 +31,11 @@ const testimonials = [
     rating: 5,
     date: 'November 2025',
   },
-  {
-    id: '4',
-    name: 'Michael Karanja',
-    poemTitle: 'Mom Birthday',
-    content: 'Quick poem option was perfect! Got it within hours and my mom loved it. Simple process, beautiful result.',
-    rating: 5,
-    date: 'January 2026',
-  },
-  {
-    id: '5',
-    name: 'Rachel Thompson',
-    poemTitle: 'Will You Marry Me',
-    content: 'Used a custom poem for my proposal. She said yes! The words were exactly what I couldn\'t express myself.',
-    rating: 5,
-    date: 'December 2025',
-  },
 ];
 
 export function Testimonials() {
   return (
-    <section className="py-24 px-4 bg-white/[0.02]">
+    <section className="py-24 px-4">
       <div className="max-w-7xl mx-auto">
         {/* Section Header */}
         <motion.div
@@ -60,16 +45,16 @@ export function Testimonials() {
           transition={{ duration: 0.6 }}
           className="text-center mb-16"
         >
-          <h2 className="font-serif text-4xl md:text-5xl font-bold mb-4">
+          <h2 className="text-4xl md:text-5xl font-bold mb-4">
             Voices of Connection
           </h2>
-          <p className="text-white/60 font-caption text-lg max-w-2xl mx-auto">
+          <p className="font-nunito text-lg max-w-2xl mx-auto text-muted-foreground">
             Real stories from people who found the perfect words through Noctuary
           </p>
         </motion.div>
 
         {/* Testimonials Grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid md:grid-cols-3 gap-6 mb-12">
           {testimonials.map((testimonial, index) => (
             <motion.div
               key={testimonial.id}
@@ -78,42 +63,69 @@ export function Testimonials() {
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: index * 0.1 }}
             >
-              <GlassCard className="p-6 h-full flex flex-col hover:bg-white/[0.08] transition-all duration-300">
+              <GlassCard className="p-6 h-full flex flex-col glass-hover">
                 {/* Quote Icon */}
                 <div className="mb-4">
-                  <Quote className="w-8 h-8 text-white/40" />
+                  <Quote className="w-8 h-8 text-muted-foreground" />
                 </div>
 
-                {/* Star Rating - Elegant circles instead of emoji stars */}
-                <div className="flex gap-1.5 mb-4">
-                  {[...Array(testimonial.rating)].map((_, i) => (
-                    <div key={i} className="w-2 h-2 rounded-full bg-white/80" />
-                  ))}
+                {/* Star Rating with Count */}
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="flex gap-1">
+                    {[...Array(5)].map((_, i) => (
+                      <Star 
+                        key={i} 
+                        className={`w-4 h-4 ${
+                          i < testimonial.rating 
+                            ? 'fill-foreground text-foreground' 
+                            : 'text-muted-foreground'
+                        }`}
+                      />
+                    ))}
+                  </div>
+                  <span className="text-sm font-nunito text-muted-foreground">
+                    {testimonial.rating}/5
+                  </span>
                 </div>
 
                 {/* Content */}
-                <p className="text-white/80 font-caption leading-relaxed mb-4 flex-grow">
+                <p className="font-nunito leading-relaxed mb-4 flex-grow text-muted-foreground">
                   &ldquo;{testimonial.content}&rdquo;
                 </p>
 
                 {/* Poem Title */}
-                <p className="text-sm font-serif italic text-white/60 mb-4">
+                <p className="text-sm italic mb-4 text-muted-foreground font-nunito">
                   Poem: {testimonial.poemTitle}
                 </p>
 
-                {/* Author Info */}
-                <div className="border-t border-white/10 pt-4">
-                  <p className="font-serif font-bold text-white mb-1">
-                    {testimonial.name}
-                  </p>
-                  <p className="text-xs text-white/40 font-caption">
-                    {testimonial.date}
-                  </p>
+                {/* Author Info - Horizontal Layout */}
+                <div className="border-t border-border pt-4">
+                  <div className="flex items-center justify-between">
+                    <p className="font-bold">
+                      {testimonial.name}
+                    </p>
+                    <p className="text-xs font-nunito text-muted-foreground">
+                      {testimonial.date}
+                    </p>
+                  </div>
                 </div>
               </GlassCard>
             </motion.div>
           ))}
         </div>
+
+        {/* View More Button */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+          className="text-center"
+        >
+          <Button variant="glass" size="lg" className="font-nunito">
+            View More Reviews
+          </Button>
+        </motion.div>
       </div>
     </section>
   );

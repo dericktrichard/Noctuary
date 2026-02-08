@@ -31,7 +31,7 @@ const samplePoems = [
 
 export function SampleWorks() {
   return (
-    <section id="samples" className="py-24 px-4 bg-white/[0.02]">
+    <section id="samples" className="py-24 px-4">
       <div className="max-w-7xl mx-auto">
         {/* Section Header */}
         <motion.div
@@ -41,10 +41,10 @@ export function SampleWorks() {
           transition={{ duration: 0.6 }}
           className="text-center mb-16"
         >
-          <h2 className="font-serif text-4xl md:text-5xl font-bold mb-4">
+          <h2 className="text-4xl md:text-5xl font-bold mb-4">
             Sample Works
           </h2>
-          <p className="text-white/60 font-caption text-lg max-w-2xl mx-auto">
+          <p className="font-nunito text-lg max-w-2xl mx-auto text-muted-foreground">
             Glimpses of human creativity—each poem crafted with intention, never by algorithm
           </p>
         </motion.div>
@@ -59,30 +59,29 @@ export function SampleWorks() {
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: index * 0.1 }}
             >
-              <GlassCard className="p-8 h-full flex flex-col group hover:bg-white/[0.08] transition-all duration-300 cursor-pointer">
-             
+              <GlassCard className="p-8 h-full flex flex-col group glass-hover cursor-pointer">
                 {/* Mood Badge */}
                 <div className="mb-4">
-                  <span className="inline-block px-3 py-1 text-xs font-caption tracking-wider bg-white/10 rounded-full">
+                  <span className="inline-block px-3 py-1 text-xs font-nunito tracking-wider glass-light rounded-full">
                     {poem.mood.toUpperCase()}
                   </span>
                 </div>
 
                 {/* Title */}
-                <h3 className="font-serif text-2xl font-bold mb-4 group-hover:text-white/90 transition-colors">
+                <h3 className="text-2xl font-bold mb-4 transition-colors">
                   {poem.title}
                 </h3>
 
                 {/* Excerpt */}
                 <div className="flex-grow mb-6">
-                  <p className="text-white/70 font-caption leading-relaxed whitespace-pre-line italic">
+                  <p className="font-nunito leading-relaxed whitespace-pre-line italic text-muted-foreground">
                     {poem.excerpt}
                   </p>
                 </div>
 
                 {/* Author */}
-                <div className="pt-4 border-t border-white/10">
-                  <p className="text-sm text-white/50 font-caption">— {poem.author}</p>
+                <div className="pt-4 border-t border-border">
+                  <p className="text-sm font-nunito text-muted-foreground">— {poem.author}</p>
                 </div>
               </GlassCard>
             </motion.div>
@@ -97,7 +96,7 @@ export function SampleWorks() {
           transition={{ duration: 0.6 }}
           className="text-center"
         >
-          <Button variant="glass" size="lg" className="font-caption">
+          <Button variant="glass" size="lg" className="font-nunito">
             View All Samples
           </Button>
         </motion.div>

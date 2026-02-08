@@ -337,15 +337,13 @@ export function CommissionForm() {
               />
             </div>
 
-            <div className="glass-light rounded-xl p-6 space-y-4">
-              <div className="glass-light rounded-xl p-6 space-y-4">
+            <div className="space-y-4">
               <div>
-                <Label htmlFor="custom-budget" className="text-lg font-caption">Your Budget</Label>
-                <p className="text-white/50 text-sm font-caption mb-3">
-                  Higher budget = Faster delivery (Default: {formatCurrency(PRICING.CUSTOM.MIN_PRICE[currency], currency)})
-                </p>
+                <Label htmlFor="custom-budget" className="text-base mb-2 block">
+                  Your Budget
+                </Label>
                 <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-white/70 font-caption text-lg">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-white/70 font-nunito text-lg">
                     {currency === 'USD' ? '$' : 'Ksh'}
                   </span>
                   <Input
@@ -360,26 +358,39 @@ export function CommissionForm() {
                       setCustomBudget(value);
                       customForm.setValue('budget', value);
                     }}
-                    className="h-14 text-2xl font-bold pl-12"
+                    className="h-14 text-2xl font-bold pl-14 pr-4"
                     placeholder={PRICING.CUSTOM.MIN_PRICE[currency].toString()}
                   />
                 </div>
-                <p className="text-white/40 text-xs font-caption mt-2">
-                  Enter amount between {formatCurrency(PRICING.CUSTOM.MIN_PRICE[currency], currency)} - {formatCurrency(PRICING.CUSTOM.MAX_PRICE[currency], currency)}
+                <div className="mt-2 flex justify-between items-center text-sm font-nunito">
+                  <span className="text-white/50">
+                    Range: {formatCurrency(PRICING.CUSTOM.MIN_PRICE[currency], currency)} - {formatCurrency(PRICING.CUSTOM.MAX_PRICE[currency], currency)}
+                  </span>
+                  <span className="text-white font-bold">
+                    ≈ {deliveryTime} hours delivery
+                  </span>
+                </div>
+              </div>
+
+              {/* Info Guide */}
+              <div className="p-4 rounded-lg bg-white/5 border border-white/10">
+                <p className="text-xs font-nunito text-white/60 mb-3">
+                  💡 <strong className="text-white/80">Pricing Guide:</strong> Higher budget = Faster delivery
                 </p>
+                <div className="space-y-1.5 text-xs font-nunito text-white/50">
+                  <div className="flex justify-between">
+                    <span>{formatCurrency(PRICING.CUSTOM.MIN_PRICE[currency], currency)}</span>
+                    <span>→ {PRICING.CUSTOM.MAX_HOURS} hours (Standard)</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>{formatCurrency(PRICING.CUSTOM.MAX_PRICE[currency], currency)}</span>
+                    <span>→ {PRICING.CUSTOM.MIN_HOURS} hours (Priority)</span>
+                  </div>
+                  <p className="text-white/40 pt-2 italic">
+                    Feel free to choose any amount within the range
+                  </p>
+                </div>
               </div>
-
-              <div className="flex justify-between items-center pt-4 border-t border-white/10">
-                <span className="font-caption text-white/70">Estimated Delivery:</span>
-                <span className="text-2xl font-bold">{deliveryTime} hours</span>
-              </div>
-
-              <div className="text-sm font-caption text-white/50 space-y-1">
-                <p>💡 Pricing Guide:</p>
-                <p>• {formatCurrency(PRICING.CUSTOM.MIN_PRICE[currency], currency)}: {PRICING.CUSTOM.MAX_HOURS} hours delivery</p>
-                <p>• {formatCurrency(PRICING.CUSTOM.MAX_PRICE[currency], currency)}: {PRICING.CUSTOM.MIN_HOURS} hours delivery</p>
-              </div>
-            </div>
             </div>
 
             <Button type="submit" className="w-full h-12 text-lg" size="lg" disabled={isSubmitting}>
