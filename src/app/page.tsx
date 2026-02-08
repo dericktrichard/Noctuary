@@ -16,9 +16,6 @@ export default function HomePage() {
         {/* Hero */}
         <HeroSection />
 
-        {/* How It Works */}
-        <HowItWorks />
-
         {/* Sample Works */}
         <SampleWorks />
 
@@ -44,6 +41,9 @@ export default function HomePage() {
           </div>
         </section>
 
+        {/* How It Works */}
+        <HowItWorks />
+        
         {/* About Section */}
         <section id="about" className="py-24 px-4 bg-white/[0.02]">
           <div className="max-w-4xl mx-auto text-center">
