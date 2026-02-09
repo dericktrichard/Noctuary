@@ -52,26 +52,27 @@ export function Navbar() {
               <Logo size="sm" />
             </a>
 
-            {/* --- FIX START: Added the opening <a> tag below --- */}
+            {/* Desktop Navigation */}
             <div className="hidden md:flex items-center space-x-8">
               {navLinks.map((link) => (
                 <a 
                   key={link.href}
                   href={link.href}
                   onClick={(e) => handleNavClick(e, link.href)}
-                  className="text-white/80 hover:text-white transition-colors duration-200 text-sm tracking-wide"
+                  className="font-nunito text-sm tracking-wide transition-colors duration-200 hover:text-foreground text-muted-foreground"
                 >
                   {link.label}
                 </a>
               ))}
             </div>
-            {/* --- FIX END --- */}
 
+            {/* CTA & Theme Toggle */}
             <div className="hidden md:flex items-center gap-3">
               <ThemeToggle />
               <Button
                 variant="glass"
                 size="default"
+                className="font-nunito"
                 onClick={() => {
                   const element = document.querySelector('#commission');
                   element?.scrollIntoView({ behavior: 'smooth' });
@@ -81,6 +82,7 @@ export function Navbar() {
               </Button>
             </div>
 
+            {/* Mobile Menu Button */}
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               className="md:hidden p-2 rounded-lg glass-card"
@@ -92,6 +94,7 @@ export function Navbar() {
         </div>
       </motion.nav>
 
+      {/* Mobile Menu */}
       <AnimatePresence>
         {isMobileMenuOpen && (
           <motion.div
@@ -102,6 +105,7 @@ export function Navbar() {
             className="fixed inset-y-0 right-0 z-50 w-full sm:w-80 glass-card md:hidden"
           >
             <div className="flex flex-col h-full pt-24 px-6">
+              {/* Mobile Nav Links */}
               <div className="flex flex-col space-y-6">
                 {navLinks.map((link, index) => (
                   <motion.a
@@ -111,13 +115,14 @@ export function Navbar() {
                     initial={{ opacity: 0, x: 50 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.3, delay: index * 0.1 }}
-                    className="text-2xl font-bold text-white/90 hover:text-white transition-colors"
+                    className="text-2xl font-bold transition-colors hover:text-foreground"
                   >
                     {link.label}
                   </motion.a>
                 ))}
               </div>
 
+              {/* Mobile CTA */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -130,7 +135,7 @@ export function Navbar() {
                 <Button
                   variant="default"
                   size="lg"
-                  className="w-full"
+                  className="w-full font-nunito"
                   onClick={() => {
                     const element = document.querySelector('#commission');
                     element?.scrollIntoView({ behavior: 'smooth' });

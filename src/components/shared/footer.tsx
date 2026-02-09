@@ -35,12 +35,12 @@ export function Footer() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="border-t border-white/10 bg-white/[0.02]">
+    <footer className="border-t border-border">
       <div className="max-w-7xl mx-auto px-4 py-16">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-12 mb-12">
           <div>
             <Logo size="md" />
-            <p className="mt-6 text-white/60 leading-relaxed">
+            <p className="mt-6 font-nunito leading-relaxed text-muted-foreground">
               Premium poetry commissions crafted by human hands. Every word written with intention, never by algorithm.
             </p>
             <div className="flex gap-4 mt-6">
@@ -53,12 +53,11 @@ export function Footer() {
                     href={social.href}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-10 h-10 glass-card rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors"
+                    className="w-10 h-10 glass-card rounded-lg flex items-center justify-center glass-hover transition-colors"
                     aria-label={social.label}
                   >
                     <Icon className="w-4 h-4" />
                   </a>
-                  // --- FIX END ---
                 );
               })}
             </div>
@@ -69,7 +68,10 @@ export function Footer() {
             <ul className="space-y-3">
               {footerLinks.company.map((link) => (
                 <li key={link.label}>
-                  <a href={link.href} className="text-white/60 hover:text-white text-sm transition-colors">
+                  <a 
+                    href={link.href} 
+                    className="font-nunito text-sm transition-colors text-muted-foreground hover:text-foreground"
+                  >
                     {link.label}
                   </a>
                 </li>
@@ -82,7 +84,10 @@ export function Footer() {
             <ul className="space-y-3">
               {footerLinks.legal.map((link) => (
                 <li key={link.label}>
-                  <a href={link.href} className="text-white/60 hover:text-white text-sm transition-colors">
+                  <a 
+                    href={link.href} 
+                    className="font-nunito text-sm transition-colors text-muted-foreground hover:text-foreground"
+                  >
                     {link.label}
                   </a>
                 </li>
@@ -95,7 +100,10 @@ export function Footer() {
             <ul className="space-y-3">
               {footerLinks.support.map((link) => (
                 <li key={link.label}>
-                  <a href={link.href} className="text-white/60 hover:text-white text-sm transition-colors">
+                  <a 
+                    href={link.href} 
+                    className="font-nunito text-sm transition-colors text-muted-foreground hover:text-foreground"
+                  >
                     {link.label}
                   </a>
                 </li>
@@ -104,12 +112,12 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="border-t border-white/10 pt-8">
+        <div className="border-t border-border pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-            <p className="text-white/40 text-sm">
+            <p className="font-nunito text-sm text-muted-foreground">
               © {currentYear} Noctuary. All rights reserved. Human Ink, Digital Canvas.
             </p>
-            <p className="text-white/40 text-sm">
+            <p className="font-nunito text-sm text-muted-foreground">
               Made with care for people who value authenticity.
             </p>
           </div>

@@ -118,8 +118,8 @@ export function CommissionForm() {
           whileTap={{ scale: 0.98 }}
           className={`text-left p-8 rounded-2xl transition-all duration-300 ${
             poemType === 'QUICK'
-              ? 'glass-light border-2 border-white/30'
-              : 'glass-card border border-white/10 hover:bg-white/[0.06]'
+              ? 'glass-light border-2 border-border'
+              : 'glass-card border border-border glass-hover'
           }`}
         >
           <div className="flex items-start justify-between mb-4">
@@ -127,20 +127,20 @@ export function CommissionForm() {
               <Zap className="w-6 h-6" />
             </div>
             {poemType === 'QUICK' && (
-              <div className="px-3 py-1 bg-white text-black rounded-full text-xs font-caption font-bold">
+              <div className="px-3 py-1 bg-primary text-primary-foreground rounded-full text-xs font-nunito font-bold">
                 SELECTED
               </div>
             )}
           </div>
           
-          <h3 className="font-serif text-2xl font-bold mb-2">Quick Poem</h3>
-          <p className="text-white/60 font-caption text-sm mb-4">
+          <h3 className="text-2xl font-bold mb-2">Quick Poem</h3>
+          <p className="font-nunito text-sm mb-4 text-muted-foreground">
             A poetic surprise—no details needed
           </p>
           
           <div className="flex items-baseline gap-2">
             <span className="text-3xl font-bold">{formatCurrency(quickPrice, currency)}</span>
-            <span className="text-white/50 font-caption text-sm">• 24h delivery</span>
+            <span className="font-nunito text-sm text-muted-foreground">• 24h delivery</span>
           </div>
         </motion.button>
 
@@ -152,8 +152,8 @@ export function CommissionForm() {
           whileTap={{ scale: 0.98 }}
           className={`text-left p-8 rounded-2xl transition-all duration-300 ${
             poemType === 'CUSTOM'
-              ? 'glass-light border-2 border-white/30'
-              : 'glass-card border border-white/10 hover:bg-white/[0.06]'
+              ? 'glass-light border-2 border-border'
+              : 'glass-card border border-border glass-hover'
           }`}
         >
           <div className="flex items-start justify-between mb-4">
@@ -161,19 +161,19 @@ export function CommissionForm() {
               <Sparkles className="w-6 h-6" />
             </div>
             <div className="flex flex-col items-end gap-1">
-              <div className="px-3 py-1 bg-white/10 rounded-full text-xs font-caption">
+              <div className="px-3 py-1 glass-light rounded-full text-xs font-nunito">
                 POPULAR
               </div>
               {poemType === 'CUSTOM' && (
-                <div className="px-3 py-1 bg-white text-black rounded-full text-xs font-caption font-bold">
+                <div className="px-3 py-1 bg-primary text-primary-foreground rounded-full text-xs font-nunito font-bold">
                   SELECTED
                 </div>
               )}
             </div>
           </div>
           
-          <h3 className="font-serif text-2xl font-bold mb-2">Custom Poem</h3>
-          <p className="text-white/60 font-caption text-sm mb-4">
+          <h3 className="text-2xl font-bold mb-2">Custom Poem</h3>
+          <p className="font-nunito text-sm mb-4 text-muted-foreground">
             Personalized with your vision
           </p>
           
@@ -182,7 +182,7 @@ export function CommissionForm() {
               {formatCurrency(calculatePrice('CUSTOM', currency, 24), currency)} - {formatCurrency(calculatePrice('CUSTOM', currency, 6), currency)}
             </span>
           </div>
-          <p className="text-white/50 font-caption text-sm mt-2">
+          <p className="font-nunito text-sm mt-2 text-muted-foreground">
             6-24h delivery • You choose
           </p>
         </motion.button>
@@ -196,10 +196,10 @@ export function CommissionForm() {
             setCurrency('USD');
             setCustomBudget(PRICING.CUSTOM.MIN_PRICE.USD);
           }}
-          className={`px-6 py-2 rounded-lg font-caption transition-all ${
+          className={`px-6 py-2 rounded-lg font-nunito transition-all ${
             currency === 'USD'
-              ? 'bg-white text-black font-bold'
-              : 'glass-card hover:bg-white/10'
+              ? 'bg-primary text-primary-foreground font-bold'
+              : 'glass-card glass-hover'
           }`}
         >
           USD ($)
@@ -210,10 +210,10 @@ export function CommissionForm() {
             setCurrency('KES');
             setCustomBudget(PRICING.CUSTOM.MIN_PRICE.KES);
           }}
-          className={`px-6 py-2 rounded-lg font-caption transition-all ${
+          className={`px-6 py-2 rounded-lg font-nunito transition-all ${
             currency === 'KES'
-              ? 'bg-white text-black font-bold'
-              : 'glass-card hover:bg-white/10'
+              ? 'bg-primary text-primary-foreground font-bold'
+              : 'glass-card glass-hover'
           }`}
         >
           KES (Ksh)
@@ -226,8 +226,8 @@ export function CommissionForm() {
           /* QUICK POEM FORM */
           <form onSubmit={quickForm.handleSubmit(handleQuickSubmit)} className="space-y-6">
             <div>
-              <Label htmlFor="quick-email" className="text-lg font-caption">Email Address</Label>
-              <p className="text-white/50 text-sm font-caption mb-3">
+              <Label htmlFor="quick-email" className="text-lg font-nunito">Email Address</Label>
+              <p className="font-nunito text-sm mb-3 text-muted-foreground">
                 We'll send your poetic surprise here
               </p>
               <Input
@@ -238,7 +238,7 @@ export function CommissionForm() {
                 {...quickForm.register('email')}
               />
               {quickForm.formState.errors.email && (
-                <p className="text-red-400 text-sm mt-2 font-caption">
+                <p className="text-destructive text-sm mt-2 font-nunito">
                   {quickForm.formState.errors.email.message}
                 </p>
               )}
@@ -246,20 +246,20 @@ export function CommissionForm() {
 
             <div className="glass-light rounded-xl p-6 space-y-3">
               <div className="flex justify-between items-center">
-                <span className="font-caption text-white/70">Total Price:</span>
+                <span className="font-nunito text-muted-foreground">Total Price:</span>
                 <span className="text-3xl font-bold">{formatCurrency(quickPrice, currency)}</span>
               </div>
               <div className="flex justify-between items-center text-sm">
-                <span className="font-caption text-white/50">Delivery:</span>
-                <span className="font-caption text-white/70">Within 24 hours</span>
+                <span className="font-nunito text-muted-foreground">Delivery:</span>
+                <span className="font-nunito">Within 24 hours</span>
               </div>
             </div>
 
-            <Button type="submit" className="w-full h-12 text-lg" size="lg" disabled={isSubmitting}>
+            <Button type="submit" className="w-full h-12 text-lg font-nunito" size="lg" disabled={isSubmitting}>
               {isSubmitting ? 'Processing...' : 'Proceed to Payment'}
             </Button>
 
-            <p className="text-center text-white/40 text-sm font-caption">
+            <p className="text-center text-muted-foreground text-sm font-nunito">
               Your poem will be a delightful surprise—no topic needed!
             </p>
           </form>
@@ -267,7 +267,7 @@ export function CommissionForm() {
           /* CUSTOM POEM FORM */
           <form onSubmit={customForm.handleSubmit(handleCustomSubmit)} className="space-y-6">
             <div>
-              <Label htmlFor="custom-email" className="text-lg font-caption">Email Address</Label>
+              <Label htmlFor="custom-email" className="text-lg font-nunito">Email Address</Label>
               <Input
                 id="custom-email"
                 type="email"
@@ -276,7 +276,7 @@ export function CommissionForm() {
                 {...customForm.register('email')}
               />
               {customForm.formState.errors.email && (
-                <p className="text-red-400 text-sm mt-2 font-caption">
+                <p className="text-destructive text-sm mt-2 font-nunito">
                   {customForm.formState.errors.email.message}
                 </p>
               )}
@@ -284,7 +284,7 @@ export function CommissionForm() {
 
             <div className="grid md:grid-cols-2 gap-6">
               <div>
-                <Label htmlFor="custom-title" className="text-lg font-caption">Poem Title</Label>
+                <Label htmlFor="custom-title" className="text-lg font-nunito">Poem Title</Label>
                 <Input
                   id="custom-title"
                   placeholder="e.g., Eternal Sunshine"
@@ -293,14 +293,14 @@ export function CommissionForm() {
                   {...customForm.register('title')}
                 />
                 {customForm.formState.errors.title && (
-                  <p className="text-red-400 text-sm mt-2 font-caption">
+                  <p className="text-destructive text-sm mt-2 font-nunito">
                     {customForm.formState.errors.title.message}
                   </p>
                 )}
               </div>
 
               <div>
-                <Label htmlFor="custom-mood" className="text-lg font-caption">Mood</Label>
+                <Label htmlFor="custom-mood" className="text-lg font-nunito">Mood</Label>
                 <Select
                   onValueChange={(value) => customForm.setValue('mood', value)}
                   defaultValue={customForm.watch('mood')}
@@ -317,7 +317,7 @@ export function CommissionForm() {
                   </SelectContent>
                 </Select>
                 {customForm.formState.errors.mood && (
-                  <p className="text-red-400 text-sm mt-2 font-caption">
+                  <p className="text-destructive text-sm mt-2 font-nunito">
                     {customForm.formState.errors.mood.message}
                   </p>
                 )}
@@ -325,8 +325,8 @@ export function CommissionForm() {
             </div>
 
             <div>
-              <Label htmlFor="custom-instructions" className="text-lg font-caption">
-                Special Instructions <span className="text-white/50 text-sm">(Optional)</span>
+              <Label htmlFor="custom-instructions" className="text-lg font-nunito">
+                Special Instructions <span className="text-muted-foreground text-sm">(Optional)</span>
               </Label>
               <Textarea
                 id="custom-instructions"
@@ -339,11 +339,11 @@ export function CommissionForm() {
 
             <div className="space-y-4">
               <div>
-                <Label htmlFor="custom-budget" className="text-base mb-2 block">
+                <Label htmlFor="custom-budget" className="text-base mb-2 block font-nunito">
                   Your Budget
                 </Label>
                 <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-white/70 font-nunito text-lg">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground font-nunito text-lg">
                     {currency === 'USD' ? '$' : 'Ksh'}
                   </span>
                   <Input
@@ -363,21 +363,21 @@ export function CommissionForm() {
                   />
                 </div>
                 <div className="mt-2 flex justify-between items-center text-sm font-nunito">
-                  <span className="text-white/50">
+                  <span className="text-muted-foreground">
                     Range: {formatCurrency(PRICING.CUSTOM.MIN_PRICE[currency], currency)} - {formatCurrency(PRICING.CUSTOM.MAX_PRICE[currency], currency)}
                   </span>
-                  <span className="text-white font-bold">
+                  <span className="font-bold">
                     ≈ {deliveryTime} hours delivery
                   </span>
                 </div>
               </div>
 
               {/* Info Guide */}
-              <div className="p-4 rounded-lg bg-white/5 border border-white/10">
-                <p className="text-xs font-nunito text-white/60 mb-3">
-                  💡 <strong className="text-white/80">Pricing Guide:</strong> Higher budget = Faster delivery
+              <div className="p-4 rounded-lg glass-light border border-border">
+                <p className="text-xs font-nunito text-muted-foreground mb-3">
+                  💡 <strong className="text-foreground">Pricing Guide:</strong> Higher budget = Faster delivery
                 </p>
-                <div className="space-y-1.5 text-xs font-nunito text-white/50">
+                <div className="space-y-1.5 text-xs font-nunito text-muted-foreground">
                   <div className="flex justify-between">
                     <span>{formatCurrency(PRICING.CUSTOM.MIN_PRICE[currency], currency)}</span>
                     <span>→ {PRICING.CUSTOM.MAX_HOURS} hours (Standard)</span>
@@ -386,14 +386,14 @@ export function CommissionForm() {
                     <span>{formatCurrency(PRICING.CUSTOM.MAX_PRICE[currency], currency)}</span>
                     <span>→ {PRICING.CUSTOM.MIN_HOURS} hours (Priority)</span>
                   </div>
-                  <p className="text-white/40 pt-2 italic">
+                  <p className="pt-2 italic opacity-80">
                     Feel free to choose any amount within the range
                   </p>
                 </div>
               </div>
             </div>
 
-            <Button type="submit" className="w-full h-12 text-lg" size="lg" disabled={isSubmitting}>
+            <Button type="submit" className="w-full h-12 text-lg font-nunito" size="lg" disabled={isSubmitting}>
               {isSubmitting ? 'Processing...' : 'Proceed to Payment'}
             </Button>
           </form>
