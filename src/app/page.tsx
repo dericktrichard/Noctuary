@@ -50,9 +50,9 @@ export default function HomePage() {
             <h2 className="text-4xl md:text-5xl font-bold mb-8">
               This is Noctuary
             </h2>
-            <div className="space-y-6 font-nunito text-lg leading-relaxed text-muted-foreground">
+            <div className="space-y-6 font-philosopher text-lg leading-relaxed text-muted-foreground">
               <p>
-                Noctuary was born from a simple belief: that the soul matters, and that the human 
+                Noctuary was born from a simple belief : that the soul matters, and that the human 
                 touch in writing creates connections that AI never can.
               </p>
               <p>
@@ -62,7 +62,7 @@ export default function HomePage() {
                 what makes each piece unique.
               </p>
               <p className="font-bold text-foreground">
-                I don't just want to write poems. But craft connections.
+                I don't just want to write poems. But craft an essense.
               </p>
             </div>
           </div>
