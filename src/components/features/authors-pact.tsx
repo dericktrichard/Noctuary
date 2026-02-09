@@ -31,10 +31,11 @@ export function AuthorsPact() {
   return (
     <section id="pact" className="py-24 px-4 relative overflow-hidden">
       {/* Subtle Background Pattern */}
-      <div className="absolute inset-0 opacity-5">
-        <div className="absolute inset-0" 
+      <div className="absolute inset-0 opacity-5 dark:opacity-5 light:opacity-[0.02]">
+        <div 
+          className="absolute inset-0" 
           style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
           }} 
         />
       </div>
@@ -48,10 +49,10 @@ export function AuthorsPact() {
           transition={{ duration: 0.6 }}
           className="text-center mb-16"
         >
-          <h2 className="font-serif text-4xl md:text-5xl font-bold mb-4">
+          <h2 className="text-4xl md:text-5xl font-bold mb-4">
             The Author&apos;s Pact
           </h2>
-          <p className="text-white/60 font-caption text-lg max-w-2xl mx-auto">
+          <p className="font-nunito text-lg max-w-2xl mx-auto text-muted-foreground">
             Trying to preserve human honesty in each piece.
           </p>
         </motion.div>
@@ -75,16 +76,16 @@ export function AuthorsPact() {
                   viewport={{ once: true }}
                   transition={{ duration: 0.6, delay: index * 0.1 }}
                 >
-                  <GlassCard className="p-6 h-full hover:bg-white/[0.08] transition-all duration-300">
+                  <GlassCard className="p-6 h-full glass-hover">
                     <div className="mb-4">
                       <div className="w-12 h-12 glass-light rounded-xl flex items-center justify-center">
                         <Icon className="w-6 h-6" strokeWidth={1.5} />
                       </div>
                     </div>
-                    <h3 className="font-serif text-xl font-bold mb-2">
+                    <h3 className="text-xl font-bold mb-2">
                       {item.title}
                     </h3>
-                    <p className="text-white/70 font-caption text-sm leading-relaxed">
+                    <p className="font-nunito text-sm leading-relaxed text-muted-foreground">
                       {item.description}
                     </p>
                   </GlassCard>
@@ -101,14 +102,14 @@ export function AuthorsPact() {
             transition={{ duration: 0.6, delay: 0.2 }}
           >
             <GlassCard className="p-8 lg:p-10">
-              <div className="space-y-6 text-white/80 font-caption leading-relaxed">
+              <div className="space-y-6 font-nunito leading-relaxed text-muted-foreground">
                 <p className="text-lg">
                   In an age where artificial intelligence can generate text in milliseconds, 
-                  <strong className="text-white"> we choose a different - older path.</strong>
+                  <strong className="text-foreground"> we choose a different - older path.</strong>
                 </p>
                 
-                <div className="glass-light rounded-xl p-3 border border-white/10">
-                  <p className="font-serif text-xl text-white">
+                <div className="glass-light rounded-xl p-6 border border-border">
+                  <p className="text-xl font-bold">
                     This is my guarantee | Just honest human writing.
                   </p>
                 </div>
@@ -120,7 +121,7 @@ export function AuthorsPact() {
                   the vulnerability of expression, in the deliberate craft that is flawed and perfect. 
                 </p>
 
-                <p className="text-white font-semibold">
+                <p className="font-bold text-foreground">
                   This is my promise. This is Noctuary.
                 </p>
               </div>
