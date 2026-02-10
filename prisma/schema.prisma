@@ -1,14 +1,103 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// Enums
+enum PoemType {
+  QUICK
+  CUSTOM
+}
+
+enum OrderStatus {
+  PENDING    // Payment not completed
+  PAID       // Payment confirmed, awaiting writing
+  WRITING    // Poet is working on it
+  DELIVERED  // Poem sent to customer
+  CANCELLED  // Order cancelled
+}
+
+enum Currency {
+  USD
+  KES
+}
+
+enum PaymentProvider {
+  PAYPAL
+  PAYSTACK
+}
+
+// Main Order Model
+model Order {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Customer Info
+  email String
+
+  // Order Details
+  type         PoemType
+  status       OrderStatus @default(PENDING)
+  
+  // Poem Details (CUSTOM only)
+  title        String?
+  mood         String?
+  instructions String? @db.Text
+  
+  // Pricing
+  pricePaid      Decimal  @db.Decimal(10, 2)
+  currency       Currency
+  deliveryHours  Int      // Expected delivery time
+  
+  // Payment Info
+  paymentProvider PaymentProvider?
+  paymentId       String?          // PayPal Order ID or Paystack reference
+  paymentStatus   String?          // Payment gateway status
+  paidAt          DateTime?
+
+  // Delivery
+  poemContent  String?   @db.Text
+  deliveredAt  DateTime?
+
+  // Magic Link (for order tracking)
+  accessToken  String    @unique @default(uuid())
+
+  @@index([email])
+  @@index([status])
+  @@index([createdAt])
+  @@index([accessToken])
+}
+
+// Sample Works (Managed by Admin)
+model SampleWork {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  title     String
+  content   String   @db.Text
+  mood      String
+  imageUrl  String?  // Supabase Storage URL
+  isVisible Boolean  @default(true)
+
+  @@index([isVisible])
+}
+
+// Admin Users
+model Admin {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  email        String   @unique
+  passwordHash String   // Hashed with bcrypt
+  name         String
+
+  @@index([email])
 }
