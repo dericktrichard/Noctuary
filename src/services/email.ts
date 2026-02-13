@@ -1,144 +1,129 @@
 import 'server-only';
 import { Resend } from 'resend';
-import { generateMagicLink } from '@/lib/magic-link';
-import { formatCurrency, formatDate } from '@/lib/utils';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
-const fromEmail = process.env.RESEND_FROM_EMAIL || 'Noctuary <orders@noctuary.com>';
+
+const FROM_EMAIL = 'onboarding@resend.dev';
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 
 /**
- * Send order confirmation email with magic link
+ * Send order confirmation email
  */
 export async function sendOrderConfirmation(
-  orderId: string,
   email: string,
-  orderDetails: {
-    type: string;
-    price: number;
-    currency: string;
+  orderData: {
+    orderId: string;
+    accessToken: string;
+    type: 'QUICK' | 'CUSTOM';
     deliveryHours: number;
-  },
-  isFirstTimer: boolean
+    isFirstTime: boolean;
+  }
 ) {
-  const magicLink = generateMagicLink(orderId, email);
-  const deliveryDate = new Date();
-  deliveryDate.setHours(deliveryDate.getHours() + orderDetails.deliveryHours);
+  const trackingUrl = `${APP_URL}/order/${orderData.accessToken}`;
+  
+  const subject = orderData.type === 'QUICK' 
+    ? 'Your Quick Poem Commission - Order Received'
+    : 'Your Custom Poem Commission - Order Received';
 
   const html = `
     <!DOCTYPE html>
     <html>
       <head>
-        <meta charset="utf-8">
         <style>
-          body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            line-height: 1.6;
-            color: #333;
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 20px;
-          }
-          .header {
-            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
-            color: white;
-            padding: 30px;
-            text-align: center;
-            border-radius: 8px 8px 0 0;
-          }
-          .content {
-            background: #f9f9f9;
-            padding: 30px;
-            border-radius: 0 0 8px 8px;
-          }
-          .button {
-            display: inline-block;
-            padding: 12px 30px;
-            background: #0a0a0a;
-            color: white;
-            text-decoration: none;
-            border-radius: 6px;
+          body { font-family: 'Georgia', serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { text-align: center; padding: 30px 0; border-bottom: 2px solid #f0f0f0; }
+          .content { padding: 30px 0; }
+          .button { 
+            display: inline-block; 
+            padding: 12px 30px; 
+            background: #000; 
+            color: #fff !important; 
+            text-decoration: none; 
+            border-radius: 5px;
             margin: 20px 0;
           }
-          .details {
-            background: white;
-            padding: 20px;
-            border-radius: 6px;
-            margin: 20px 0;
-          }
-          .bonus {
-            background: #fff3cd;
-            border: 1px solid #ffc107;
-            padding: 15px;
-            border-radius: 6px;
-            margin: 20px 0;
-          }
-          .footer {
-            text-align: center;
-            margin-top: 30px;
+          .footer { 
+            text-align: center; 
+            padding: 20px 0; 
+            border-top: 2px solid #f0f0f0; 
             color: #666;
-            font-size: 12px;
+            font-size: 14px;
+          }
+          .highlight { 
+            background: #f8f8f8; 
+            padding: 15px; 
+            border-left: 4px solid #000; 
+            margin: 20px 0;
           }
         </style>
       </head>
       <body>
-        <div class="header">
-          <h1>✍️ Order Confirmed</h1>
-          <p>Your poetry commission has been received</p>
-        </div>
-        
-        <div class="content">
-          <p>Thank you for commissioning a poem from Noctuary. Your order is being prepared by our poet.</p>
-          
-          ${isFirstTimer ? `
-            <div class="bonus">
-              <strong>🎉 Welcome Bonus!</strong>
-              <p>As a first-time commissioner, you're part of something special. Every word is crafted by human hands, never by algorithms.</p>
-            </div>
-          ` : ''}
-          
-          <div class="details">
-            <h3>Order Details</h3>
-            <p><strong>Order ID:</strong> ${orderId}</p>
-            <p><strong>Type:</strong> ${orderDetails.type === 'QUICK' ? 'Quick Poem' : 'Custom Poem'}</p>
-            <p><strong>Amount Paid:</strong> ${formatCurrency(orderDetails.price, orderDetails.currency as 'USD' | 'KES')}</p>
-            <p><strong>Expected Delivery:</strong> ${formatDate(deliveryDate)}</p>
+        <div class="container">
+          <div class="header">
+            <h1 style="margin: 0; font-size: 32px; letter-spacing: 2px;">NOCTUARY</h1>
+            <p style="margin: 10px 0 0 0; color: #666;">Human Ink, Digital Canvas</p>
           </div>
           
-          <p><strong>Track your order:</strong></p>
-          <a href="${magicLink}" class="button">View Order Status</a>
+          <div class="content">
+            <h2>Thank you for your commission! 🖋️</h2>
+            
+            <p>Your ${orderData.type === 'QUICK' ? 'quick poem' : 'custom poem'} order has been received and will be crafted with care by a human poet.</p>
+            
+            <div class="highlight">
+              <strong>Expected Delivery:</strong> Within ${orderData.deliveryHours} hours<br>
+              <strong>Order ID:</strong> ${orderData.orderId}
+            </div>
+            
+            ${orderData.isFirstTime ? `
+              <div style="background: #fffbeb; padding: 15px; border-left: 4px solid #f59e0b; margin: 20px 0;">
+                <strong>🎉 First Commission Bonus!</strong><br>
+                Thank you for trusting us with your first poetry commission. We're honored to craft words for you.
+              </div>
+            ` : ''}
+            
+            <p>You can track your order status anytime using the link below:</p>
+            
+            <div style="text-align: center;">
+              <a href="${trackingUrl}" class="button">Track Your Order</a>
+            </div>
+            
+            <p style="margin-top: 30px;">
+              <strong>What happens next?</strong><br>
+              Our poet will begin working on your piece. You'll receive an email as soon as your poem is ready.
+            </p>
+            
+            <p style="font-style: italic; color: #666;">
+              "Words are but the shadow of the heart's true ink."
+            </p>
+          </div>
           
-          <p style="font-size: 14px; color: #666;">
-            This link is valid for 7 days. Save it to check your order status and receive your poem when it's ready.
-          </p>
-          
-          <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
-          
-          <p><strong>The Noctuary Promise:</strong></p>
-          <p style="font-size: 14px;">
-            Every poem is written by a human poet. No AI. No templates. Just authentic emotional expression crafted specifically for you.
-          </p>
-        </div>
-        
-        <div class="footer">
-          <p>© ${new Date().getFullYear()} Noctuary. Human Ink, Digital Canvas.</p>
-          <p>Questions? Reply to this email.</p>
+          <div class="footer">
+            <p>© ${new Date().getFullYear()} Noctuary. All rights reserved.</p>
+            <p>Questions? Reply to this email or visit our website.</p>
+          </div>
         </div>
       </body>
     </html>
   `;
 
   try {
-    await resend.emails.send({
-      from: fromEmail,
+    const { data, error } = await resend.emails.send({
+      from: FROM_EMAIL,
       to: email,
-      subject: `Order Confirmed - Your Poem is Being Written ✍️`,
+      subject,
       html,
     });
 
-    return { success: true };
+    if (error) {
+      console.error('Email send error:', error);
+      throw new Error('Failed to send confirmation email');
+    }
+
+    return data;
   } catch (error) {
-    console.error('Failed to send order confirmation:', error);
-    return { success: false, error };
+    console.error('Email service error:', error);
+    throw error;
   }
 }
 
@@ -146,176 +131,152 @@ export async function sendOrderConfirmation(
  * Send poem delivery email
  */
 export async function sendPoemDelivery(
-  orderId: string,
   email: string,
-  poemContent: string
+  orderData: {
+    orderId: string;
+    accessToken: string;
+    title?: string;
+    poemContent: string;
+  }
 ) {
-  const magicLink = generateMagicLink(orderId, email);
-
+  const viewUrl = `${APP_URL}/order/${orderData.accessToken}`;
+  
   const html = `
     <!DOCTYPE html>
     <html>
       <head>
-        <meta charset="utf-8">
         <style>
-          body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            line-height: 1.6;
-            color: #333;
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 20px;
-          }
-          .header {
-            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
-            color: white;
-            padding: 30px;
-            text-align: center;
-            border-radius: 8px 8px 0 0;
-          }
-          .content {
-            background: #f9f9f9;
-            padding: 30px;
-            border-radius: 0 0 8px 8px;
-          }
-          .poem {
-            background: white;
-            padding: 30px;
-            border-left: 4px solid #0a0a0a;
-            margin: 20px 0;
-            font-family: 'Georgia', serif;
-            font-size: 16px;
-            line-height: 1.8;
+          body { font-family: 'Georgia', serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { text-align: center; padding: 30px 0; border-bottom: 2px solid #f0f0f0; }
+          .content { padding: 30px 0; }
+          .poem { 
+            background: #f8f8f8; 
+            padding: 30px; 
+            margin: 30px 0;
+            border-left: 4px solid #000;
             white-space: pre-wrap;
+            font-family: 'Georgia', serif;
+            line-height: 1.8;
           }
-          .button {
-            display: inline-block;
-            padding: 12px 30px;
-            background: #0a0a0a;
-            color: white;
-            text-decoration: none;
-            border-radius: 6px;
+          .button { 
+            display: inline-block; 
+            padding: 12px 30px; 
+            background: #000; 
+            color: #fff !important; 
+            text-decoration: none; 
+            border-radius: 5px;
             margin: 20px 0;
           }
-          .rights {
-            background: #e8f5e9;
-            border: 1px solid #4caf50;
-            padding: 15px;
-            border-radius: 6px;
-            margin: 20px 0;
-            font-size: 14px;
-          }
-          .footer {
-            text-align: center;
-            margin-top: 30px;
+          .footer { 
+            text-align: center; 
+            padding: 20px 0; 
+            border-top: 2px solid #f0f0f0; 
             color: #666;
-            font-size: 12px;
+            font-size: 14px;
           }
         </style>
       </head>
       <body>
-        <div class="header">
-          <h1>📜 Your Poem is Ready</h1>
-          <p>Crafted with care, just for you</p>
-        </div>
-        
-        <div class="content">
-          <p>Your commissioned poem has been completed. Thank you for entrusting us with your words.</p>
+        <div class="container">
+          <div class="header">
+            <h1 style="margin: 0; font-size: 32px; letter-spacing: 2px;">NOCTUARY</h1>
+            <p style="margin: 10px 0 0 0; color: #666;">Human Ink, Digital Canvas</p>
+          </div>
           
-          <div class="poem">${poemContent}</div>
-          
-          <div class="rights">
-            <strong>✓ Full Copyright Transfer</strong>
-            <p style="margin: 10px 0 0 0;">
-              This poem is now yours. You own all rights to use, modify, publish, or share it as you wish. No attribution required.
+          <div class="content">
+            <h2>Your poem is ready! ✨</h2>
+            
+            ${orderData.title ? `<h3 style="font-style: italic; color: #666;">"${orderData.title}"</h3>` : ''}
+            
+            <p>We're delighted to present your commissioned poem, crafted with care and intention:</p>
+            
+            <div class="poem">
+${orderData.poemContent}
+            </div>
+            
+            <div style="background: #fffbeb; padding: 15px; border-left: 4px solid #f59e0b; margin: 20px 0;">
+              <strong>📜 Copyright Notice</strong><br>
+              Full copyright of this poem has been transferred to you. You may use it however you wish.
+            </div>
+            
+            <p>You can view and download your poem anytime:</p>
+            
+            <div style="text-align: center;">
+              <a href="${viewUrl}" class="button">View Your Poem</a>
+            </div>
+            
+            <p style="margin-top: 30px;">
+              Thank you for commissioning with Noctuary. We hope these words bring meaning to your life.
+            </p>
+            
+            <p style="font-style: italic; color: #666; text-align: center;">
+              — With gratitude, your poet
             </p>
           </div>
           
-          <p>You can always access your poem at:</p>
-          <a href="${magicLink}" class="button">View Your Poem</a>
-          
-          <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
-          
-          <p style="font-size: 14px; color: #666;">
-            We hope these words bring you joy. If you ever need another poem, we'd be honored to write for you again.
-          </p>
-          
-          <p style="font-size: 14px; color: #666;">
-            <strong>Order ID:</strong> ${orderId}
-          </p>
-        </div>
-        
-        <div class="footer">
-          <p>© ${new Date().getFullYear()} Noctuary. Human Ink, Digital Canvas.</p>
-          <p>Questions? Reply to this email.</p>
+          <div class="footer">
+            <p>© ${new Date().getFullYear()} Noctuary. All rights reserved.</p>
+            <p>We'd love to hear your thoughts. Reply to share your feedback!</p>
+          </div>
         </div>
       </body>
     </html>
   `;
 
   try {
-    await resend.emails.send({
-      from: fromEmail,
+    const { data, error } = await resend.emails.send({
+      from: FROM_EMAIL,
       to: email,
-      subject: `✨ Your Poem Has Arrived`,
+      subject: orderData.title 
+        ? `Your Poem "${orderData.title}" Has Been Delivered`
+        : 'Your Poem Has Been Delivered',
       html,
     });
 
-    return { success: true };
+    if (error) {
+      console.error('Email send error:', error);
+      throw new Error('Failed to send delivery email');
+    }
+
+    return data;
   } catch (error) {
-    console.error('Failed to send poem delivery:', error);
-    return { success: false, error };
+    console.error('Email service error:', error);
+    throw error;
   }
 }
 
 /**
- * Send admin notification for new order
+ * Send payment confirmation email
  */
-export async function sendAdminNotification(
-  orderId: string,
-  orderDetails: {
-    type: string;
-    email: string;
-    price: number;
+export async function sendPaymentConfirmation(
+  email: string,
+  orderData: {
+    orderId: string;
+    amount: number;
     currency: string;
-    urgency: number;
   }
 ) {
-  const adminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL;
-  
-  if (!adminEmail) {
-    console.warn('NEXT_PUBLIC_ADMIN_EMAIL not set, skipping admin notification');
-    return { success: false };
-  }
-
-  const dashboardUrl = `${process.env.NEXT_PUBLIC_APP_URL}/admin`;
-
   const html = `
     <!DOCTYPE html>
     <html>
-      <body style="font-family: sans-serif; padding: 20px;">
-        <h2>🔔 New Order Received</h2>
-        <p><strong>Order ID:</strong> ${orderId}</p>
-        <p><strong>Type:</strong> ${orderDetails.type}</p>
-        <p><strong>Email:</strong> ${orderDetails.email}</p>
-        <p><strong>Price:</strong> ${formatCurrency(orderDetails.price, orderDetails.currency as 'USD' | 'KES')}</p>
-        <p><strong>Urgency:</strong> ${orderDetails.urgency} hours</p>
-        <p><a href="${dashboardUrl}">Go to Dashboard</a></p>
+      <body style="font-family: Georgia, serif; padding: 20px;">
+        <h2>Payment Confirmed</h2>
+        <p>Your payment of ${orderData.currency} ${orderData.amount.toFixed(2)} has been received.</p>
+        <p>Order ID: ${orderData.orderId}</p>
+        <p>Our poet will begin working on your commission shortly.</p>
       </body>
     </html>
   `;
 
   try {
     await resend.emails.send({
-      from: fromEmail,
-      to: adminEmail,
-      subject: `New ${orderDetails.type} Order - ${orderId}`,
+      from: FROM_EMAIL,
+      to: email,
+      subject: 'Payment Confirmed - Noctuary',
       html,
     });
-
-    return { success: true };
   } catch (error) {
-    console.error('Failed to send admin notification:', error);
-    return { success: false, error };
+    console.error('Payment confirmation email error:', error);
   }
 }
