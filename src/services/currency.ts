@@ -29,3 +29,28 @@ export async function convertUSDToKES(usd: number): Promise<number> {
   const rate = await fetchExchangeRate();
   return Math.round(usd * rate);
 }
+
+/**
+ * Get pricing with current exchange rates
+ */
+export async function getPricingWithLiveRates() {
+  const rate = await fetchExchangeRate();
+  
+  return {
+    exchangeRate: rate,
+    quick: {
+      USD: 0.99,
+      KES: Math.round(0.99 * rate),
+    },
+    custom: {
+      min: {
+        USD: 1.99,
+        KES: Math.round(1.99 * rate),
+      },
+      max: {
+        USD: 4.99,
+        KES: Math.round(4.99 * rate),
+      },
+    },
+  };
+}
