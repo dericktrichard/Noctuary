@@ -83,6 +83,29 @@ export async function createOrderAction(input: OrderInput) {
 }
 
 /**
+ * Create PayPal order (server-side)
+ */
+export async function createPayPalOrderAction(orderId: string, amount: number) {
+  try {
+    const { createPayPalOrder } = await import('@/services/paypal');
+    
+    const paypalOrder = await createPayPalOrder(amount, 'USD');
+
+    return {
+      success: true,
+      paypalOrderId: paypalOrder.id,
+      orderId,
+    };
+  } catch (error) {
+    console.error('PayPal order creation error:', error);
+    return {
+      success: false,
+      error: 'Failed to create PayPal order. Please try again.',
+    };
+  }
+}
+
+/**
  * Verify PayPal payment and update order
  */
 export async function verifyPayPalPaymentAction(orderId: string, paypalOrderId: string) {

@@ -20,7 +20,7 @@ import { z } from 'zod';
 import { formatCurrency } from '@/lib/utils';
 import { Zap, Sparkles } from 'lucide-react';
 import { calculatePrice, calculateDeliveryHoursFromBudget, PRICING } from '@/lib/pricing';
-import { createOrderAction, initializePaystackPaymentAction } from '@/app/actions/orders';
+import { createOrderAction, initializePaystackPaymentAction, createPayPalOrderAction } from '@/app/actions/orders';
 
 type PoemType = 'QUICK' | 'CUSTOM';
 
@@ -93,35 +93,28 @@ export function CommissionForm() {
     },
   });
 
-  // PayPal payment handler
+  // PayPal payment handler (server-side)
   const initiatePayPalPayment = async (orderId: string, amount: number) => {
-    const paypal = (window as any).paypal;
-    
-    if (!paypal) {
-      alert('PayPal is loading. Please try again in a moment.');
-      setIsSubmitting(false);
-      return;
-    }
-
     try {
-      // Create PayPal order
-      const order = await paypal.Orders.create({
-        purchase_units: [{
-          amount: {
-            value: amount.toFixed(2),
-          },
-        }],
-      });
-
-      // Get approval URL
-      const approvalUrl = order.links?.find((link: any) => link.rel === 'approve')?.href;
+      // Create PayPal order on server
+      const result = await createPayPalOrderAction(orderId, amount);
       
-      if (approvalUrl) {
-        // Redirect to PayPal with order ID
-        window.location.href = `${approvalUrl}&orderId=${orderId}`;
-      } else {
-        throw new Error('No approval URL found');
+      if (!result.success || !result.paypalOrderId) {
+        alert(result.error || 'Failed to create PayPal order');
+        setIsSubmitting(false);
+        return;
       }
+
+      // Redirect to PayPal for approval
+      const approveUrl = `https://www.${process.env.NEXT_PUBLIC_PAYPAL_MODE === 'live' ? '' : 'sandbox.'}paypal.com/checkoutnow?token=${result.paypalOrderId}`;
+      
+      // Store order ID in session storage for later verification
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('noctuaryOrderId', orderId);
+        sessionStorage.setItem('noctuaryPaypalOrderId', result.paypalOrderId);
+      }
+
+      window.location.href = approveUrl;
     } catch (error) {
       console.error('PayPal error:', error);
       alert('Failed to initialize PayPal. Please try again.');
