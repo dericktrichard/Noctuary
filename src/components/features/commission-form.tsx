@@ -20,6 +20,7 @@ import { z } from 'zod';
 import { formatCurrency } from '@/lib/utils';
 import { Zap, Sparkles } from 'lucide-react';
 import { calculatePrice, calculateDeliveryHoursFromBudget, PRICING } from '@/lib/pricing';
+import { createOrderAction, initializePaystackPaymentAction } from '@/app/actions/orders';
 
 type PoemType = 'QUICK' | 'CUSTOM';
 
@@ -92,18 +93,124 @@ export function CommissionForm() {
     },
   });
 
+  // PayPal payment handler
+  const initiatePayPalPayment = async (orderId: string, amount: number) => {
+    const paypal = (window as any).paypal;
+    
+    if (!paypal) {
+      alert('PayPal is loading. Please try again in a moment.');
+      setIsSubmitting(false);
+      return;
+    }
+
+    try {
+      // Create PayPal order
+      const order = await paypal.Orders.create({
+        purchase_units: [{
+          amount: {
+            value: amount.toFixed(2),
+          },
+        }],
+      });
+
+      // Get approval URL
+      const approvalUrl = order.links?.find((link: any) => link.rel === 'approve')?.href;
+      
+      if (approvalUrl) {
+        // Redirect to PayPal with order ID
+        window.location.href = `${approvalUrl}&orderId=${orderId}`;
+      } else {
+        throw new Error('No approval URL found');
+      }
+    } catch (error) {
+      console.error('PayPal error:', error);
+      alert('Failed to initialize PayPal. Please try again.');
+      setIsSubmitting(false);
+    }
+  };
+
+  // Paystack payment handler
+  const initiatePaystackPayment = async (orderId: string, email: string, amount: number) => {
+    try {
+      const result = await initializePaystackPaymentAction(orderId, email, amount);
+      
+      if (!result.success || !result.authorizationUrl) {
+        alert(result.error || 'Failed to initialize payment');
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Redirect to Paystack payment page with order ID
+      window.location.href = `${result.authorizationUrl}&orderId=${orderId}`;
+    } catch (error) {
+      console.error('Paystack initialization error:', error);
+      alert('Failed to initialize payment. Please try again.');
+      setIsSubmitting(false);
+    }
+  };
+
   const handleQuickSubmit = async (data: QuickPoemForm) => {
     setIsSubmitting(true);
-    console.log('Quick Poem Submission:', data);
-    alert('Quick poem commissioned! Payment integration coming soon.');
-    setIsSubmitting(false);
+    
+    try {
+      // Create order
+      const result = await createOrderAction({
+        type: 'QUICK',
+        email: data.email,
+        currency,
+      });
+
+      if (!result.success || !result.orderId) {
+        alert(result.error || 'Failed to create order');
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Initialize payment based on currency
+      if (currency === 'USD') {
+        await initiatePayPalPayment(result.orderId, result.amount);
+      } else {
+        await initiatePaystackPayment(result.orderId, data.email, result.amount);
+      }
+    } catch (error) {
+      console.error('Submission error:', error);
+      alert('Something went wrong. Please try again.');
+      setIsSubmitting(false);
+    }
   };
 
   const handleCustomSubmit = async (data: CustomPoemForm) => {
     setIsSubmitting(true);
-    console.log('Custom Poem Submission:', { ...data, deliveryTime });
-    alert('Custom poem commissioned! Payment integration coming soon.');
-    setIsSubmitting(false);
+    
+    try {
+      // Create order
+      const result = await createOrderAction({
+        type: 'CUSTOM',
+        email: data.email,
+        title: data.title,
+        mood: data.mood,
+        instructions: data.instructions,
+        budget: customBudget,
+        currency,
+      });
+
+      if (!result.success || !result.orderId) {
+        alert(result.error || 'Failed to create order');
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Initialize payment based on currency
+      if (currency === 'USD') {
+        await initiatePayPalPayment(result.orderId, result.amount);
+      } else {
+        await initiatePaystackPayment(result.orderId, data.email, result.amount);
+      }
+    } catch (error) {
+      console.error('Submission error:', error);
+      alert('Something went wrong. Please try again.');
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -179,11 +286,11 @@ export function CommissionForm() {
           
           <div className="flex items-baseline gap-2">
             <span className="text-3xl font-bold">
-              {formatCurrency(calculatePrice('CUSTOM', currency, 24), currency)} - {formatCurrency(calculatePrice('CUSTOM', currency, 6), currency)}
+              {formatCurrency(PRICING.CUSTOM.MIN_PRICE[currency], currency)} - {formatCurrency(PRICING.CUSTOM.MAX_PRICE[currency], currency)}
             </span>
           </div>
           <p className="font-nunito text-sm mt-2 text-muted-foreground">
-            6-24h delivery • You choose
+            6-12h delivery • You choose
           </p>
         </motion.button>
       </div>

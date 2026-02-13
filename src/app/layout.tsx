@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Nunito, Philosopher } from 'next/font/google';
 import './globals.css';
+import Script from 'next/script';
 
 const nunito = Nunito({
   subsets: ['latin'],
@@ -43,6 +44,10 @@ export default function RootLayout({
       <body className={`${philosopher.variable} ${nunito.variable} font-serif antialiased`}>
         {children}
       </body>
+      <Script
+        src={`https://www.paypal.com/sdk/js?client-id=${process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID}&currency=USD`}
+        strategy="lazyOnload"
+      />
     </html>
   );
 }
