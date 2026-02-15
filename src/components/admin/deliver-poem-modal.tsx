@@ -2,15 +2,21 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Order } from '@prisma/client';
+import { OrderStatus } from '@prisma/client';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { GlassCard } from '@/components/ui/card';
 import { X } from 'lucide-react';
 import { deliverPoemAction } from '@/app/actions/admin';
 
+interface SerializedOrder {
+  id: string;
+  status: OrderStatus;
+  poemContent: string | null;
+}
+
 interface DeliverPoemModalProps {
-  order: Order;
+  order: SerializedOrder;
   onClose: () => void;
 }
 
