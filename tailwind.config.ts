@@ -44,40 +44,17 @@ const config: Config = {
           foreground: 'hsl(var(--card-foreground))',
         },
       },
+      fontFamily: {
+        philosopher: ['var(--font-philosopher)'],
+        nunito: ['var(--font-nunito)'],
+      },
+      backdropBlur: {
+        glass: '12px',
+      },
       borderRadius: {
         lg: 'var(--radius)',
         md: 'calc(var(--radius) - 2px)',
         sm: 'calc(var(--radius) - 4px)',
-      },
-      fontFamily: {
-        // Philosopher is DEFAULT everywhere
-        sans: ['var(--font-philosopher)', 'serif'],
-        serif: ['var(--font-philosopher)', 'serif'],
-        philosopher: ['var(--font-philosopher)', 'serif'],
-        // Nunito is ONLY for captions/small text
-        nunito: ['var(--font-nunito)', 'sans-serif'],
-      },
-      backdropBlur: {
-        glass: '24px',
-      },
-      animation: {
-        'fade-in': 'fadeIn 0.6s ease-out',
-        'slide-up': 'slideUp 0.8s ease-out',
-        'float': 'float 3s ease-in-out infinite',
-      },
-      keyframes: {
-        fadeIn: {
-          '0%': { opacity: '0' },
-          '100%': { opacity: '1' },
-        },
-        slideUp: {
-          '0%': { opacity: '0', transform: 'translateY(20px)' },
-          '100%': { opacity: '1', transform: 'translateY(0)' },
-        },
-        float: {
-          '0%, 100%': { transform: 'translateY(0)' },
-          '50%': { transform: 'translateY(-10px)' },
-        },
       },
     },
   },
