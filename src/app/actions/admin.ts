@@ -57,3 +57,33 @@ export async function logoutAdminAction() {
   await destroyAdminSession();
   return { success: true };
 }
+
+/**
+ * Deliver poem to customer
+ */
+export async function deliverPoemAction(orderId: string, poemContent: string) {
+  try {
+    const { deliverPoem } = await import('@/services/orders');
+    const { sendPoemDelivery } = await import('@/services/email');
+
+    const order = await deliverPoem(orderId, poemContent);
+
+    // Send delivery email
+    await sendPoemDelivery(order.email, {
+      orderId: order.id,
+      accessToken: order.accessToken,
+      title: order.title || undefined,
+      poemContent: order.poemContent!,
+    });
+
+    return {
+      success: true,
+    };
+  } catch (error) {
+    console.error('Deliver poem error:', error);
+    return {
+      success: false,
+      error: 'Failed to deliver poem',
+    };
+  }
+}
