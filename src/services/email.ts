@@ -3,6 +3,7 @@ import { Resend } from 'resend';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
+// Use the ONLY allowed sender on free tier
 const FROM_EMAIL = 'onboarding@resend.dev';
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 
@@ -66,7 +67,7 @@ export async function sendOrderConfirmation(
           </div>
           
           <div class="content">
-            <h2>Thank you for your commission! 🖋️</h2>
+            <h2>Thank you for your commission!</h2>
             
             <p>Your ${orderData.type === 'QUICK' ? 'quick poem' : 'custom poem'} order has been received and will be crafted with care by a human poet.</p>
             
@@ -77,7 +78,7 @@ export async function sendOrderConfirmation(
             
             ${orderData.isFirstTime ? `
               <div style="background: #fffbeb; padding: 15px; border-left: 4px solid #f59e0b; margin: 20px 0;">
-                <strong>🎉 First Commission Bonus!</strong><br>
+                <strong>First Commission Bonus!</strong><br>
                 Thank you for trusting us with your first poetry commission. We're honored to craft words for you.
               </div>
             ` : ''}
@@ -99,7 +100,7 @@ export async function sendOrderConfirmation(
           </div>
           
           <div class="footer">
-            <p>© ${new Date().getFullYear()} Noctuary. All rights reserved.</p>
+            <p>&copy; ${new Date().getFullYear()} Noctuary. All rights reserved.</p>
             <p>Questions? Reply to this email or visit our website.</p>
           </div>
         </div>
@@ -117,7 +118,7 @@ export async function sendOrderConfirmation(
 
     if (error) {
       console.error('Email send error:', error);
-      throw new Error('Failed to send confirmation email');
+      throw new Error(`Failed to send confirmation email: ${error.message}`);
     }
 
     return data;
@@ -185,7 +186,7 @@ export async function sendPoemDelivery(
           </div>
           
           <div class="content">
-            <h2>Your poem is ready! ✨</h2>
+            <h2>Your poem is ready!</h2>
             
             ${orderData.title ? `<h3 style="font-style: italic; color: #666;">"${orderData.title}"</h3>` : ''}
             
@@ -196,7 +197,7 @@ ${orderData.poemContent}
             </div>
             
             <div style="background: #fffbeb; padding: 15px; border-left: 4px solid #f59e0b; margin: 20px 0;">
-              <strong>📜 Copyright Notice</strong><br>
+              <strong>Copyright Notice</strong><br>
               Full copyright of this poem has been transferred to you. You may use it however you wish.
             </div>
             
@@ -211,12 +212,12 @@ ${orderData.poemContent}
             </p>
             
             <p style="font-style: italic; color: #666; text-align: center;">
-              — With gratitude, your poet
+              &mdash; With gratitude, your poet
             </p>
           </div>
           
           <div class="footer">
-            <p>© ${new Date().getFullYear()} Noctuary. All rights reserved.</p>
+            <p>&copy; ${new Date().getFullYear()} Noctuary. All rights reserved.</p>
             <p>We'd love to hear your thoughts. Reply to share your feedback!</p>
           </div>
         </div>
@@ -236,7 +237,7 @@ ${orderData.poemContent}
 
     if (error) {
       console.error('Email send error:', error);
-      throw new Error('Failed to send delivery email');
+      throw new Error(`Failed to send delivery email: ${error.message}`);
     }
 
     return data;
@@ -278,5 +279,6 @@ export async function sendPaymentConfirmation(
     });
   } catch (error) {
     console.error('Payment confirmation email error:', error);
+    // Don't throw - this is a secondary notification
   }
 }

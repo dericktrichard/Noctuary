@@ -1,8 +1,10 @@
 import { notFound } from 'next/navigation';
+import Link from 'next/link';
 import { getOrderByAccessToken } from '@/services/orders';
 import { OrderStatus } from '@prisma/client';
 import { GlassCard } from '@/components/ui/card';
-import { CheckCircle, Clock, Pencil, Package } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { CheckCircle, Clock, Pencil, Package, Home } from 'lucide-react';
 
 export default async function OrderTrackingPage({
   params,
@@ -121,6 +123,16 @@ export default async function OrderTrackingPage({
               </span>
             </div>
           </div>
+
+          {/* Return Home Button */}
+          <div className="mt-8 pt-6 border-t border-border">
+            <Link href="/" className="block">
+              <Button variant="outline" size="lg" className="w-full font-nunito">
+                <Home className="w-5 h-5 mr-2" />
+                Return to Homepage
+              </Button>
+            </Link>
+          </div>
         </GlassCard>
 
         {/* Poem Display (if delivered) */}
@@ -150,6 +162,18 @@ export default async function OrderTrackingPage({
               {order.instructions}
             </p>
           </GlassCard>
+        )}
+
+        {/* Additional Info for Non-Delivered Orders */}
+        {order.status !== 'DELIVERED' && (
+          <div className="mt-8 text-center">
+            <p className="font-nunito text-sm text-muted-foreground">
+              💡 Bookmark this page or save the link - you'll need it to view your completed poem
+            </p>
+            <p className="font-nunito text-xs text-muted-foreground mt-2">
+              We'll also send you an email when your poem is ready
+            </p>
+          </div>
         )}
       </div>
     </div>
