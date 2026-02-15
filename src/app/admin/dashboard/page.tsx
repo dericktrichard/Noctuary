@@ -12,10 +12,20 @@ export default async function AdminDashboardPage() {
     redirect('/admin/login');
   }
 
-  const [orders, stats] = await Promise.all([
+  const [ordersRaw, stats] = await Promise.all([
     getAllOrders(),
     getDashboardStats(),
   ]);
+
+  // Serialize orders for client component
+  const orders = ordersRaw.map((order) => ({
+    ...order,
+    pricePaid: Number(order.pricePaid),
+    createdAt: order.createdAt.toISOString(),
+    updatedAt: order.updatedAt.toISOString(),
+    paidAt: order.paidAt?.toISOString() || null,
+    deliveredAt: order.deliveredAt?.toISOString() || null,
+  }));
 
   return (
     <div className="min-h-screen py-8 px-4">

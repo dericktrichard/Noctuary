@@ -1,18 +1,41 @@
 'use client';
 
 import { useState } from 'react';
-import { Order, OrderStatus } from '@prisma/client';
+import { OrderStatus, PoemType, Currency, PaymentProvider } from '@prisma/client';
 import { GlassCard } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { DeliverPoemModal } from './deliver-poem-modal';
 
+// Serialized order type for client component
+interface SerializedOrder {
+  id: string;
+  createdAt: string;
+  updatedAt: string;
+  email: string;
+  type: PoemType;
+  status: OrderStatus;
+  title: string | null;
+  mood: string | null;
+  instructions: string | null;
+  pricePaid: number;
+  currency: Currency;
+  deliveryHours: number;
+  paymentProvider: PaymentProvider | null;
+  paymentId: string | null;
+  paymentStatus: string | null;
+  paidAt: string | null;
+  poemContent: string | null;
+  deliveredAt: string | null;
+  accessToken: string;
+}
+
 interface OrdersListProps {
-  orders: Order[];
+  orders: SerializedOrder[];
 }
 
 export function OrdersList({ orders }: OrdersListProps) {
-  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [selectedOrder, setSelectedOrder] = useState<SerializedOrder | null>(null);
 
   const getStatusColor = (status: OrderStatus) => {
     switch (status) {
@@ -72,7 +95,7 @@ export function OrdersList({ orders }: OrdersListProps) {
                   </p>
                   <p>
                     <span className="text-muted-foreground">Amount:</span>{' '}
-                    {order.currency} {Number(order.pricePaid).toFixed(2)}
+                    {order.currency} {order.pricePaid.toFixed(2)}
                   </p>
                   <p>
                     <span className="text-muted-foreground">Delivery:</span>{' '}
