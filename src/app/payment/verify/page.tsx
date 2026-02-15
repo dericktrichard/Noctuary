@@ -13,19 +13,35 @@ function VerifyContent() {
   useEffect(() => {
     const verify = async () => {
       const reference = searchParams.get('reference');
-      const orderId = searchParams.get('orderId');
+      const orderId = typeof window !== 'undefined' ? sessionStorage.getItem('noctuaryOrderId') : null;
 
-      if (!reference || !orderId) {
+      console.log('[VERIFY] Starting verification:', { reference, orderId });
+
+      if (!reference) {
         setStatus('error');
         setMessage('Invalid payment reference');
         return;
       }
 
+      if (!orderId) {
+        setStatus('error');
+        setMessage('Order information missing. Please contact support.');
+        return;
+      }
+
       const result = await verifyPaystackPaymentAction(orderId, reference);
 
-      if (result.success) {
+      console.log('[VERIFY] Verification result:', result);
+
+      if (result.success && result.accessToken) {
         setStatus('success');
         setMessage('Payment verified successfully!');
+        
+        if (typeof window !== 'undefined') {
+          sessionStorage.removeItem('noctuaryOrderId');
+          sessionStorage.removeItem('noctuaryPaystackReference');
+        }
+
         setTimeout(() => {
           router.push(`/order/${result.accessToken}`);
         }, 2000);
@@ -44,21 +60,31 @@ function VerifyContent() {
         {status === 'verifying' && (
           <>
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-foreground mx-auto mb-4" />
-            <p className="text-muted-foreground">{message}</p>
+            <h2 className="text-xl font-bold mb-2">Verifying Payment</h2>
+            <p className="text-muted-foreground font-nunito">{message}</p>
           </>
         )}
         {status === 'success' && (
           <>
-            <div className="text-6xl mb-4">✓</div>
+            <div className="text-6xl mb-4 text-green-500">✓</div>
             <h1 className="text-2xl font-bold mb-4">Payment Successful!</h1>
-            <p className="text-muted-foreground">{message}</p>
+            <p className="text-muted-foreground font-nunito">{message}</p>
+            <p className="text-sm text-muted-foreground font-nunito mt-4">
+              Redirecting you to your order...
+            </p>
           </>
         )}
         {status === 'error' && (
           <>
-            <div className="text-6xl mb-4">✗</div>
-            <h1 className="text-2xl font-bold mb-4">Payment Failed</h1>
-            <p className="text-muted-foreground">{message}</p>
+            <div className="text-6xl mb-4 text-red-500">✗</div>
+            <h1 className="text-2xl font-bold mb-4">Payment Verification Failed</h1>
+            <p className="text-muted-foreground font-nunito mb-6">{message}</p>
+            
+            <a href="/"
+              className="inline-block px-6 py-3 bg-primary text-primary-foreground rounded-lg font-nunito hover:opacity-90 transition"
+            >
+              Return to Homepage
+            </a>
           </>
         )}
       </div>
