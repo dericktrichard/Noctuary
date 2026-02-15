@@ -236,11 +236,14 @@ export async function initializePaystackPaymentAction(orderId: string, email: st
   try {
     const { initializePaystackTransaction } = await import('@/services/paystack');
     
+    // Create unique reference with orderId
+    const reference = `NOC-${orderId}-${Date.now()}`;
+    
     const result = await initializePaystackTransaction(
       email,
       amount,
       'KES',
-      `NOC-${orderId}`
+      reference
     );
 
     return {

@@ -10,9 +10,12 @@ const paystackClient = axios.create({
     Authorization: `Bearer ${PAYSTACK_SECRET_KEY}`,
     'Content-Type': 'application/json',
   },
+  timeout: 15000,
 });
 
-// Initialize Paystack transaction
+/**
+ * Initialize Paystack transaction
+ */
 export async function initializePaystackTransaction(
   email: string,
   amount: number,
@@ -20,15 +23,23 @@ export async function initializePaystackTransaction(
   reference?: string
 ) {
   try {
-    // Paystack amount is in kobo/cents (multiply by 100)
     const amountInCents = Math.round(amount * 100);
+    const txnReference = reference || `NOC-${Date.now()}`;
+
+    console.log('[PAYSTACK] Initializing transaction:', {
+      email,
+      amount,
+      amountInCents,
+      currency,
+      reference: txnReference,
+    });
 
     const response = await paystackClient.post('/transaction/initialize', {
       email,
       amount: amountInCents,
       currency,
-      reference: reference || `NOC-${Date.now()}`,
-      callback_url: `${process.env.NEXT_PUBLIC_APP_URL}/payment/verify`,
+      reference: txnReference,
+      callback_url: `${process.env.NEXT_PUBLIC_APP_URL}/payment/verify?provider=paystack`, // Fixed
       metadata: {
         custom_fields: [
           {
@@ -38,7 +49,12 @@ export async function initializePaystackTransaction(
           },
         ],
       },
-      channels: ['mobile_money', 'card'], // Enable M-Pesa + Card
+      channels: ['mobile_money', 'card'],
+    });
+
+    console.log('[PAYSTACK] Transaction initialized successfully:', {
+      reference: response.data.data.reference,
+      authorizationUrl: response.data.data.authorization_url,
     });
 
     return {
@@ -47,39 +63,62 @@ export async function initializePaystackTransaction(
       reference: response.data.data.reference,
     };
   } catch (error: any) {
-    console.error('Paystack initialization error:', error.response?.data || error);
+    console.error('[PAYSTACK] Initialization error:', {
+      message: error.message,
+      status: error.response?.status,
+      data: error.response?.data,
+    });
     throw new Error('Failed to initialize Paystack transaction');
   }
 }
 
-// Verify Paystack transaction
-
+/**
+ * Verify Paystack transaction
+ */
 export async function verifyPaystackTransaction(reference: string) {
   try {
+    console.log('[PAYSTACK] Verifying transaction:', reference);
+
     const response = await paystackClient.get(`/transaction/verify/${reference}`);
+
+    console.log('[PAYSTACK] Verification successful:', {
+      status: response.data.data.status,
+      amount: response.data.data.amount / 100,
+      channel: response.data.data.channel,
+    });
 
     return {
       status: response.data.data.status,
       reference: response.data.data.reference,
-      amount: response.data.data.amount / 100, // Convert back from kobo/cents
+      amount: response.data.data.amount / 100,
       currency: response.data.data.currency,
       paidAt: response.data.data.paid_at,
       channel: response.data.data.channel,
       customer: response.data.data.customer,
     };
   } catch (error: any) {
-    console.error('Paystack verification error:', error.response?.data || error);
+    console.error('[PAYSTACK] Verification error:', {
+      message: error.message,
+      status: error.response?.status,
+      data: error.response?.data,
+    });
     throw new Error('Failed to verify Paystack transaction');
   }
 }
 
-// Get transaction details
+/**
+ * Get transaction details
+ */
 export async function getPaystackTransaction(reference: string) {
   try {
     const response = await paystackClient.get(`/transaction/verify/${reference}`);
     return response.data.data;
   } catch (error: any) {
-    console.error('Paystack get transaction error:', error.response?.data || error);
+    console.error('[PAYSTACK] Get transaction error:', {
+      message: error.message,
+      status: error.response?.status,
+      data: error.response?.data,
+    });
     throw new Error('Failed to get Paystack transaction');
   }
 }
