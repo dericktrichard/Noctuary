@@ -134,21 +134,25 @@ export async function verifyPayPalPaymentAction(orderId: string, paypalOrderId: 
     const orderCount = await getOrderCountByEmail(order.email);
     const isFirstTime = orderCount === 1;
 
-    // Send confirmation email
-    await sendOrderConfirmation(order.email, {
-      orderId: order.id,
-      accessToken: order.accessToken,
-      type: order.type,
-      deliveryHours: order.deliveryHours,
-      isFirstTime,
-    });
+    // Send emails (non-blocking - don't fail if email fails)
+    try {
+      await sendOrderConfirmation(order.email, {
+        orderId: order.id,
+        accessToken: order.accessToken,
+        type: order.type,
+        deliveryHours: order.deliveryHours,
+        isFirstTime,
+      });
 
-    // Send payment confirmation
-    await sendPaymentConfirmation(order.email, {
-      orderId: order.id,
-      amount: Number(order.pricePaid),
-      currency: order.currency,
-    });
+      await sendPaymentConfirmation(order.email, {
+        orderId: order.id,
+        amount: Number(order.pricePaid),
+        currency: order.currency,
+      });
+    } catch (emailError) {
+      // Log email error but don't fail the payment
+      console.error('Email notification failed (non-critical):', emailError);
+    }
 
     return {
       success: true,
@@ -192,21 +196,25 @@ export async function verifyPaystackPaymentAction(orderId: string, reference: st
     const orderCount = await getOrderCountByEmail(order.email);
     const isFirstTime = orderCount === 1;
 
-    // Send confirmation email
-    await sendOrderConfirmation(order.email, {
-      orderId: order.id,
-      accessToken: order.accessToken,
-      type: order.type,
-      deliveryHours: order.deliveryHours,
-      isFirstTime,
-    });
+    // Send emails (non-blocking - don't fail if email fails)
+    try {
+      await sendOrderConfirmation(order.email, {
+        orderId: order.id,
+        accessToken: order.accessToken,
+        type: order.type,
+        deliveryHours: order.deliveryHours,
+        isFirstTime,
+      });
 
-    // Send payment confirmation
-    await sendPaymentConfirmation(order.email, {
-      orderId: order.id,
-      amount: Number(order.pricePaid),
-      currency: order.currency,
-    });
+      await sendPaymentConfirmation(order.email, {
+        orderId: order.id,
+        amount: Number(order.pricePaid),
+        currency: order.currency,
+      });
+    } catch (emailError) {
+      // Log email error but don't fail the payment
+      console.error('Email notification failed (non-critical):', emailError);
+    }
 
     return {
       success: true,
