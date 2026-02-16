@@ -13,9 +13,8 @@ import {
 
 const navigation = [
   { name: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard },
-  { name: 'Orders', href: '/admin/dashboard', icon: Package },
-  { name: 'Sample Works', href: '/admin/samples', icon: FileText },
-  { name: 'Settings', href: '/admin/settings', icon: Settings },
+  { name: 'Sample Works', href: '/admin/dashboard/samples', icon: FileText },
+  { name: 'Settings', href: '/admin/dashboard/settings', icon: Settings },
 ];
 
 export function AdminSidebar() {
@@ -38,7 +37,8 @@ export function AdminSidebar() {
               <li>
                 <ul role="list" className="-mx-2 space-y-1">
                   {navigation.map((item) => {
-                    const isActive = pathname === item.href;
+                    const isActive = pathname === item.href || 
+                      (item.href !== '/admin/dashboard' && pathname.startsWith(item.href));
                     return (
                       <li key={item.name}>
                         <Link
