@@ -5,7 +5,7 @@ import { createOrder, updateOrderPayment, getOrderCountByEmail } from '@/service
 import { sendOrderConfirmation, sendPaymentConfirmation } from '@/services/email';
 import { calculatePrice, calculateDeliveryHoursFromBudget } from '@/lib/pricing';
 
-// Validation schemas
+// Validation schemas - UPDATED to accept both USD and KES ranges
 const QuickPoemSchema = z.object({
   type: z.literal('QUICK'),
   email: z.string().email(),
@@ -18,7 +18,7 @@ const CustomPoemSchema = z.object({
   title: z.string().min(3).max(100),
   mood: z.string().min(1),
   instructions: z.string().optional(),
-  budget: z.number().min(1.99).max(4.99),
+  budget: z.number().min(0.99).max(1000), // Accept wide range, validate currency-specific later
   currency: z.enum(['USD', 'KES']),
 });
 
@@ -33,6 +33,28 @@ export async function createOrderAction(input: OrderInput) {
     const validatedData = input.type === 'QUICK' 
       ? QuickPoemSchema.parse(input)
       : CustomPoemSchema.parse(input);
+
+    // Currency-specific validation for custom poems
+    if (validatedData.type === 'CUSTOM') {
+      const customData = validatedData as z.infer<typeof CustomPoemSchema>;
+      
+      // Validate budget based on currency
+      if (customData.currency === 'USD') {
+        if (customData.budget < 1.99 || customData.budget > 4.99) {
+          return {
+            success: false,
+            error: 'USD budget must be between $1.99 and $4.99',
+          };
+        }
+      } else if (customData.currency === 'KES') {
+        if (customData.budget < 260 || customData.budget > 650) {
+          return {
+            success: false,
+            error: 'KES budget must be between Ksh 260 and Ksh 650',
+          };
+        }
+      }
+    }
 
     // Calculate pricing
     let pricePaid: number;
@@ -112,7 +134,6 @@ export async function verifyPayPalPaymentAction(orderId: string, paypalOrderId: 
   try {
     const { capturePayPalPayment } = await import('@/services/paypal');
     
-    // Capture the payment
     const captureResult = await capturePayPalPayment(paypalOrderId);
 
     if (captureResult.status !== 'COMPLETED') {
@@ -122,7 +143,6 @@ export async function verifyPayPalPaymentAction(orderId: string, paypalOrderId: 
       };
     }
 
-    // Update order
     const order = await updateOrderPayment(orderId, {
       paymentProvider: 'PAYPAL',
       paymentId: paypalOrderId,
@@ -130,11 +150,9 @@ export async function verifyPayPalPaymentAction(orderId: string, paypalOrderId: 
       pricePaid: parseFloat(captureResult.amount.value),
     });
 
-    // Check if first-time customer
     const orderCount = await getOrderCountByEmail(order.email);
     const isFirstTime = orderCount === 1;
 
-    // Send emails (non-blocking - don't fail if email fails)
     try {
       await sendOrderConfirmation(order.email, {
         orderId: order.id,
@@ -150,7 +168,6 @@ export async function verifyPayPalPaymentAction(orderId: string, paypalOrderId: 
         currency: order.currency,
       });
     } catch (emailError) {
-      // Log email error but don't fail the payment
       console.error('Email notification failed (non-critical):', emailError);
     }
 
@@ -174,7 +191,6 @@ export async function verifyPaystackPaymentAction(orderId: string, reference: st
   try {
     const { verifyPaystackTransaction } = await import('@/services/paystack');
     
-    // Verify the transaction
     const verification = await verifyPaystackTransaction(reference);
 
     if (verification.status !== 'success') {
@@ -184,7 +200,6 @@ export async function verifyPaystackPaymentAction(orderId: string, reference: st
       };
     }
 
-    // Update order
     const order = await updateOrderPayment(orderId, {
       paymentProvider: 'PAYSTACK',
       paymentId: reference,
@@ -192,11 +207,9 @@ export async function verifyPaystackPaymentAction(orderId: string, reference: st
       pricePaid: verification.amount,
     });
 
-    // Check if first-time customer
     const orderCount = await getOrderCountByEmail(order.email);
     const isFirstTime = orderCount === 1;
 
-    // Send emails (non-blocking - don't fail if email fails)
     try {
       await sendOrderConfirmation(order.email, {
         orderId: order.id,
@@ -212,7 +225,6 @@ export async function verifyPaystackPaymentAction(orderId: string, reference: st
         currency: order.currency,
       });
     } catch (emailError) {
-      // Log email error but don't fail the payment
       console.error('Email notification failed (non-critical):', emailError);
     }
 
@@ -236,14 +248,11 @@ export async function initializePaystackPaymentAction(orderId: string, email: st
   try {
     const { initializePaystackTransaction } = await import('@/services/paystack');
     
-    // Create unique reference with orderId
-    const reference = `NOC-${orderId}-${Date.now()}`;
-    
     const result = await initializePaystackTransaction(
       email,
       amount,
       'KES',
-      reference
+      `NOC-${orderId}-${Date.now()}`
     );
 
     return {
