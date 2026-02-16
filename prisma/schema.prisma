@@ -77,16 +77,13 @@ model Order {
 // Sample Works (Managed by Admin)
 model SampleWork {
   id        String   @id @default(uuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
   title     String
   content   String   @db.Text
-  mood      String
-  imageUrl  String?  // Supabase Storage URL
+  mood      String?  // Make it optional with ?
+  imageUrl  String
   isVisible Boolean  @default(true)
-
-  @@index([isVisible])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 // Admin Users

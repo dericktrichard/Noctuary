@@ -2,37 +2,31 @@ import 'server-only';
 import { prisma } from '@/lib/prisma';
 
 /**
- * Get all visible sample works
+ * Get all visible sample works (for public site)
  */
 export async function getVisibleSampleWorks() {
-  const works = await prisma.sampleWork.findMany({
+  return prisma.sampleWork.findMany({
     where: { isVisible: true },
-    orderBy: { createdAt: 'desc' }, // Show newest first
-  });
-
-  return works;
-}
-
-/**
- * Get all sample works (admin)
- */
-export async function getAllSampleWorks() {
-  const works = await prisma.sampleWork.findMany({
     orderBy: { createdAt: 'desc' },
   });
-
-  return works;
 }
 
 /**
- * Get sample work by ID
+ * Get all sample works (for admin)
+ */
+export async function getSampleWorks() {
+  return prisma.sampleWork.findMany({
+    orderBy: { createdAt: 'desc' },
+  });
+}
+
+/**
+ * Get single sample work
  */
 export async function getSampleWorkById(id: string) {
-  const work = await prisma.sampleWork.findUnique({
+  return prisma.sampleWork.findUnique({
     where: { id },
   });
-
-  return work;
 }
 
 /**
@@ -41,21 +35,18 @@ export async function getSampleWorkById(id: string) {
 export async function createSampleWork(data: {
   title: string;
   content: string;
-  mood: string;
+  mood?: string;
   imageUrl?: string;
-  isVisible?: boolean;
 }) {
-  const work = await prisma.sampleWork.create({
+  return prisma.sampleWork.create({
     data: {
       title: data.title,
       content: data.content,
-      mood: data.mood,
-      imageUrl: data.imageUrl,
-      isVisible: data.isVisible ?? true,
+      mood: data.mood || null,
+      imageUrl: data.imageUrl || '',
+      isVisible: true,
     },
   });
-
-  return work;
 }
 
 /**
@@ -71,43 +62,30 @@ export async function updateSampleWork(
     isVisible?: boolean;
   }
 ) {
-  const work = await prisma.sampleWork.update({
+  return prisma.sampleWork.update({
     where: { id },
     data,
   });
-
-  return work;
 }
 
 /**
  * Delete sample work
  */
 export async function deleteSampleWork(id: string) {
-  const work = await prisma.sampleWork.delete({
+  return prisma.sampleWork.delete({
     where: { id },
   });
-
-  return work;
 }
 
 /**
  * Toggle visibility
  */
 export async function toggleSampleWorkVisibility(id: string) {
-  const currentWork = await prisma.sampleWork.findUnique({
+  const work = await getSampleWorkById(id);
+  if (!work) throw new Error('Sample work not found');
+
+  return prisma.sampleWork.update({
     where: { id },
+    data: { isVisible: !work.isVisible },
   });
-
-  if (!currentWork) {
-    throw new Error('Sample work not found');
-  }
-
-  const work = await prisma.sampleWork.update({
-    where: { id },
-    data: {
-      isVisible: !currentWork.isVisible,
-    },
-  });
-
-  return work;
 }
