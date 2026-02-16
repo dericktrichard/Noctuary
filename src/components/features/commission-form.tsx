@@ -56,10 +56,26 @@ type QuickPoemForm = z.infer<typeof QuickPoemFormSchema>;
 type CustomPoemForm = z.infer<typeof CustomPoemFormSchema>;
 
 export function CommissionForm() {
+  // Detect user region and set default currency
+  const getDefaultCurrency = (): 'USD' | 'KES' => {
+    try {
+      const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      // Kenya timezones: Africa/Nairobi
+      if (timezone === 'Africa/Nairobi') {
+        return 'KES';
+      }
+    } catch (e) {
+      // Fallback
+    }
+    return 'USD'; // Default to USD for international
+  };
+
   const [poemType, setPoemType] = useState<PoemType>(null);
-  const [currency, setCurrency] = useState<'USD' | 'KES'>('KES');
+  const [currency, setCurrency] = useState<'USD' | 'KES'>(getDefaultCurrency());
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('PAYSTACK');
-  const [customBudget, setCustomBudget] = useState<number>(PRICING.CUSTOM.MIN_PRICE.KES);
+  const [customBudget, setCustomBudget] = useState<number>(
+    currency === 'USD' ? PRICING.CUSTOM.MIN_PRICE.USD : PRICING.CUSTOM.MIN_PRICE.KES
+  );
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const deliveryTime = poemType === 'CUSTOM' 
@@ -72,7 +88,7 @@ export function CommissionForm() {
     defaultValues: {
       type: 'QUICK',
       email: '',
-      currency: 'KES',
+      currency: currency,
     },
   });
 
@@ -84,8 +100,8 @@ export function CommissionForm() {
       title: '',
       mood: '',
       instructions: '',
-      budget: PRICING.CUSTOM.MIN_PRICE.KES,
-      currency: 'KES',
+      budget: currency === 'USD' ? PRICING.CUSTOM.MIN_PRICE.USD : PRICING.CUSTOM.MIN_PRICE.KES,
+      currency: currency,
     },
   });
 
@@ -222,9 +238,16 @@ export function CommissionForm() {
               A poetic surprise—no details needed
             </p>
             
-            <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-bold">{formatCurrency(quickPrice, currency)}</span>
-              <span className="font-nunito text-sm text-muted-foreground">• 24h delivery</span>
+            <div className="space-y-1">
+              <div className="flex items-baseline gap-2">
+                <span className="text-3xl font-bold">
+                  {formatCurrency(calculatePrice('QUICK', 'USD'), 'USD')}
+                </span>
+                <span className="font-nunito text-sm text-muted-foreground">
+                  / {formatCurrency(calculatePrice('QUICK', 'KES'), 'KES')}
+                </span>
+              </div>
+              <p className="font-nunito text-sm text-muted-foreground">24h delivery</p>
             </div>
           </motion.button>
 
@@ -250,14 +273,17 @@ export function CommissionForm() {
               Personalized with your vision
             </p>
             
-            <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-bold">
-                {formatCurrency(PRICING.CUSTOM.MIN_PRICE[currency], currency)} - {formatCurrency(PRICING.CUSTOM.MAX_PRICE[currency], currency)}
-              </span>
+            <div className="space-y-1">
+              <div className="text-xl font-bold">
+                {formatCurrency(PRICING.CUSTOM.MIN_PRICE.USD, 'USD')} - {formatCurrency(PRICING.CUSTOM.MAX_PRICE.USD, 'USD')}
+              </div>
+              <div className="font-nunito text-sm text-muted-foreground">
+                {formatCurrency(PRICING.CUSTOM.MIN_PRICE.KES, 'KES')} - {formatCurrency(PRICING.CUSTOM.MAX_PRICE.KES, 'KES')}
+              </div>
+              <p className="font-nunito text-sm text-muted-foreground mt-2">
+                6-12h delivery • You choose
+              </p>
             </div>
-            <p className="font-nunito text-sm mt-2 text-muted-foreground">
-              6-12h delivery • You choose
-            </p>
           </motion.button>
         </motion.div>
       )}
@@ -327,7 +353,9 @@ export function CommissionForm() {
                           }`}
                         >
                           <div className="font-bold">KES (Ksh)</div>
-                          <div className="text-sm opacity-80">{formatCurrency(quickPrice, 'KES')}</div>
+                          <div className="text-sm opacity-80">
+                            {formatCurrency(calculatePrice('QUICK', 'KES'), 'KES')}
+                          </div>
                         </button>
                         <button
                           type="button"
@@ -339,7 +367,9 @@ export function CommissionForm() {
                           }`}
                         >
                           <div className="font-bold">USD ($)</div>
-                          <div className="text-sm opacity-80">{formatCurrency(quickPrice, 'USD')}</div>
+                          <div className="text-sm opacity-80">
+                            {formatCurrency(calculatePrice('QUICK', 'USD'), 'USD')}
+                          </div>
                         </button>
                       </div>
                     </div>
@@ -521,7 +551,9 @@ export function CommissionForm() {
                           }`}
                         >
                           <div className="font-bold">KES (Ksh)</div>
-                          <div className="text-sm opacity-80">Kenyan Shilling</div>
+                          <div className="text-sm opacity-80">
+                            {formatCurrency(PRICING.CUSTOM.MIN_PRICE.KES, 'KES')} - {formatCurrency(PRICING.CUSTOM.MAX_PRICE.KES, 'KES')}
+                          </div>
                         </button>
                         <button
                           type="button"
@@ -536,7 +568,9 @@ export function CommissionForm() {
                           }`}
                         >
                           <div className="font-bold">USD ($)</div>
-                          <div className="text-sm opacity-80">US Dollar</div>
+                          <div className="text-sm opacity-80">
+                            {formatCurrency(PRICING.CUSTOM.MIN_PRICE.USD, 'USD')} - {formatCurrency(PRICING.CUSTOM.MAX_PRICE.USD, 'USD')}
+                          </div>
                         </button>
                       </div>
                     </div>
