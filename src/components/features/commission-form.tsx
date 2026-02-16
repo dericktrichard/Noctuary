@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -18,7 +18,7 @@ import {
 } from '@/components/ui/select';
 import { z } from 'zod';
 import { formatCurrency } from '@/lib/utils';
-import { Zap, Sparkles, CreditCard, Smartphone } from 'lucide-react';
+import { Zap, Sparkles, CreditCard, Smartphone, AlertCircle } from 'lucide-react';
 import { calculatePrice, calculateDeliveryHoursFromBudget, PRICING } from '@/lib/pricing';
 import { createOrderAction, initializePaystackPaymentAction, createPayPalOrderAction } from '@/app/actions/orders';
 
@@ -36,38 +36,34 @@ const MOODS = [
   'Melancholic',
 ];
 
+// Exchange rate (you can fetch this dynamically later)
+const EXCHANGE_RATE = 130; // 1 USD = 130 KES (approximate)
+
 const QuickPoemFormSchema = z.object({
-  type: z.literal('QUICK'),
   email: z.string().email('Please enter a valid email address'),
-  currency: z.enum(['USD', 'KES']),
 });
 
 const CustomPoemFormSchema = z.object({
-  type: z.literal('CUSTOM'),
   email: z.string().email('Please enter a valid email address'),
   title: z.string().min(3, 'Title must be at least 3 characters').max(100),
   mood: z.string().min(1, 'Please select a mood'),
   instructions: z.string().optional(),
-  budget: z.number().min(1.99).max(4.99),
-  currency: z.enum(['USD', 'KES']),
 });
 
 type QuickPoemForm = z.infer<typeof QuickPoemFormSchema>;
 type CustomPoemForm = z.infer<typeof CustomPoemFormSchema>;
 
 export function CommissionForm() {
-  // Detect user region and set default currency
   const getDefaultCurrency = (): 'USD' | 'KES' => {
     try {
       const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-      // Kenya timezones: Africa/Nairobi
       if (timezone === 'Africa/Nairobi') {
         return 'KES';
       }
     } catch (e) {
       // Fallback
     }
-    return 'USD'; // Default to USD for international
+    return 'USD';
   };
 
   const [poemType, setPoemType] = useState<PoemType>(null);
@@ -78,32 +74,70 @@ export function CommissionForm() {
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Auto-update payment method based on currency
+  useEffect(() => {
+    if (currency === 'KES') {
+      setPaymentMethod('PAYSTACK'); // KES defaults to Paystack
+    } else {
+      setPaymentMethod('PAYPAL'); // USD defaults to PayPal
+    }
+  }, [currency]);
+
   const deliveryTime = poemType === 'CUSTOM' 
     ? calculateDeliveryHoursFromBudget(customBudget, currency) 
     : 24;
-  const quickPrice = calculatePrice('QUICK', currency);
 
   const quickForm = useForm<QuickPoemForm>({
     resolver: zodResolver(QuickPoemFormSchema),
     defaultValues: {
-      type: 'QUICK',
       email: '',
-      currency: currency,
     },
   });
 
   const customForm = useForm<CustomPoemForm>({
     resolver: zodResolver(CustomPoemFormSchema),
     defaultValues: {
-      type: 'CUSTOM',
       email: '',
       title: '',
       mood: '',
       instructions: '',
-      budget: currency === 'USD' ? PRICING.CUSTOM.MIN_PRICE.USD : PRICING.CUSTOM.MIN_PRICE.KES,
-      currency: currency,
     },
   });
+
+  // Calculate final payment amount and currency based on provider
+  const getFinalPaymentDetails = (selectedCurrency: 'USD' | 'KES', amount: number, provider: PaymentMethod) => {
+    // PayPal only accepts USD
+    if (provider === 'PAYPAL') {
+      if (selectedCurrency === 'KES') {
+        // Convert KES to USD
+        return {
+          amount: amount / EXCHANGE_RATE,
+          currency: 'USD' as const,
+        };
+      }
+      return {
+        amount,
+        currency: 'USD' as const,
+      };
+    }
+    
+    // Paystack accepts both, but prefer KES for Kenyan customers
+    if (provider === 'PAYSTACK') {
+      if (selectedCurrency === 'USD') {
+        // Convert USD to KES for Paystack
+        return {
+          amount: amount * EXCHANGE_RATE,
+          currency: 'KES' as const,
+        };
+      }
+      return {
+        amount,
+        currency: 'KES' as const,
+      };
+    }
+
+    return { amount, currency: selectedCurrency };
+  };
 
   const initiatePayPalPayment = async (orderId: string, amount: number) => {
     try {
@@ -157,10 +191,15 @@ export function CommissionForm() {
     setIsSubmitting(true);
     
     try {
+      const quickPrice = calculatePrice('QUICK', currency);
+      
+      // Get final payment details based on provider
+      const paymentDetails = getFinalPaymentDetails(currency, quickPrice, paymentMethod);
+
       const result = await createOrderAction({
         type: 'QUICK',
         email: data.email,
-        currency,
+        currency: paymentDetails.currency,
       });
 
       if (!result.success || !result.orderId) {
@@ -169,10 +208,12 @@ export function CommissionForm() {
         return;
       }
 
+      console.log('[PAYMENT] Final amount:', paymentDetails.amount, paymentDetails.currency);
+
       if (paymentMethod === 'PAYPAL') {
-        await initiatePayPalPayment(result.orderId, result.amount);
+        await initiatePayPalPayment(result.orderId, paymentDetails.amount);
       } else {
-        await initiatePaystackPayment(result.orderId, data.email, result.amount);
+        await initiatePaystackPayment(result.orderId, data.email, paymentDetails.amount);
       }
     } catch (error) {
       console.error('Submission error:', error);
@@ -185,14 +226,17 @@ export function CommissionForm() {
     setIsSubmitting(true);
     
     try {
+      // Get final payment details based on provider
+      const paymentDetails = getFinalPaymentDetails(currency, customBudget, paymentMethod);
+
       const result = await createOrderAction({
         type: 'CUSTOM',
         email: data.email,
         title: data.title,
         mood: data.mood,
         instructions: data.instructions,
-        budget: customBudget,
-        currency,
+        budget: paymentDetails.amount,
+        currency: paymentDetails.currency,
       });
 
       if (!result.success || !result.orderId) {
@@ -201,16 +245,38 @@ export function CommissionForm() {
         return;
       }
 
+      console.log('[PAYMENT] Final amount:', paymentDetails.amount, paymentDetails.currency);
+
       if (paymentMethod === 'PAYPAL') {
-        await initiatePayPalPayment(result.orderId, result.amount);
+        await initiatePayPalPayment(result.orderId, paymentDetails.amount);
       } else {
-        await initiatePaystackPayment(result.orderId, data.email, result.amount);
+        await initiatePaystackPayment(result.orderId, data.email, paymentDetails.amount);
       }
     } catch (error) {
       console.error('Submission error:', error);
       alert('Something went wrong. Please try again.');
       setIsSubmitting(false);
     }
+  };
+
+  // Get display price in selected currency
+  const getDisplayPrice = () => {
+    if (poemType === 'QUICK') {
+      return formatCurrency(calculatePrice('QUICK', currency), currency);
+    } else {
+      return formatCurrency(customBudget, currency);
+    }
+  };
+
+  // Get what customer will actually pay
+  const getActualPaymentAmount = () => {
+    const amount = poemType === 'QUICK' ? calculatePrice('QUICK', currency) : customBudget;
+    const paymentDetails = getFinalPaymentDetails(currency, amount, paymentMethod);
+    
+    if (currency !== paymentDetails.currency) {
+      return `${formatCurrency(paymentDetails.amount, paymentDetails.currency)} (converted)`;
+    }
+    return formatCurrency(paymentDetails.amount, paymentDetails.currency);
   };
 
   return (
@@ -296,7 +362,6 @@ export function CommissionForm() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
           >
-            {/* Header with selection */}
             <div className="mb-6 flex items-center justify-between">
               <div>
                 <h3 className="text-xl font-bold">
@@ -387,9 +452,9 @@ export function CommissionForm() {
                           }`}
                         >
                           <Smartphone className="w-5 h-5" />
-                          <div className="text-left">
+                          <div className="text-left flex-1">
                             <div className="font-bold text-sm">M-Pesa / Card</div>
-                            <div className="text-xs opacity-80">Via Paystack</div>
+                            <div className="text-xs opacity-80">Paystack</div>
                           </div>
                         </button>
                         <button
@@ -402,19 +467,34 @@ export function CommissionForm() {
                           }`}
                         >
                           <CreditCard className="w-5 h-5" />
-                          <div className="text-left">
+                          <div className="text-left flex-1">
                             <div className="font-bold text-sm">PayPal</div>
-                            <div className="text-xs opacity-80">Secure payment</div>
+                            <div className="text-xs opacity-80">USD only</div>
                           </div>
                         </button>
                       </div>
                     </div>
+
+                    {/* Conversion Notice */}
+                    {((currency === 'KES' && paymentMethod === 'PAYPAL') || 
+                      (currency === 'USD' && paymentMethod === 'PAYSTACK')) && (
+                      <div className="p-3 rounded-lg bg-blue-500/10 border border-blue-500/20 flex gap-2">
+                        <AlertCircle className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
+                        <p className="text-sm font-nunito text-blue-200">
+                          Your payment will be converted to {paymentMethod === 'PAYPAL' ? 'USD' : 'KES'} at checkout
+                        </p>
+                      </div>
+                    )}
                   </div>
 
                   <div className="glass-light rounded-xl p-6 space-y-3">
                     <div className="flex justify-between items-center">
-                      <span className="font-nunito text-muted-foreground">Total Price:</span>
-                      <span className="text-3xl font-bold">{formatCurrency(quickPrice, currency)}</span>
+                      <span className="font-nunito text-muted-foreground">Your Price:</span>
+                      <span className="text-3xl font-bold">{getDisplayPrice()}</span>
+                    </div>
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="font-nunito text-muted-foreground">You'll Pay:</span>
+                      <span className="font-nunito font-bold">{getActualPaymentAmount()}</span>
                     </div>
                     <div className="flex justify-between items-center text-sm">
                       <span className="font-nunito text-muted-foreground">Delivery:</span>
@@ -422,7 +502,12 @@ export function CommissionForm() {
                     </div>
                   </div>
 
-                  <Button type="submit" className="w-full h-12 text-lg font-nunito" size="lg" disabled={isSubmitting}>
+                  <Button 
+                    type="submit" 
+                    className="w-full h-12 text-lg font-nunito" 
+                    size="lg" 
+                    disabled={isSubmitting}
+                  >
                     {isSubmitting ? 'Processing...' : 'Proceed to Payment'}
                   </Button>
                 </form>
@@ -509,17 +594,33 @@ export function CommissionForm() {
                       </span>
                       <Input
                         id="custom-budget"
-                        type="number"
-                        step="0.01"
-                        min={currency === 'USD' ? PRICING.CUSTOM.MIN_PRICE.USD : PRICING.CUSTOM.MIN_PRICE.KES}
-                        max={currency === 'USD' ? PRICING.CUSTOM.MAX_PRICE.USD : PRICING.CUSTOM.MAX_PRICE.KES}
+                        type="text"
+                        inputMode="decimal"
                         value={customBudget}
                         onChange={(e) => {
-                          const value = parseFloat(e.target.value) || PRICING.CUSTOM.MIN_PRICE[currency];
-                          setCustomBudget(value);
-                          customForm.setValue('budget', value);
+                          // Allow only numbers and one decimal point
+                          const value = e.target.value.replace(/[^\d.]/g, '');
+                          
+                          // Prevent multiple decimal points
+                          const parts = value.split('.');
+                          if (parts.length > 2) return;
+                          
+                          // Update budget in real-time
+                          const numValue = parseFloat(value) || 0;
+                          setCustomBudget(numValue);
                         }}
-                        className="h-14 text-2xl font-bold pl-14 pr-4"
+                        onBlur={(e) => {
+                          // Enforce min/max on blur
+                          let value = parseFloat(e.target.value) || PRICING.CUSTOM.MIN_PRICE[currency];
+                          const min = currency === 'USD' ? PRICING.CUSTOM.MIN_PRICE.USD : PRICING.CUSTOM.MIN_PRICE.KES;
+                          const max = currency === 'USD' ? PRICING.CUSTOM.MAX_PRICE.USD : PRICING.CUSTOM.MAX_PRICE.KES;
+                          
+                          if (value < min) value = min;
+                          if (value > max) value = max;
+                          
+                          setCustomBudget(value);
+                        }}
+                        className="h-14 text-2xl font-bold pl-14 pr-4 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                         placeholder={PRICING.CUSTOM.MIN_PRICE[currency].toString()}
                       />
                     </div>
@@ -527,9 +628,37 @@ export function CommissionForm() {
                       <span className="text-muted-foreground">
                         Range: {formatCurrency(PRICING.CUSTOM.MIN_PRICE[currency], currency)} - {formatCurrency(PRICING.CUSTOM.MAX_PRICE[currency], currency)}
                       </span>
-                      <span className="font-bold">
+                      <span className="font-bold text-primary">
                         ≈ {deliveryTime} hours delivery
                       </span>
+                    </div>
+                    
+                    {/* Helper buttons for quick selection */}
+                    <div className="mt-3 flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setCustomBudget(PRICING.CUSTOM.MIN_PRICE[currency])}
+                        className="px-3 py-1 text-xs rounded-lg glass-card glass-hover font-nunito"
+                      >
+                        Min ({formatCurrency(PRICING.CUSTOM.MIN_PRICE[currency], currency)})
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const mid = (PRICING.CUSTOM.MIN_PRICE[currency] + PRICING.CUSTOM.MAX_PRICE[currency]) / 2;
+                          setCustomBudget(currency === 'USD' ? Math.round(mid * 100) / 100 : Math.round(mid));
+                        }}
+                        className="px-3 py-1 text-xs rounded-lg glass-card glass-hover font-nunito"
+                      >
+                        Mid
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setCustomBudget(PRICING.CUSTOM.MAX_PRICE[currency])}
+                        className="px-3 py-1 text-xs rounded-lg glass-card glass-hover font-nunito"
+                      >
+                        Max ({formatCurrency(PRICING.CUSTOM.MAX_PRICE[currency], currency)})
+                      </button>
                     </div>
                   </div>
 
@@ -588,9 +717,9 @@ export function CommissionForm() {
                           }`}
                         >
                           <Smartphone className="w-5 h-5" />
-                          <div className="text-left">
+                          <div className="text-left flex-1">
                             <div className="font-bold text-sm">M-Pesa / Card</div>
-                            <div className="text-xs opacity-80">Via Paystack</div>
+                            <div className="text-xs opacity-80">Paystack</div>
                           </div>
                         </button>
                         <button
@@ -603,16 +732,47 @@ export function CommissionForm() {
                           }`}
                         >
                           <CreditCard className="w-5 h-5" />
-                          <div className="text-left">
+                          <div className="text-left flex-1">
                             <div className="font-bold text-sm">PayPal</div>
-                            <div className="text-xs opacity-80">Secure payment</div>
+                            <div className="text-xs opacity-80">USD only</div>
                           </div>
                         </button>
                       </div>
                     </div>
+
+                    {/* Conversion Notice */}
+                    {((currency === 'KES' && paymentMethod === 'PAYPAL') || 
+                      (currency === 'USD' && paymentMethod === 'PAYSTACK')) && (
+                      <div className="p-3 rounded-lg bg-blue-500/10 border border-blue-500/20 flex gap-2">
+                        <AlertCircle className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
+                        <p className="text-sm font-nunito text-blue-200">
+                          Your payment will be converted to {paymentMethod === 'PAYPAL' ? 'USD' : 'KES'} at checkout
+                        </p>
+                      </div>
+                    )}
                   </div>
 
-                  <Button type="submit" className="w-full h-12 text-lg font-nunito" size="lg" disabled={isSubmitting}>
+                  <div className="glass-light rounded-xl p-6 space-y-3">
+                    <div className="flex justify-between items-center">
+                      <span className="font-nunito text-muted-foreground">Your Price:</span>
+                      <span className="text-3xl font-bold">{getDisplayPrice()}</span>
+                    </div>
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="font-nunito text-muted-foreground">You'll Pay:</span>
+                      <span className="font-nunito font-bold">{getActualPaymentAmount()}</span>
+                    </div>
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="font-nunito text-muted-foreground">Delivery:</span>
+                      <span className="font-nunito">≈ {deliveryTime} hours</span>
+                    </div>
+                  </div>
+
+                  <Button 
+                    type="submit" 
+                    className="w-full h-12 text-lg font-nunito" 
+                    size="lg" 
+                    disabled={isSubmitting}
+                  >
                     {isSubmitting ? 'Processing...' : 'Proceed to Payment'}
                   </Button>
                 </form>
