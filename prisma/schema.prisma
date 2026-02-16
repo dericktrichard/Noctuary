@@ -79,7 +79,7 @@ model SampleWork {
   id        String   @id @default(uuid())
   title     String
   content   String   @db.Text
-  mood      String?  // Make it optional with ?
+  mood      String?
   imageUrl  String
   isVisible Boolean  @default(true)
   createdAt DateTime @default(now())
