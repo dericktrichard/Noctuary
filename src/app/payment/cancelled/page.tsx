@@ -1,16 +1,23 @@
+'use client';
+
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import { XCircle, Home } from 'lucide-react';
 
 export default function PaymentCancelledPage() {
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
       <div className="max-w-md w-full text-center">
-        <h1 className="text-2xl font-bold mb-4">Payment Cancelled</h1>
-        <p className="text-muted-foreground mb-8">
-          Your payment was cancelled. No charges were made.
+        <XCircle className="w-16 h-16 text-yellow-500 mx-auto mb-6" />
+        <h1 className="text-3xl font-bold mb-4">Payment Cancelled</h1>
+        <p className="font-nunito text-muted-foreground mb-8">
+          Your payment was cancelled. No charges were made to your account.
         </p>
-        <Link href="/#commission">
-          <Button size="lg">Return to Commission Form</Button>
+        <Link href="/">
+          <Button size="lg" className="font-nunito">
+            <Home className="w-5 h-5 mr-2" />
+            Return to Homepage
+          </Button>
         </Link>
       </div>
     </div>
