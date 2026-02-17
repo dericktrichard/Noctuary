@@ -13,9 +13,10 @@ import {
 
 interface SampleWorksListProps {
   samples: SampleWork[];
+  onEdit: (sample: SampleWork) => void;
 }
 
-export function SampleWorksList({ samples }: SampleWorksListProps) {
+export function SampleWorksList({ samples, onEdit }: SampleWorksListProps) {
   const router = useRouter();
   const [loading, setLoading] = useState<string | null>(null);
 
@@ -46,7 +47,9 @@ export function SampleWorksList({ samples }: SampleWorksListProps) {
   if (samples.length === 0) {
     return (
       <div className="rounded-lg border border-border bg-card p-12 text-center shadow-sm">
-        <p className="font-nunito text-muted-foreground">No sample works yet</p>
+        <p className="font-nunito text-muted-foreground">
+          No sample works yet. Click "Add Sample" to create your first portfolio piece.
+        </p>
       </div>
     );
   }
@@ -67,7 +70,13 @@ export function SampleWorksList({ samples }: SampleWorksListProps) {
             </Badge>
           </div>
 
-          <p className="font-nunito text-sm text-muted-foreground line-clamp-3 mb-4">
+          {sample.mood && (
+            <p className="font-nunito text-xs text-muted-foreground mb-2 italic">
+              Mood: {sample.mood}
+            </p>
+          )}
+
+          <p className="font-nunito text-sm text-muted-foreground line-clamp-4 mb-4 font-serif">
             {sample.content}
           </p>
 
@@ -77,6 +86,7 @@ export function SampleWorksList({ samples }: SampleWorksListProps) {
               variant="outline" 
               className="flex-1 font-nunito"
               disabled={loading === sample.id}
+              onClick={() => onEdit(sample)}
             >
               <Edit className="w-4 h-4 mr-1" />
               Edit
