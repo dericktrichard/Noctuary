@@ -6,6 +6,7 @@ import { SampleWork } from '@prisma/client';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Eye, EyeOff, Edit, Trash2 } from 'lucide-react';
+import { toast } from 'sonner';
 import {
   deleteSampleWorkAction,
   toggleSampleWorkVisibilityAction,
@@ -24,7 +25,7 @@ export function SampleWorksList({ samples, onEdit }: SampleWorksListProps) {
     setLoading(id);
     const result = await toggleSampleWorkVisibilityAction(id);
     if (!result.success) {
-      alert(result.error);
+      toast.error(result.error || 'Failed to toggle visibility');
     }
     setLoading(null);
     router.refresh();
@@ -38,7 +39,9 @@ export function SampleWorksList({ samples, onEdit }: SampleWorksListProps) {
     setLoading(id);
     const result = await deleteSampleWorkAction(id);
     if (!result.success) {
-      alert(result.error);
+      toast.error(result.error || 'Failed to delete sample');
+    } else {
+      toast.success('Sample work deleted successfully');
     }
     setLoading(null);
     router.refresh();
