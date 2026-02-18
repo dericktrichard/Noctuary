@@ -21,6 +21,7 @@ import { formatCurrency } from '@/lib/utils';
 import { Zap, Sparkles, CreditCard, Smartphone, AlertCircle } from 'lucide-react';
 import { calculatePrice, calculateDeliveryHoursFromBudget, PRICING } from '@/lib/pricing';
 import { createOrderAction, initializePaystackPaymentAction, createPayPalOrderAction } from '@/app/actions/orders';
+import { toast } from 'sonner';
 
 type PoemType = 'QUICK' | 'CUSTOM' | null;
 type PaymentMethod = 'PAYPAL' | 'PAYSTACK';
@@ -144,7 +145,7 @@ export function CommissionForm() {
       const result = await createPayPalOrderAction(orderId, amount);
       
       if (!result.success || !result.paypalOrderId) {
-        alert(result.error || 'Failed to create PayPal order');
+        toast.error(result.error || 'Failed to create PayPal order');
         setIsSubmitting(false);
         return;
       }
@@ -159,7 +160,7 @@ export function CommissionForm() {
       window.location.href = approveUrl;
     } catch (error) {
       console.error('PayPal error:', error);
-      alert('Failed to initialize PayPal. Please try again.');
+      toast.error('Failed to initialize paypal. Please try again.');
       setIsSubmitting(false);
     }
   };
@@ -169,7 +170,7 @@ export function CommissionForm() {
       const result = await initializePaystackPaymentAction(orderId, email, amount);
       
       if (!result.success || !result.authorizationUrl) {
-        alert(result.error || 'Failed to initialize payment');
+        toast.error(result.error || 'Failed to initialize payment');
         setIsSubmitting(false);
         return;
       }
@@ -182,7 +183,7 @@ export function CommissionForm() {
       window.location.href = result.authorizationUrl;
     } catch (error) {
       console.error('Paystack initialization error:', error);
-      alert('Failed to initialize payment. Please try again.');
+      toast.error('Failed to initialize payment. Please try again.');
       setIsSubmitting(false);
     }
   };
@@ -203,7 +204,7 @@ export function CommissionForm() {
       });
 
       if (!result.success || !result.orderId) {
-        alert(result.error || 'Failed to create order');
+        toast.error(result.error || 'Failed to create order');
         setIsSubmitting(false);
         return;
       }
@@ -217,7 +218,7 @@ export function CommissionForm() {
       }
     } catch (error) {
       console.error('Submission error:', error);
-      alert('Something went wrong. Please try again.');
+      toast.error('Something went wrong. Please try again.');
       setIsSubmitting(false);
     }
   };
@@ -240,7 +241,7 @@ export function CommissionForm() {
       });
 
       if (!result.success || !result.orderId) {
-        alert(result.error || 'Failed to create order');
+        toast.error(result.error || 'Failed to create order');
         setIsSubmitting(false);
         return;
       }
@@ -254,7 +255,7 @@ export function CommissionForm() {
       }
     } catch (error) {
       console.error('Submission error:', error);
-      alert('Something went wrong. Please try again.');
+      toast.error('Something went wrong. Please try again.');
       setIsSubmitting(false);
     }
   };

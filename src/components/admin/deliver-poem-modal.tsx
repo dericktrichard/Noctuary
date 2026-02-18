@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { GlassCard } from '@/components/ui/card';
 import { X } from 'lucide-react';
 import { deliverPoemAction } from '@/app/actions/admin';
+import { toast } from 'sonner';
 
 interface SerializedOrder {
   id: string;
@@ -30,7 +31,7 @@ export function DeliverPoemModal({ order, onClose }: DeliverPoemModalProps) {
     e.preventDefault();
     
     if (!poemContent.trim()) {
-      setError('Please write the poem content');
+      toast.error('Please write the poem content');
       return;
     }
 
@@ -41,13 +42,14 @@ export function DeliverPoemModal({ order, onClose }: DeliverPoemModalProps) {
       const result = await deliverPoemAction(order.id, poemContent);
 
       if (result.success) {
+        toast.success('Poem delivered successfully!');
         router.refresh();
         onClose();
       } else {
-        setError(result.error || 'Failed to deliver poem');
+        toast.error(result.error || 'Failed to deliver poem');
       }
     } catch (err) {
-      setError('Something went wrong');
+      toast.error('Something went wrong');
     } finally {
       setIsSubmitting(false);
     }

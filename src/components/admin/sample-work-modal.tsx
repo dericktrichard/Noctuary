@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { GlassCard } from '@/components/ui/card';
 import { X } from 'lucide-react';
+import { toast } from 'sonner';
 import {
   createSampleWorkAction,
   updateSampleWorkAction,
@@ -42,7 +43,7 @@ export function SampleWorkModal({ sampleWork, onClose }: SampleWorkModalProps) {
     setIsSubmitting(true);
 
     if (!formData.title.trim() || !formData.content.trim()) {
-      setError('Title and content are required');
+      toast.error('Title and content are required');
       setIsSubmitting(false);
       return;
     }
@@ -59,13 +60,14 @@ export function SampleWorkModal({ sampleWork, onClose }: SampleWorkModalProps) {
       }
 
       if (result.success) {
+        toast.success(sampleWork ? 'Sample updated successfully' : 'Sample created successfully');
         router.refresh();
         onClose();
       } else {
-        setError(result.error || 'Something went wrong');
+        toast.error(result.error || 'Something went wrong');
       }
     } catch (err) {
-      setError('Failed to save sample work');
+      toast.error('Failed to save sample work');
     } finally {
       setIsSubmitting(false);
     }
