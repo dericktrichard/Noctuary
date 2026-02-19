@@ -55,22 +55,6 @@ src/
 - **Payment Logic:** `src/services/paypal.ts`, `src/services/paystack.ts`
 - **Database Schema:** `prisma/schema.prisma`
 
-## 🔐 Admin Access
-
-Default credentials (change immediately):
-- Email: `admin@noctuary.com`
-- Password: `admin123`
-
-## 🧪 Testing
-
-### PayPal (Sandbox)
-- Use PayPal Developer test accounts
-- Test cards available in PayPal sandbox
-
-### Paystack (Test Mode)
-- Test card: `4084084084084081`
-- CVV: `408`, Expiry: any future date
-- PIN: `0000`, OTP: `123456`
 
 ## 🌐 Environment Variables
 ```env
@@ -111,19 +95,6 @@ NEXT_PUBLIC_APP_URL="http://localhost:3000"
 - **Delivery:** 6-12 hours (based on urgency)
 - **Input:** Title, mood, instructions, budget
 
-## 📦 Deployment
-
-### Vercel (Recommended)
-1. Push to GitHub
-2. Import project to Vercel
-3. Add environment variables
-4. Deploy
-
-### Environment Variables for Production
-- Set `PAYPAL_MODE="live"`
-- Use production Paystack keys
-- Update `NEXT_PUBLIC_APP_URL` to your domain
-
 ## 🔒 Security Features
 
 - ✅ HTTP-only cookies for admin sessions
@@ -131,7 +102,7 @@ NEXT_PUBLIC_APP_URL="http://localhost:3000"
 - ✅ Server-side payment verification
 - ✅ Zod validation on all inputs
 - ✅ Middleware route protection
-- ✅ Rate limiting ready (TODO: implement)
+- ✅ Rate limiting 
 
 ## 🛠️ Tech Stack
 
@@ -143,28 +114,7 @@ NEXT_PUBLIC_APP_URL="http://localhost:3000"
 - **UI Components:** shadcn/ui
 - **Payments:** PayPal + Paystack
 - **Emails:** Resend
-- **Hosting:** Vercel
-
-## 📝 Development Notes
-
-### Component Patterns
-- Server Components by default
-- "use client" only for interactivity
-- Server Actions for mutations
-- Services layer for business logic
-
-### File Naming
-- Components: `PascalCase`
-- Files: `kebab-case.tsx`
-- Functions: `camelCase`
-
-## 📧 Email Setup (Post-Launch)
-
-1. Purchase domain (noctuary.ink)
-2. Add domain to Resend dashboard
-3. Configure DNS records
-4. Wait for verification (5 mins - 48 hours)
-5. Update `FROM_EMAIL` in `src/services/email.ts`
+- **Hosting:** Domain Service Provider
 
 ## 🐛 Troubleshooting
 
@@ -173,16 +123,6 @@ NEXT_PUBLIC_APP_URL="http://localhost:3000"
 npx prisma generate
 npx prisma db push
 ```
-
-### Payment Not Working
-- Check environment variables
-- Verify PayPal/Paystack credentials
-- Check browser console for errors
-
-### Emails Not Sending
-- Verify RESEND_API_KEY
-- Check Resend dashboard for errors
-- Remember: free tier only sends to verified email
 
 ## 📄 License
 
