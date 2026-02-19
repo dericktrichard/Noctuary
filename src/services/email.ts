@@ -1,5 +1,6 @@
 import 'server-only';
 import { Resend } from 'resend';
+import { sanitizeText } from '@/lib/sanitize';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -141,6 +142,7 @@ export async function sendPoemDelivery(
   }
 ) {
   const viewUrl = `${APP_URL}/order/${orderData.accessToken}`;
+  const sanitizedContent = sanitizeText(orderData.poemContent);
   
   const html = `
     <!DOCTYPE html>
