@@ -1,6 +1,8 @@
 'use server';
 
 import { z } from 'zod';
+import { headers } from 'next/headers';
+import { checkOrderRateLimit } from '@/lib/rate-limit';
 import { createOrder, updateOrderPayment, getOrderCountByEmail } from '@/services/orders';
 import { sendOrderConfirmation, sendPaymentConfirmation } from '@/services/email';
 import { calculatePrice, calculateDeliveryHoursFromBudget } from '@/lib/pricing';
@@ -27,8 +29,22 @@ type OrderInput = z.infer<typeof QuickPoemSchema> | z.infer<typeof CustomPoemSch
 /**
  * Create a new order (before payment)
  */
+
 export async function createOrderAction(input: OrderInput) {
   try {
+    // Rate limiting
+    const headersList = await headers();
+    const ip = headersList.get('x-forwarded-for') || 'unknown';
+    const identifier = `${ip}-${input.email}`;
+    
+    const rateLimit = await checkOrderRateLimit(identifier);
+    if (!rateLimit.success) {
+      return {
+        success: false,
+        error: 'Too many orders. Please try again in an hour.',
+      };
+    }
+
     // Validate input
     const validatedData = input.type === 'QUICK' 
       ? QuickPoemSchema.parse(input)
