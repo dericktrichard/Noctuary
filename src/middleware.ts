@@ -1,5 +1,11 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { validateEnv } from './lib/env';
+
+// Validate env on startup
+if (process.env.NODE_ENV === 'production') {
+  validateEnv();
+}
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
