@@ -35,6 +35,3 @@ next-env.d.ts
 
 # prisma
 prisma/migrations/
-
-#Readme
-README.md
