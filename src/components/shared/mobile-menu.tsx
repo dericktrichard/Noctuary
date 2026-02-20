@@ -2,8 +2,6 @@
 
 import { useState } from 'react';
 import { Menu, X } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { ThemeToggle } from './theme-toggle';
 
 interface MobileMenuProps {
   navItems: { name: string; href: string }[];
@@ -47,6 +45,7 @@ export function MobileMenu({ navItems }: MobileMenuProps) {
               <button
                 onClick={() => setIsOpen(false)}
                 className="p-2 rounded-lg glass-hover"
+                aria-label="Close menu"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -64,14 +63,6 @@ export function MobileMenu({ navItems }: MobileMenuProps) {
                 </button>
               ))}
             </nav>
-
-            {/* Theme Toggle */}
-            <div className="mt-8 pt-8 border-t border-border">
-              <div className="flex items-center justify-between">
-                <span className="font-nunito text-sm text-muted-foreground">Theme</span>
-                <ThemeToggle />
-              </div>
-            </div>
           </div>
         </div>
       )}

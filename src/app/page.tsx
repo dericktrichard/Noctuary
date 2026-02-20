@@ -6,8 +6,12 @@ import { SampleWorks } from '@/components/features/sample-works';
 import { AuthorsPact } from '@/components/features/authors-pact';
 import { Testimonials } from '@/components/features/testimonials';
 import { CommissionForm } from '@/components/features/commission-form';
+import { getCurrentPricing } from '@/app/actions/pricing';
 
-export default function HomePage() {
+export default async function HomePage() {
+  // Fetch live pricing server-side
+  const pricing = await getCurrentPricing();
+
   return (
     <>
       <Navbar />
@@ -37,7 +41,7 @@ export default function HomePage() {
               </p>
             </div>
             
-            <CommissionForm />
+            <CommissionForm pricing={pricing} />
           </div>
         </section>
 
