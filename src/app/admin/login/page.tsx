@@ -2,10 +2,12 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { GlassCard } from '@/components/ui/card';
+import { Home } from 'lucide-react';
 import { loginAdminAction } from '@/app/actions/admin';
 
 export default function AdminLoginPage() {
@@ -38,6 +40,14 @@ export default function AdminLoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
       <div className="w-full max-w-md">
+        {/* Back to Home Link */}
+        <div className="mb-8 text-center">
+          <Link href="/" className="inline-flex items-center gap-2 text-sm font-nunito text-muted-foreground hover:text-foreground transition-colors">
+            <Home className="w-4 h-4" />
+            Back to Homepage
+          </Link>
+        </div>
+
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold mb-2">Admin Login</h1>
           <p className="font-nunito text-muted-foreground">Noctuary Dashboard</p>
