@@ -4,8 +4,8 @@ export const siteConfig = {
   name: 'Noctuary',
   title: 'Noctuary - Human Ink, Soul Scripted',
   description: 'Premium poetry commission platform. Every poem is crafted by human hands, never by algorithms. Order custom or quick poems for any occasion.',
-  url: 'https://noctuary.com', // Update with your actual domain
-  ogImage: 'https://noctuary.com/og-image.jpg', // Update with your actual OG image
+  url: 'https://noctuary.ink',
+  ogImage: 'https://noctuary.ink/og-image.jpg', 
   keywords: [
     'poetry commission',
     'custom poems',

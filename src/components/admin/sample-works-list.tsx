@@ -32,7 +32,7 @@ export function SampleWorksList({ samples, onEdit }: SampleWorksListProps) {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this sample work?')) {
+    if (!window.confirm('Are you sure you want to delete this sample work?')) {
       return;
     }
 

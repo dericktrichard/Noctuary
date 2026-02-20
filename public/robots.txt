@@ -6,4 +6,4 @@ Allow: /
 Disallow: /admin/
 
 # Sitemap
-Sitemap: https://noctuary.com/sitemap.xml
+Sitemap: https://noctuary.ink/sitemap.xml

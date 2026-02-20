@@ -155,12 +155,6 @@ export function SampleWorkModal({ sampleWork, onClose }: SampleWorkModalProps) {
             </p>
           </div>
 
-          {error && (
-            <div className="p-3 rounded-lg bg-destructive/10 border border-destructive">
-              <p className="text-sm font-nunito text-destructive">{error}</p>
-            </div>
-          )}
-
           <div className="flex gap-3 pt-4">
             <Button
               type="button"

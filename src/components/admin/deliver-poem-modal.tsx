@@ -90,12 +90,6 @@ export function DeliverPoemModal({ order, onClose }: DeliverPoemModalProps) {
             />
           </div>
 
-          {error && (
-            <div className="p-3 rounded-lg bg-destructive/10 border border-destructive">
-              <p className="text-sm font-nunito text-destructive">{error}</p>
-            </div>
-          )}
-
           {order.status !== 'DELIVERED' && (
             <div className="flex gap-3">
               <Button
