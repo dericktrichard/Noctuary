@@ -1,56 +1,40 @@
 import 'server-only';
 
+const FALLBACK_RATE = 130;
+
 /**
- * Fetch current USD to KES exchange rate
+ * Get real-time USD to KES exchange rate
+ * Used server-side only for payment conversion
  */
-export async function fetchExchangeRate(): Promise<number> {
+export async function getUSDtoKESRate(): Promise<number> {
   try {
     const response = await fetch(
-      'https://api.exchangerate-api.com/v4/latest/USD',
-      { next: { revalidate: 3600 } } // Cache for 1 hour
+      'https://open.er-api.com/v6/latest/USD',
+      { next: { revalidate: 3600 } }
     );
     
-    if (!response.ok) {
-      throw new Error('Failed to fetch exchange rate');
-    }
+    if (!response.ok) throw new Error('API request failed');
     
     const data = await response.json();
-    return data.rates.KES || 150; // Fallback to ~150 if API fails
+    const rate = data.rates.KES;
+    
+    if (!rate || isNaN(rate)) throw new Error('Invalid rate');
+    
+    console.log(`[CURRENCY] Live USD to KES rate: ${rate}`);
+    return Math.round(rate);
+    
   } catch (error) {
-    console.error('Currency API error:', error);
-    return 150; // Fallback rate
+    console.error('[CURRENCY] Using fallback rate:', error);
+    return FALLBACK_RATE;
   }
 }
 
-/**
- * Convert USD to KES using current rate
- */
-export async function convertUSDToKES(usd: number): Promise<number> {
-  const rate = await fetchExchangeRate();
+export async function convertUSDtoKES(usd: number): Promise<number> {
+  const rate = await getUSDtoKESRate();
   return Math.round(usd * rate);
 }
 
-/**
- * Get pricing with current exchange rates
- */
-export async function getPricingWithLiveRates() {
-  const rate = await fetchExchangeRate();
-  
-  return {
-    exchangeRate: rate,
-    quick: {
-      USD: 0.99,
-      KES: Math.round(0.99 * rate),
-    },
-    custom: {
-      min: {
-        USD: 1.99,
-        KES: Math.round(1.99 * rate),
-      },
-      max: {
-        USD: 4.99,
-        KES: Math.round(4.99 * rate),
-      },
-    },
-  };
+export async function convertKEStoUSD(kes: number): Promise<number> {
+  const rate = await getUSDtoKESRate();
+  return Math.round((kes / rate) * 100) / 100;
 }

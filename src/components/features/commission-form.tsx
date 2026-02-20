@@ -19,9 +19,10 @@ import {
 import { z } from 'zod';
 import { formatCurrency } from '@/lib/utils';
 import { Zap, Sparkles, CreditCard, Smartphone, AlertCircle } from 'lucide-react';
-import { calculatePrice, calculateDeliveryHoursFromBudget, PRICING } from '@/lib/pricing';
+import { calculateDeliveryHoursFromBudget } from '@/lib/pricing';
 import { createOrderAction, initializePaystackPaymentAction, createPayPalOrderAction } from '@/app/actions/orders';
 import { toast } from 'sonner';
+import type { DynamicPricing } from '@/app/actions/pricing';
 
 type PoemType = 'QUICK' | 'CUSTOM' | null;
 type PaymentMethod = 'PAYPAL' | 'PAYSTACK';
@@ -37,9 +38,6 @@ const MOODS = [
   'Melancholic',
 ];
 
-// Exchange rate (you can fetch this dynamically later)
-const EXCHANGE_RATE = 130; // 1 USD = 130 KES (approximate)
-
 const QuickPoemFormSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
 });
@@ -54,7 +52,11 @@ const CustomPoemFormSchema = z.object({
 type QuickPoemForm = z.infer<typeof QuickPoemFormSchema>;
 type CustomPoemForm = z.infer<typeof CustomPoemFormSchema>;
 
-export function CommissionForm() {
+interface CommissionFormProps {
+  pricing: DynamicPricing;
+}
+
+export function CommissionForm({ pricing }: CommissionFormProps) {
   const getDefaultCurrency = (): 'USD' | 'KES' => {
     try {
       const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -71,18 +73,27 @@ export function CommissionForm() {
   const [currency, setCurrency] = useState<'USD' | 'KES'>(getDefaultCurrency());
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('PAYSTACK');
   const [customBudget, setCustomBudget] = useState<number>(
-    currency === 'USD' ? PRICING.CUSTOM.MIN_PRICE.USD : PRICING.CUSTOM.MIN_PRICE.KES
+    currency === 'USD' ? pricing.custom.minUsd : pricing.custom.minKes
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Auto-update payment method based on currency
   useEffect(() => {
     if (currency === 'KES') {
-      setPaymentMethod('PAYSTACK'); // KES defaults to Paystack
+      setPaymentMethod('PAYSTACK');
     } else {
-      setPaymentMethod('PAYPAL'); // USD defaults to PayPal
+      setPaymentMethod('PAYPAL');
     }
   }, [currency]);
+
+  // Update budget when currency changes
+  useEffect(() => {
+    if (currency === 'USD') {
+      setCustomBudget(pricing.custom.minUsd);
+    } else {
+      setCustomBudget(pricing.custom.minKes);
+    }
+  }, [currency, pricing]);
 
   const deliveryTime = poemType === 'CUSTOM' 
     ? calculateDeliveryHoursFromBudget(customBudget, currency) 
@@ -110,9 +121,8 @@ export function CommissionForm() {
     // PayPal only accepts USD
     if (provider === 'PAYPAL') {
       if (selectedCurrency === 'KES') {
-        // Convert KES to USD
         return {
-          amount: amount / EXCHANGE_RATE,
+          amount: amount / pricing.exchangeRate,
           currency: 'USD' as const,
         };
       }
@@ -122,12 +132,11 @@ export function CommissionForm() {
       };
     }
     
-    // Paystack accepts both, but prefer KES for Kenyan customers
+    // Paystack accepts both, but prefer KES
     if (provider === 'PAYSTACK') {
       if (selectedCurrency === 'USD') {
-        // Convert USD to KES for Paystack
         return {
-          amount: amount * EXCHANGE_RATE,
+          amount: amount * pricing.exchangeRate,
           currency: 'KES' as const,
         };
       }
@@ -160,7 +169,7 @@ export function CommissionForm() {
       window.location.href = approveUrl;
     } catch (error) {
       console.error('PayPal error:', error);
-      toast.error('Failed to initialize paypal. Please try again.');
+      toast.error('Failed to initialize PayPal. Please try again.');
       setIsSubmitting(false);
     }
   };
@@ -192,9 +201,7 @@ export function CommissionForm() {
     setIsSubmitting(true);
     
     try {
-      const quickPrice = calculatePrice('QUICK', currency);
-      
-      // Get final payment details based on provider
+      const quickPrice = currency === 'USD' ? pricing.quick.usd : pricing.quick.kes;
       const paymentDetails = getFinalPaymentDetails(currency, quickPrice, paymentMethod);
 
       const result = await createOrderAction({
@@ -227,7 +234,6 @@ export function CommissionForm() {
     setIsSubmitting(true);
     
     try {
-      // Get final payment details based on provider
       const paymentDetails = getFinalPaymentDetails(currency, customBudget, paymentMethod);
 
       const result = await createOrderAction({
@@ -260,18 +266,18 @@ export function CommissionForm() {
     }
   };
 
-  // Get display price in selected currency
   const getDisplayPrice = () => {
     if (poemType === 'QUICK') {
-      return formatCurrency(calculatePrice('QUICK', currency), currency);
+      return formatCurrency(currency === 'USD' ? pricing.quick.usd : pricing.quick.kes, currency);
     } else {
       return formatCurrency(customBudget, currency);
     }
   };
 
-  // Get what customer will actually pay
   const getActualPaymentAmount = () => {
-    const amount = poemType === 'QUICK' ? calculatePrice('QUICK', currency) : customBudget;
+    const amount = poemType === 'QUICK' 
+      ? (currency === 'USD' ? pricing.quick.usd : pricing.quick.kes)
+      : customBudget;
     const paymentDetails = getFinalPaymentDetails(currency, amount, paymentMethod);
     
     if (currency !== paymentDetails.currency) {
@@ -282,6 +288,13 @@ export function CommissionForm() {
 
   return (
     <div className="max-w-4xl mx-auto">
+      {/* Exchange rate info */}
+      <div className="mb-6 text-center">
+        <p className="text-xs font-nunito text-muted-foreground">
+          Live exchange rate: 1 USD = {pricing.exchangeRate} KES
+        </p>
+      </div>
+
       {/* Step 1: Choose Poem Type */}
       {!poemType && (
         <motion.div
@@ -308,10 +321,10 @@ export function CommissionForm() {
             <div className="space-y-1">
               <div className="flex items-baseline gap-2">
                 <span className="text-3xl font-bold">
-                  {formatCurrency(calculatePrice('QUICK', 'USD'), 'USD')}
+                  {formatCurrency(pricing.quick.usd, 'USD')}
                 </span>
                 <span className="font-nunito text-sm text-muted-foreground">
-                  / {formatCurrency(calculatePrice('QUICK', 'KES'), 'KES')}
+                  / {formatCurrency(pricing.quick.kes, 'KES')}
                 </span>
               </div>
               <p className="font-nunito text-sm text-muted-foreground">24h delivery</p>
@@ -342,10 +355,10 @@ export function CommissionForm() {
             
             <div className="space-y-1">
               <div className="text-xl font-bold">
-                {formatCurrency(PRICING.CUSTOM.MIN_PRICE.USD, 'USD')} - {formatCurrency(PRICING.CUSTOM.MAX_PRICE.USD, 'USD')}
+                {formatCurrency(pricing.custom.minUsd, 'USD')} - {formatCurrency(pricing.custom.maxUsd, 'USD')}
               </div>
               <div className="font-nunito text-sm text-muted-foreground">
-                {formatCurrency(PRICING.CUSTOM.MIN_PRICE.KES, 'KES')} - {formatCurrency(PRICING.CUSTOM.MAX_PRICE.KES, 'KES')}
+                {formatCurrency(pricing.custom.minKes, 'KES')} - {formatCurrency(pricing.custom.maxKes, 'KES')}
               </div>
               <p className="font-nunito text-sm text-muted-foreground mt-2">
                 6-12h delivery • You choose
@@ -420,7 +433,7 @@ export function CommissionForm() {
                         >
                           <div className="font-bold">KES (Ksh)</div>
                           <div className="text-sm opacity-80">
-                            {formatCurrency(calculatePrice('QUICK', 'KES'), 'KES')}
+                            {formatCurrency(pricing.quick.kes, 'KES')}
                           </div>
                         </button>
                         <button
@@ -434,7 +447,7 @@ export function CommissionForm() {
                         >
                           <div className="font-bold">USD ($)</div>
                           <div className="text-sm opacity-80">
-                            {formatCurrency(calculatePrice('QUICK', 'USD'), 'USD')}
+                            {formatCurrency(pricing.quick.usd, 'USD')}
                           </div>
                         </button>
                       </div>
@@ -599,22 +612,27 @@ export function CommissionForm() {
                         inputMode="decimal"
                         value={customBudget}
                         onChange={(e) => {
-                          // Allow only numbers and one decimal point
-                          const value = e.target.value.replace(/[^\d.]/g, '');
+                          const value = e.target.value;
                           
-                          // Prevent multiple decimal points
+                          if (value === '') {
+                            setCustomBudget(0);
+                            return;
+                          }
+                          
+                          if (!/^\d*\.?\d*$/.test(value)) return;
+                          
                           const parts = value.split('.');
                           if (parts.length > 2) return;
                           
-                          // Update budget in real-time
+                          if (parts[1] && parts[1].length > 2) return;
+                          
                           const numValue = parseFloat(value) || 0;
                           setCustomBudget(numValue);
                         }}
                         onBlur={(e) => {
-                          // Enforce min/max on blur
-                          let value = parseFloat(e.target.value) || PRICING.CUSTOM.MIN_PRICE[currency];
-                          const min = currency === 'USD' ? PRICING.CUSTOM.MIN_PRICE.USD : PRICING.CUSTOM.MIN_PRICE.KES;
-                          const max = currency === 'USD' ? PRICING.CUSTOM.MAX_PRICE.USD : PRICING.CUSTOM.MAX_PRICE.KES;
+                          let value = parseFloat(e.target.value) || (currency === 'USD' ? pricing.custom.minUsd : pricing.custom.minKes);
+                          const min = currency === 'USD' ? pricing.custom.minUsd : pricing.custom.minKes;
+                          const max = currency === 'USD' ? pricing.custom.maxUsd : pricing.custom.maxKes;
                           
                           if (value < min) value = min;
                           if (value > max) value = max;
@@ -622,31 +640,32 @@ export function CommissionForm() {
                           setCustomBudget(value);
                         }}
                         className="h-14 text-2xl font-bold pl-14 pr-4 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                        placeholder={PRICING.CUSTOM.MIN_PRICE[currency].toString()}
+                        placeholder={(currency === 'USD' ? pricing.custom.minUsd : pricing.custom.minKes).toString()}
                       />
                     </div>
                     <div className="mt-2 flex justify-between items-center text-sm font-nunito">
                       <span className="text-muted-foreground">
-                        Range: {formatCurrency(PRICING.CUSTOM.MIN_PRICE[currency], currency)} - {formatCurrency(PRICING.CUSTOM.MAX_PRICE[currency], currency)}
+                        Range: {formatCurrency(currency === 'USD' ? pricing.custom.minUsd : pricing.custom.minKes, currency)} - {formatCurrency(currency === 'USD' ? pricing.custom.maxUsd : pricing.custom.maxKes, currency)}
                       </span>
                       <span className="font-bold text-primary">
                         ≈ {deliveryTime} hours delivery
                       </span>
                     </div>
                     
-                    {/* Helper buttons for quick selection */}
                     <div className="mt-3 flex gap-2">
                       <button
                         type="button"
-                        onClick={() => setCustomBudget(PRICING.CUSTOM.MIN_PRICE[currency])}
+                        onClick={() => setCustomBudget(currency === 'USD' ? pricing.custom.minUsd : pricing.custom.minKes)}
                         className="px-3 py-1 text-xs rounded-lg glass-card glass-hover font-nunito"
                       >
-                        Min ({formatCurrency(PRICING.CUSTOM.MIN_PRICE[currency], currency)})
+                        Min ({formatCurrency(currency === 'USD' ? pricing.custom.minUsd : pricing.custom.minKes, currency)})
                       </button>
                       <button
                         type="button"
                         onClick={() => {
-                          const mid = (PRICING.CUSTOM.MIN_PRICE[currency] + PRICING.CUSTOM.MAX_PRICE[currency]) / 2;
+                          const min = currency === 'USD' ? pricing.custom.minUsd : pricing.custom.minKes;
+                          const max = currency === 'USD' ? pricing.custom.maxUsd : pricing.custom.maxKes;
+                          const mid = (min + max) / 2;
                           setCustomBudget(currency === 'USD' ? Math.round(mid * 100) / 100 : Math.round(mid));
                         }}
                         className="px-3 py-1 text-xs rounded-lg glass-card glass-hover font-nunito"
@@ -655,10 +674,10 @@ export function CommissionForm() {
                       </button>
                       <button
                         type="button"
-                        onClick={() => setCustomBudget(PRICING.CUSTOM.MAX_PRICE[currency])}
+                        onClick={() => setCustomBudget(currency === 'USD' ? pricing.custom.maxUsd : pricing.custom.maxKes)}
                         className="px-3 py-1 text-xs rounded-lg glass-card glass-hover font-nunito"
                       >
-                        Max ({formatCurrency(PRICING.CUSTOM.MAX_PRICE[currency], currency)})
+                        Max ({formatCurrency(currency === 'USD' ? pricing.custom.maxUsd : pricing.custom.maxKes, currency)})
                       </button>
                     </div>
                   </div>
@@ -672,7 +691,7 @@ export function CommissionForm() {
                           type="button"
                           onClick={() => {
                             setCurrency('KES');
-                            setCustomBudget(PRICING.CUSTOM.MIN_PRICE.KES);
+                            setCustomBudget(pricing.custom.minKes);
                           }}
                           className={`p-4 rounded-lg font-nunito transition-all border ${
                             currency === 'KES'
@@ -682,14 +701,14 @@ export function CommissionForm() {
                         >
                           <div className="font-bold">KES (Ksh)</div>
                           <div className="text-sm opacity-80">
-                            {formatCurrency(PRICING.CUSTOM.MIN_PRICE.KES, 'KES')} - {formatCurrency(PRICING.CUSTOM.MAX_PRICE.KES, 'KES')}
+                            {formatCurrency(pricing.custom.minKes, 'KES')} - {formatCurrency(pricing.custom.maxKes, 'KES')}
                           </div>
                         </button>
                         <button
                           type="button"
                           onClick={() => {
                             setCurrency('USD');
-                            setCustomBudget(PRICING.CUSTOM.MIN_PRICE.USD);
+                            setCustomBudget(pricing.custom.minUsd);
                           }}
                           className={`p-4 rounded-lg font-nunito transition-all border ${
                             currency === 'USD'
@@ -699,7 +718,7 @@ export function CommissionForm() {
                         >
                           <div className="font-bold">USD ($)</div>
                           <div className="text-sm opacity-80">
-                            {formatCurrency(PRICING.CUSTOM.MIN_PRICE.USD, 'USD')} - {formatCurrency(PRICING.CUSTOM.MAX_PRICE.USD, 'USD')}
+                            {formatCurrency(pricing.custom.minUsd, 'USD')} - {formatCurrency(pricing.custom.maxUsd, 'USD')}
                           </div>
                         </button>
                       </div>
