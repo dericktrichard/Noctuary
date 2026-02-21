@@ -1,12 +1,12 @@
 'use client';
 
-import { useState } from 'react';
 import { OrderStatus, PoemType, Currency, PaymentProvider } from '@prisma/client';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { DeliverPoemModal } from './deliver-poem-modal';
 import { Search, Eye, Send, ChevronDown, ChevronUp } from 'lucide-react';
+import React, { useState } from 'react';
 
 interface SerializedOrder {
   id: string;
@@ -189,7 +189,7 @@ export function OrdersList({ orders }: OrdersListProps) {
               {sortedOrders.map((order) => {
                 const timeRemaining = calculateTimeRemaining(order);
                 return (
-                  <>
+                  <React.Fragment key={order.id}>                    
                     {/* Main Row */}
                     <tr key={order.id} className="hover:bg-muted/50 transition-colors">
                       <td className="px-6 py-4">
@@ -198,7 +198,7 @@ export function OrdersList({ orders }: OrdersListProps) {
                             <button
                               onClick={() => setExpandedOrder(expandedOrder === order.id ? null : order.id)}
                               className="p-1 hover:bg-accent rounded transition-colors"
-                              title="View instructions"
+                              title="View details"
                             >
                               {expandedOrder === order.id ? (
                                 <ChevronUp className="w-4 h-4 text-muted-foreground" />
@@ -209,16 +209,11 @@ export function OrdersList({ orders }: OrdersListProps) {
                           )}
                           <div className="flex flex-col">
                             <span className="text-sm font-medium font-nunito">
-                              {order.title || `${order.type} Poem`}
+                              {order.type} Poem
                             </span>
                             <span className="text-xs text-muted-foreground font-nunito">
                               ID: {order.id.slice(0, 8)}...
                             </span>
-                            {order.mood && (
-                              <span className="text-xs text-muted-foreground font-nunito mt-1">
-                                Mood: {order.mood}
-                              </span>
-                            )}
                           </div>
                         </div>
                       </td>
@@ -273,25 +268,42 @@ export function OrdersList({ orders }: OrdersListProps) {
                       </td>
                     </tr>
 
-                    {/* Expanded Row for Instructions */}
-                    {expandedOrder === order.id && order.instructions && (
+                    {/* Expanded Row for Details */}
+                    {expandedOrder === order.id && order.type === 'CUSTOM' && (
                       <tr className="bg-muted/30">
                         <td colSpan={6} className="px-6 py-4">
                           <div className="max-w-3xl">
-                            <h4 className="font-semibold font-nunito text-sm mb-2 flex items-center gap-2">
+                            <h4 className="font-semibold font-nunito text-sm mb-3 flex items-center gap-2">
                               <ChevronDown className="w-4 h-4" />
-                              Special Instructions:
+                              Custom Poem Details:
                             </h4>
-                            <div className="pl-6 p-3 rounded-lg bg-card border border-border">
-                              <p className="text-sm font-nunito text-foreground whitespace-pre-wrap leading-relaxed">
-                                {order.instructions}
-                              </p>
+                            <div className="pl-6 p-4 rounded-lg bg-card border border-border space-y-3">
+                              {order.title && (
+                                <div>
+                                  <span className="text-xs font-semibold text-muted-foreground uppercase">Title:</span>
+                                  <p className="text-sm font-nunito text-foreground mt-1">{order.title}</p>
+                                </div>
+                              )}
+                              {order.mood && (
+                                <div>
+                                  <span className="text-xs font-semibold text-muted-foreground uppercase">Mood:</span>
+                                  <p className="text-sm font-nunito text-foreground mt-1">{order.mood}</p>
+                                </div>
+                              )}
+                              {order.instructions && (
+                                <div>
+                                  <span className="text-xs font-semibold text-muted-foreground uppercase">Special Instructions:</span>
+                                  <p className="text-sm font-nunito text-foreground mt-1 whitespace-pre-wrap leading-relaxed">
+                                    {order.instructions}
+                                  </p>
+                                </div>
+                              )}
                             </div>
                           </div>
                         </td>
                       </tr>
                     )}
-                  </>
+                  </React.Fragment>
                 );
               })}
             </tbody>

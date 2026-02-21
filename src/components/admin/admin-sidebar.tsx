@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
@@ -8,10 +8,10 @@ import {
   LayoutDashboard, 
   FileText, 
   Settings,
-  PenTool,
   ChevronLeft,
   ChevronRight,
-  Home
+  Home,
+  PenLine
 } from 'lucide-react';
 
 const navigation = [
@@ -23,6 +23,26 @@ const navigation = [
 export function AdminSidebar() {
   const pathname = usePathname();
   const [isCollapsed, setIsCollapsed] = useState(false);
+
+  // Update content padding when sidebar collapses
+  useEffect(() => {
+    const content = document.getElementById('admin-content');
+    if (content) {
+      if (isCollapsed) {
+        content.style.paddingLeft = '5rem'; // 80px = 20 * 4
+      } else {
+        content.style.paddingLeft = '16rem'; // 256px = 64 * 4
+      }
+    }
+  }, [isCollapsed]);
+
+  // Set initial padding on mount
+  useEffect(() => {
+    const content = document.getElementById('admin-content');
+    if (content && window.innerWidth >= 1024) {
+      content.style.paddingLeft = '16rem';
+    }
+  }, []);
 
   return (
     <>
@@ -39,10 +59,14 @@ export function AdminSidebar() {
             isCollapsed && "justify-center"
           )}>
             {isCollapsed ? (
-              <PenTool className="h-8 w-8" />
+              <div className="w-10 h-10 rounded-lg bg-primary flex items-center justify-center">
+                <span className="text-primary-foreground font-bold text-xl">N</span>
+              </div>
             ) : (
               <>
-                <PenTool className="h-8 w-8" />
+                <div className="w-10 h-10 rounded-lg bg-primary flex items-center justify-center">
+                  <span className="text-primary-foreground font-bold text-xl">N</span>
+                </div>
                 <div>
                   <h1 className="text-xl font-bold">Noctuary</h1>
                   <p className="text-xs text-muted-foreground">Admin Panel</p>

@@ -17,8 +17,7 @@ export default async function AdminDashboardLayout({
   return (
     <div className="min-h-screen bg-background">
       <AdminSidebar />
-      {/* Updated: Use dynamic padding based on sidebar state */}
-      <div className="lg:pl-64 transition-all duration-300" id="admin-content">
+      <div id="admin-content">
         <AdminTopbar admin={admin} />
         <main className="p-6 lg:p-8">
           {children}
