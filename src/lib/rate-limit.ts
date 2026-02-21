@@ -20,8 +20,8 @@ const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
 
 export async function checkOrderRateLimit(identifier: string): Promise<{ success: boolean; remaining?: number }> {
   const now = Date.now();
-  const windowMs = 60 * 60 * 1000; // 1 hour
-  const maxRequests = 5; // 5 orders per hour
+  const windowMs = 24 * 60 * 60 * 1000; // 24 hours
+  const maxRequests = 5; // 5 orders per 24 hours
 
   // Clean up old entries
   for (const [key, value] of rateLimitMap.entries()) {
