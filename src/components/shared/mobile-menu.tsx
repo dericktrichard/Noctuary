@@ -20,26 +20,27 @@ export function MobileMenu({ navItems }: MobileMenuProps) {
 
   return (
     <>
-      {/* Mobile Menu Button */}
+      {/* Mobile Menu Toggle Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="lg:hidden p-2 rounded-lg glass-card glass-hover"
-        aria-label="Toggle menu"
+        className="lg:hidden p-2 rounded-lg glass-card glass-hover z-50 relative"
+        aria-label={isOpen ? 'Close menu' : 'Open menu'}
       >
         {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
       </button>
 
       {/* Mobile Menu Overlay */}
       {isOpen && (
-        <div
-          className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 lg:hidden"
-          onClick={() => setIsOpen(false)}
-        >
+        <>
+          {/* Backdrop */}
           <div
-            className="fixed right-0 top-0 h-full w-64 glass-card border-l border-border p-6"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Close Button */}
+            className="fixed inset-0 bg-black/80 backdrop-blur-sm z-40 lg:hidden"
+            onClick={() => setIsOpen(false)}
+          />
+          
+          {/* Menu Panel */}
+          <div className="fixed right-0 top-0 h-full w-64 glass-card border-l border-border p-6 z-50 lg:hidden">
+            {/* Close Button Inside Panel */}
             <div className="flex justify-between items-center mb-8">
               <h2 className="text-xl font-bold">Menu</h2>
               <button
@@ -64,7 +65,7 @@ export function MobileMenu({ navItems }: MobileMenuProps) {
               ))}
             </nav>
           </div>
-        </div>
+        </>
       )}
     </>
   );

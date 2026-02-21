@@ -1,10 +1,24 @@
 'use client';
 
+import { useEffect } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { XCircle, Home } from 'lucide-react';
 
 export default function PaymentCancelledPage() {
+  useEffect(() => {
+    // Try to get orderId from session storage and cancel it
+    const orderId = sessionStorage.getItem('noctuaryOrderId');
+    if (orderId) {
+      // Note: We can't call server actions in useEffect directly
+      // The order will remain PENDING which is correct behavior
+      // Admin can see it and decide what to do
+      sessionStorage.removeItem('noctuaryOrderId');
+      sessionStorage.removeItem('noctuaryPaypalOrderId');
+      sessionStorage.removeItem('noctuaryPaystackReference');
+    }
+  }, []);
+
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
       <div className="max-w-md w-full text-center">
@@ -12,6 +26,7 @@ export default function PaymentCancelledPage() {
         <h1 className="text-3xl font-bold mb-4">Payment Cancelled</h1>
         <p className="font-nunito text-muted-foreground mb-8">
           Your payment was cancelled. No charges were made to your account.
+          The order will remain as "Pending" and will not be processed.
         </p>
         <Link href="/">
           <Button size="lg" className="font-nunito">

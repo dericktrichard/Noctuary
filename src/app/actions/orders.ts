@@ -5,9 +5,10 @@ import { headers } from 'next/headers';
 import { checkOrderRateLimit } from '@/lib/rate-limit';
 import { createOrder, updateOrderPayment, getOrderCountByEmail } from '@/services/orders';
 import { sendOrderConfirmation, sendPaymentConfirmation } from '@/services/email';
-import { calculatePrice, calculateDeliveryHoursFromBudget } from '@/lib/pricing';
+import { getCurrentPricing } from './pricing';
+import { prisma } from '@/lib/prisma';
 
-// Validation schemas - UPDATED to accept both USD and KES ranges
+// Validation schemas - Accept wide range, validate dynamically
 const QuickPoemSchema = z.object({
   type: z.literal('QUICK'),
   email: z.string().email(),
@@ -20,28 +21,24 @@ const CustomPoemSchema = z.object({
   title: z.string().min(3).max(100),
   mood: z.string().min(1),
   instructions: z.string().optional(),
-  budget: z.number().min(0.99).max(1000), // Accept wide range, validate currency-specific later
+  budget: z.number().min(0.5).max(1000), // Wide range, validate below
   currency: z.enum(['USD', 'KES']),
 });
 
 type OrderInput = z.infer<typeof QuickPoemSchema> | z.infer<typeof CustomPoemSchema>;
-
-/**
- * Create a new order (before payment)
- */
 
 export async function createOrderAction(input: OrderInput) {
   try {
     // Rate limiting
     const headersList = await headers();
     const ip = headersList.get('x-forwarded-for') || 'unknown';
-    const identifier = `${ip}-${input.email}`;
+    const identifier = input.email; // Rate limit by email instead of IP
     
     const rateLimit = await checkOrderRateLimit(identifier);
     if (!rateLimit.success) {
       return {
         success: false,
-        error: 'Too many orders. Please try again in an hour.',
+        error: 'You have reached the maximum number of orders (5) per day. Please try again tomorrow.',
       };
     }
 
@@ -50,23 +47,26 @@ export async function createOrderAction(input: OrderInput) {
       ? QuickPoemSchema.parse(input)
       : CustomPoemSchema.parse(input);
 
+    // Get current pricing with live exchange rates
+    const pricing = await getCurrentPricing();
+
     // Currency-specific validation for custom poems
     if (validatedData.type === 'CUSTOM') {
       const customData = validatedData as z.infer<typeof CustomPoemSchema>;
       
-      // Validate budget based on currency
+      // Validate budget based on currency with dynamic pricing
       if (customData.currency === 'USD') {
-        if (customData.budget < 1.99 || customData.budget > 4.99) {
+        if (customData.budget < pricing.custom.minUsd || customData.budget > pricing.custom.maxUsd) {
           return {
             success: false,
-            error: 'USD budget must be between $1.99 and $4.99',
+            error: `USD budget must be between $${pricing.custom.minUsd.toFixed(2)} and $${pricing.custom.maxUsd.toFixed(2)}`,
           };
         }
       } else if (customData.currency === 'KES') {
-        if (customData.budget < 260 || customData.budget > 650) {
+        if (customData.budget < pricing.custom.minKes || customData.budget > pricing.custom.maxKes) {
           return {
             success: false,
-            error: 'KES budget must be between Ksh 260 and Ksh 650',
+            error: `KES budget must be between Ksh ${pricing.custom.minKes} and Ksh ${pricing.custom.maxKes}`,
           };
         }
       }
@@ -77,12 +77,17 @@ export async function createOrderAction(input: OrderInput) {
     let deliveryHours: number;
 
     if (validatedData.type === 'QUICK') {
-      pricePaid = calculatePrice('QUICK', validatedData.currency);
+      pricePaid = validatedData.currency === 'USD' ? pricing.quick.usd : pricing.quick.kes;
       deliveryHours = 24;
     } else {
       const customData = validatedData as z.infer<typeof CustomPoemSchema>;
       pricePaid = customData.budget;
-      deliveryHours = calculateDeliveryHoursFromBudget(customData.budget, validatedData.currency);
+      
+      // Calculate delivery hours
+      const min = customData.currency === 'USD' ? pricing.custom.minUsd : pricing.custom.minKes;
+      const max = customData.currency === 'USD' ? pricing.custom.maxUsd : pricing.custom.maxKes;
+      const ratio = (pricePaid - min) / (max - min);
+      deliveryHours = Math.round(12 - (ratio * 6)); // 12h to 6h
     }
 
     // Create order
@@ -282,5 +287,23 @@ export async function initializePaystackPaymentAction(orderId: string, email: st
       success: false,
       error: 'Failed to initialize payment. Please try again.',
     };
+  }
+}
+
+/**
+ * Cancel an order
+ */
+export async function cancelOrderAction(orderId: string) {
+  try {
+    // Update order status to CANCELLED
+    await prisma.order.update({
+      where: { id: orderId },
+      data: { status: 'CANCELLED' },
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error('Cancel order error:', error);
+    return { success: false };
   }
 }
