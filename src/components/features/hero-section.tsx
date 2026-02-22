@@ -14,21 +14,6 @@ export function HeroSection() {
       id="home" 
       className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20"
     >
-      {/* Refined Atmospheric Background */}
-      <div className="absolute inset-0 w-full h-full pointer-events-none">
-        <div className="absolute inset-0 bg-background" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[70vw] h-[70vw] bg-primary/5 rounded-full blur-[120px]" />
-        
-        {/* Texture Overlay */}
-        <div 
-          className="absolute inset-0 opacity-[0.03] mix-blend-overlay dark:opacity-[0.03] light:opacity-[0.01]" 
-          style={{ backgroundImage: `url('https://www.transparenttextures.com/patterns/handmade-paper.png')` }}
-        />
-
-        {/* Light Beam */}
-        <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-foreground/[0.02] to-transparent opacity-50" />
-      </div>
-
       <div className="relative z-10 max-w-7xl mx-auto px-6 w-full">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
           

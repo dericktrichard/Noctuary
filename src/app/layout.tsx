@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Nunito, Philosopher } from 'next/font/google';
 import Script from 'next/script';
 import { Toaster } from '@/components/ui/toaster';
+import { ThemeProvider } from '@/components/providers/theme-provider';
 import './globals.css';
 
 const nunito = Nunito({
@@ -63,12 +64,19 @@ export default function RootLayout({
         />
       </head>
       <body className={`${philosopher.variable} ${nunito.variable} antialiased`}>
-        <Script
-          src={`https://www.paypal.com/sdk/js?client-id=${process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID}&currency=USD`}
-          strategy="lazyOnload"
-        />
-        {children}
-        <Toaster />
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="dark"
+          enableSystem
+          disableTransitionOnChange={false}
+        >
+          <Script
+            src={`https://www.paypal.com/sdk/js?client-id=${process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID}&currency=USD`}
+            strategy="lazyOnload"
+          />
+          {children}
+          <Toaster />
+        </ThemeProvider>
       </body>
     </html>
   );
