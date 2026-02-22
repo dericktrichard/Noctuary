@@ -21,7 +21,7 @@ const CustomPoemSchema = z.object({
   title: z.string().min(3).max(100),
   mood: z.string().min(1),
   instructions: z.string().optional(),
-  budget: z.number().min(0.5).max(1000), // Wide range, validate below
+  budget: z.number().min(0.5).max(1000), 
   currency: z.enum(['USD', 'KES']),
 });
 
@@ -125,9 +125,7 @@ export async function createOrderAction(input: OrderInput) {
   }
 }
 
-/**
- * Create PayPal order (server-side)
- */
+// Create PayPal order (server-side)
 export async function createPayPalOrderAction(orderId: string, amount: number) {
   try {
     const { createPayPalOrder } = await import('@/services/paypal');
@@ -148,9 +146,7 @@ export async function createPayPalOrderAction(orderId: string, amount: number) {
   }
 }
 
-/**
- * Verify PayPal payment and update order
- */
+// Verify PayPal payment and update order
 export async function verifyPayPalPaymentAction(orderId: string, paypalOrderId: string) {
   try {
     const { capturePayPalPayment } = await import('@/services/paypal');
@@ -205,9 +201,7 @@ export async function verifyPayPalPaymentAction(orderId: string, paypalOrderId: 
   }
 }
 
-/**
- * Verify Paystack payment and update order
- */
+// Verify Paystack payment and update order
 export async function verifyPaystackPaymentAction(orderId: string, reference: string) {
   try {
     const { verifyPaystackTransaction } = await import('@/services/paystack');
@@ -262,9 +256,7 @@ export async function verifyPaystackPaymentAction(orderId: string, reference: st
   }
 }
 
-/**
- * Initialize Paystack transaction
- */
+// Initialize Paystack transaction
 export async function initializePaystackPaymentAction(orderId: string, email: string, amount: number) {
   try {
     const { initializePaystackTransaction } = await import('@/services/paystack');
@@ -290,9 +282,7 @@ export async function initializePaystackPaymentAction(orderId: string, email: st
   }
 }
 
-/**
- * Cancel an order
- */
+// Cancel an order
 export async function cancelOrderAction(orderId: string) {
   try {
     // Update order status to CANCELLED
