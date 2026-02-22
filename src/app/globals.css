@@ -40,41 +40,48 @@
     --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
   }
 
+  /* Light Mode Overrides */
   .light {
-    --background: 0 0% 100%; /* Pure white */
-    --foreground: 0 0% 10%;  /* Near black */
-
-    --card: 0 0% 98%;
-    --card-foreground: 0 0% 10%;
-
-    --popover: 0 0% 98%;
-    --popover-foreground: 0 0% 10%;
-
-    --primary: 0 0% 10%;
-    --primary-foreground: 0 0% 98%;
-
-    --secondary: 0 0% 95%;
-    --secondary-foreground: 0 0% 10%;
-
-    --muted: 0 0% 95%;
-    --muted-foreground: 0 0% 45%;
-
-    --accent: 0 0% 95%;
-    --accent-foreground: 0 0% 10%;
-
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 221.2 83.2% 53.3%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 221.2 83.2% 53.3%;
+    --radius: 0.5rem;
+  }
 
-    --border: 0 0% 90%;
-    --input: 0 0% 90%;
-    --ring: 0 0% 20%;
+  /* Light mode glass effect */
+  .light .glass-card {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+  }
 
-    --radius: 0.75rem;
+  .light .glass-light {
+    background: rgba(255, 255, 255, 0.5);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
 
-    /* Glass morphism for light mode */
-    --glass-bg: rgba(255, 255, 255, 0.8);
-    --glass-border: rgba(0, 0, 0, 0.1);
-    --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.08);
+  .light footer {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(30px);
+    -webkit-backdrop-filter: blur(30px);
   }
 }
 
@@ -86,6 +93,7 @@
     @apply bg-background text-foreground;
     font-feature-settings: 'rlig' 1, 'calt' 1;
     font-family: var(--font-philosopher), serif;
+    transition: background-color 0.3s ease;
   }
   
   /* Ensure all headings use Philosopher */
@@ -255,4 +263,36 @@ select:-webkit-autofill:focus {
 
 .animation-delay-4000 {
   animation-delay: 4s;
+}
+
+/* Vanta.js Background Support */
+body {
+  background-color: #0a0a0a;
+}
+
+/* Make sections semi-transparent to show birds */
+section {
+  position: relative;
+}
+
+/* Glass effect for cards and important content */
+.glass-card {
+  background: rgba(10, 10, 10, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Ensure text is readable over animated background */
+.glass-light {
+  background: rgba(10, 10, 10, 0.5);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+/* Footer should be more opaque */
+footer {
+  background: rgba(10, 10, 10, 0.95);
+  backdrop-filter: blur(30px);
+  -webkit-backdrop-filter: blur(30px);
 }

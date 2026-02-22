@@ -1,5 +1,6 @@
 import { Navbar } from '@/components/shared/navbar';
 import { Footer } from '@/components/shared/footer';
+import { VantaBackground } from '@/components/shared/vanta-background';
 import { HeroSection } from '@/components/features/hero-section';
 import { HowItWorks } from '@/components/features/how-it-works';
 import { SampleWorks } from '@/components/features/sample-works';
@@ -9,15 +10,17 @@ import { CommissionForm } from '@/components/features/commission-form';
 import { getCurrentPricing } from '@/app/actions/pricing';
 
 export default async function HomePage() {
-  // Fetch live pricing server-side
   const pricing = await getCurrentPricing();
 
   return (
     <>
+      {/* Vanta.js Animated Background */}
+      <VantaBackground />
+      
       <Navbar />
       
-      <main className="min-h-screen bg-background">
-        {/* Hero */}
+      <main className="min-h-screen relative">
+        {/* Hero - Remove background, keep content opaque */}
         <HeroSection />
 
         {/* Sample Works */}
