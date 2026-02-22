@@ -9,9 +9,7 @@ const LoginSchema = z.object({
   password: z.string().min(6),
 });
 
-/**
- * Admin login
- */
+// Admin login
 export async function loginAdminAction(email: string, password: string) {
   try {
     const validated = LoginSchema.parse({ email, password });
@@ -50,17 +48,13 @@ export async function loginAdminAction(email: string, password: string) {
   }
 }
 
-/**
- * Admin logout
- */
+// Admin logout
 export async function logoutAdminAction() {
   await destroyAdminSession();
   return { success: true };
 }
 
-/**
- * Deliver poem to customer
- */
+// Deliver poem to customer
 export async function deliverPoemAction(orderId: string, poemContent: string) {
   try {
     const { deliverPoem } = await import('@/services/orders');

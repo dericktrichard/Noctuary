@@ -16,9 +16,7 @@ export interface DynamicPricing {
   };
 }
 
-/**
- * Get current pricing with live exchange rates
- */
+// Get current pricing with live exchange rates
 export async function getCurrentPricing(): Promise<DynamicPricing> {
   const rate = await getUSDtoKESRate();
   

@@ -8,9 +8,7 @@ import {
   toggleSampleWorkVisibility,
 } from '@/services/sample-works';
 
-/**
- * Create a new sample work
- */
+// Create a new sample work
 export async function createSampleWorkAction(data: {
   title: string;
   content: string;
@@ -33,9 +31,7 @@ export async function createSampleWorkAction(data: {
   }
 }
 
-/**
- * Update a sample work
- */
+// Update a sample work
 export async function updateSampleWorkAction(
   id: string,
   data: {
@@ -62,9 +58,7 @@ export async function updateSampleWorkAction(
   }
 }
 
-/**
- * Delete a sample work
- */
+// Delete a sample work
 export async function deleteSampleWorkAction(id: string) {
   try {
     await deleteSampleWork(id);
@@ -82,9 +76,7 @@ export async function deleteSampleWorkAction(id: string) {
   }
 }
 
-/**
- * Toggle sample work visibility
- */
+// Toggle sample work visibility
 export async function toggleSampleWorkVisibilityAction(id: string) {
   try {
     await toggleSampleWorkVisibility(id);
