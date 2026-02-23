@@ -9,7 +9,6 @@ export default async function PaymentSuccessPage({
   
   // PayPal returns with token (PayPal Order ID) and PayerID
   if (params.token) {
-    // Redirect to verification page
     redirect(`/payment/verify-paypal?token=${params.token}&payerId=${params.PayerID || ''}`);
   }
 

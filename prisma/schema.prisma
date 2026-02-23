@@ -53,12 +53,12 @@ model Order {
   // Pricing
   pricePaid      Decimal  @db.Decimal(10, 2)
   currency       Currency
-  deliveryHours  Int      // Expected delivery time
+  deliveryHours  Int      
   
   // Payment Info
   paymentProvider PaymentProvider?
-  paymentId       String?          // PayPal Order ID or Paystack reference
-  paymentStatus   String?          // Payment gateway status
+  paymentId       String?          
+  paymentStatus   String?          
   paidAt          DateTime?
 
   // Delivery

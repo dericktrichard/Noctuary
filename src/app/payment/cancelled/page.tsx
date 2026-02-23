@@ -10,9 +10,6 @@ export default function PaymentCancelledPage() {
     // Try to get orderId from session storage and cancel it
     const orderId = sessionStorage.getItem('noctuaryOrderId');
     if (orderId) {
-      // Note: We can't call server actions in useEffect directly
-      // The order will remain PENDING which is correct behavior
-      // Admin can see it and decide what to do
       sessionStorage.removeItem('noctuaryOrderId');
       sessionStorage.removeItem('noctuaryPaypalOrderId');
       sessionStorage.removeItem('noctuaryPaystackReference');
