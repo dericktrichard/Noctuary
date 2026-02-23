@@ -23,7 +23,7 @@ const guarantees = [
   {
     icon: Users,
     title: 'Human Touch',
-    description: 'Honest expression from lived and read experience.',
+    description: 'Honest and Flawed expression from lived and read experience.',
   },
 ];
 
@@ -31,7 +31,7 @@ export function AuthorsPact() {
   return (
     <section id="pact" className="py-24 px-4 relative overflow-hidden">
       {/* Subtle Background Pattern */}
-      <div className="absolute inset-0 opacity-5 dark:opacity-5 light:opacity-[0.02]">
+      <div className="absolute inset-0 opacity-10 dark:opacity-10 light:opacity-[0.08]">
         <div 
           className="absolute inset-0" 
           style={{
@@ -53,7 +53,7 @@ export function AuthorsPact() {
             The Author&apos;s Pact
           </h2>
           <p className="font-nunito text-lg max-w-2xl mx-auto text-muted-foreground">
-            Trying to preserve human honesty in each piece.
+            Trying to preserve human honesty in each poetry piece.
           </p>
         </motion.div>
 
@@ -104,25 +104,21 @@ export function AuthorsPact() {
             <GlassCard className="p-8 lg:p-10">
               <div className="space-y-6 font-nunito leading-relaxed text-muted-foreground">
                 <p className="text-lg">
-                  In an age where artificial intelligence can generate text in milliseconds, 
-                  <strong className="text-foreground"> we choose a different - older path.</strong>
+                  In this age where artificial intelligence can generate text in milliseconds, 
+                  <strong className="text-foreground"> I choose a different - older path.</strong> <br/>
+                  I don&apos;t just want to write poems. But craft an essense.
                 </p>
-                
-                <div className="glass-light rounded-xl p-6 border border-border">
-                  <p className="text-xl font-bold">
-                    This is my guarantee | Just honest human writing.
-                  </p>
-                </div>
 
-                <p>
-                  When you commission a poem, you&apos;re not just purchasing words arranged 
-                  aesthetically.<br/>
-                  You&apos;re investing in a dream of authentic human creativity,
-                  the vulnerability of expression, in the deliberate craft that is flawed and perfect. 
+                <p className="text-foreground">
+                  Noctuary was born from a simple belief, that the soul matters, and that the human 
+                  touch in writing creates connections that artificial intelligence never can.<br/>
+                  In a world increasingly dominated by AI, we stand as guardians of authentic expression. 
+                  Every poem I create is written by me, one who dares claim to understand the weight of words, 
+                  the rhythm of emotion, and the art of capturing what makes each piece unique.
                 </p>
 
                 <p className="font-bold text-foreground">
-                  This is my promise. This is Noctuary.
+                  This is my promise. AND. This is Noctuary.
                 </p>
               </div>
             </GlassCard>

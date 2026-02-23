@@ -62,7 +62,7 @@ export default function AdminLoginPage() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="admin@noctuary.com"
+                placeholder="email@gmail.com"
                 className="mt-2 h-12"
                 required
               />

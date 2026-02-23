@@ -9,7 +9,7 @@ export default async function AdminSamplesPage() {
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Sample Works</h1>
         <p className="font-nunito text-muted-foreground mt-2">
-          Manage your portfolio pieces
+          Manage what the people will see on your page 
         </p>
       </div>
 

@@ -2,7 +2,7 @@ import { Metadata } from 'next';
 
 export const siteConfig = {
   name: 'Noctuary',
-  title: 'Noctuary - Human Ink, Soul Scripted',
+  title: 'Noctuary Ink - Soul Scripted',
   description: 'Premium poetry commission platform. Every poem is crafted by human hands, never by algorithms. Order custom or quick poems for any occasion.',
   url: 'https://noctuary.ink',
   ogImage: 'https://noctuary.ink/og-image.jpg', 

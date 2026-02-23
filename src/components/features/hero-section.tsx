@@ -37,7 +37,7 @@ export function HeroSection() {
               </h1>
               
               <p className="font-nunito text-lg text-muted-foreground mb-8 max-w-md leading-relaxed">
-                To move beyond the digital noise. Commission a bespoke poem crafted with intention, heartbeat, 
+                To move a bit beyond the digital noise. Commission a bespoke poem crafted with intention, heartbeat, 
                 and the timeless touch of human hands.
               </p>
 

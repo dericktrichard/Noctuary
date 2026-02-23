@@ -4,7 +4,7 @@ export default function AdminSettingsPage() {
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
         <p className="font-nunito text-muted-foreground mt-2">
-          Manage your account settings
+          Your account settings
         </p>
       </div>
 
