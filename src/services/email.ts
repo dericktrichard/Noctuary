@@ -118,8 +118,8 @@ export async function sendOrderConfirmation(
     });
 
     if (error) {
-      console.error('Email send error:', error);
-      throw new Error(`Failed to send confirmation email: ${error.message}`);
+      console.error('[EMAIL] Send failed (non-critical):', error);
+      return null;
     }
 
     return data;
@@ -238,8 +238,8 @@ ${orderData.poemContent}
     });
 
     if (error) {
-      console.error('Email send error:', error);
-      throw new Error(`Failed to send delivery email: ${error.message}`);
+      console.error('[EMAIL] Send failed (non-critical):', error);
+      return null;
     }
 
     return data;
