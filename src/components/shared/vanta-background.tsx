@@ -40,26 +40,24 @@ export function VantaBackground() {
         const effect = (VANTA as any).default({
           el: vantaRef.current,
           THREE: THREE,
-          mouseControls: true,
+          mouseControls: !isMobile,
           touchControls: true,
           gyroControls: false,
           minHeight: 200.00,
           minWidth: 200.00,
           scale: isMobile ? 0.8 : 1.00,
           scaleMobile: 0.8,
-          // Dynamic background based on theme
           backgroundColor: isDark ? 0x0a0a0a : 0xf5f5f5,
-          // Dynamic bird colors based on theme
-          color1: isDark ? 0xff00f1 : 0x6366f1, // Pink in dark, Indigo in light
-          color2: isDark ? 0x00eaea : 0x06b6d4, // Cyan in dark, Sky blue in light
+          color1: isDark ? 0xff00f1 : 0x6366f1, 
+          color2: isDark ? 0x00eaea : 0x06b6d4, 
           colorMode: "lerpGradient",
-          wingSpan: 21.00,
-          speedLimit: isMobile ? 4.00 : 6.00,
+          wingSpan: isMobile ? 15.00 : 21.00,
+          speedLimit: isMobile ? 2.00 : 6.00,
           separation: 54.00,
           alignment: 27.00,
           cohesion: 20.00,
-          quantity: isMobile ? 2.00 : 3.00,
-          birdSize: isMobile ? 1.2 : 1.5,
+          quantity: isMobile ? 1.50 : 3.00,
+          birdSize: isMobile ? 1.0 : 1.5,
         });
         vantaEffectRef.current = effect;
       }
