@@ -8,10 +8,8 @@ if (!SECRET) {
 
 const VALIDATED_SECRET = SECRET as string;
 
-/**
- * Generate a signed token for magic link
- * Format: {orderId}.{email}.{timestamp}.{signature}
- */
+//Generate a signed token for magic link
+//Format: {orderId}.{email}.{timestamp}.{signature}
 export function generateMagicLinkToken(orderId: string, email: string): string {
   const timestamp = Date.now();
   const payload = `${orderId}.${email}.${timestamp}`;
@@ -23,10 +21,8 @@ export function generateMagicLinkToken(orderId: string, email: string): string {
   return `${payload}.${signature}`;
 }
 
-/**
- * Verify a magic link token
- * Returns { valid: true, orderId, email } or { valid: false, error }
- */
+//Verify a magic link token
+//Returns { valid: true, orderId, email } or { valid: false, error }
 export function verifyMagicLinkToken(token: string): 
   | { valid: true; orderId: string; email: string }
   | { valid: false; error: string } {
@@ -71,9 +67,7 @@ export function verifyMagicLinkToken(token: string):
   }
 }
 
-/**
- * Generate magic link URL
- */
+//Generate magic link URL
 export function generateMagicLink(orderId: string, email: string): string {
   const token = generateMagicLinkToken(orderId, email);
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';

@@ -98,9 +98,9 @@ export function HeroSection() {
                 }}
               >
                 <motion.img 
-                  src="https://images.unsplash.com/photo-1516410529446-2c777cb7366d?auto=format&fit=crop&q=80&w=800" 
+                  src="https://images.unsplash.com/photo-1533271802434-53997a5f9e6c?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" 
                   alt="Atmospheric Ink and Quill"
-                  className="w-full h-full object-cover dark:grayscale-[0.3] dark:brightness-[0.8] light:grayscale-[0.2] light:brightness-[0.9]"
+                  className="w-full h-full object-cover dark:grayscale-[0.2] dark:brightness-[0.5] light:grayscale-[0.1] light:brightness-[0.8]"
                   animate={{
                     scale: [1, 1.1, 1],
                   }}

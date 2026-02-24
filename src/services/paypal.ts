@@ -8,9 +8,7 @@ const PAYPAL_API_BASE = process.env.PAYPAL_MODE === 'live'
 const PAYPAL_CLIENT_ID = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID!;
 const PAYPAL_CLIENT_SECRET = process.env.PAYPAL_CLIENT_SECRET!;
 
-/**
- * Get PayPal access token
- */
+//Get PayPal access token
 async function getAccessToken(): Promise<string> {
   const auth = Buffer.from(`${PAYPAL_CLIENT_ID}:${PAYPAL_CLIENT_SECRET}`).toString('base64');
 
@@ -34,9 +32,7 @@ async function getAccessToken(): Promise<string> {
   }
 }
 
-/**
- * Create PayPal order
- */
+//Create PayPal order
 export async function createPayPalOrder(amount: number, currency: 'USD' = 'USD') {
   try {
     const accessToken = await getAccessToken();
@@ -89,9 +85,7 @@ export async function createPayPalOrder(amount: number, currency: 'USD' = 'USD')
   }
 }
 
-/**
- * Capture PayPal payment
- */
+//Capture PayPal payment
 export async function capturePayPalPayment(orderId: string) {
   try {
     const accessToken = await getAccessToken();
@@ -128,9 +122,7 @@ export async function capturePayPalPayment(orderId: string) {
   }
 }
 
-/**
- * Get PayPal order details
- */
+//Get PayPal order details
 export async function getPayPalOrder(orderId: string) {
   try {
     const accessToken = await getAccessToken();

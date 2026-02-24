@@ -5,23 +5,17 @@ import { prisma } from '@/lib/prisma';
 
 const ADMIN_SESSION_COOKIE = 'noctuary_admin_session';
 
-/**
- * Hash password
- */
+//Hash password
 export async function hashPassword(password: string): Promise<string> {
   return bcrypt.hash(password, 10);
 }
 
-/**
- * Verify password
- */
+//Verify password
 export async function verifyPassword(password: string, hash: string): Promise<boolean> {
   return bcrypt.compare(password, hash);
 }
 
-/**
- * Create admin session
- */
+//Create admin session
 export async function createAdminSession(adminId: string) {
   const cookieStore = await cookies();
   cookieStore.set(ADMIN_SESSION_COOKIE, adminId, {
@@ -32,26 +26,20 @@ export async function createAdminSession(adminId: string) {
   });
 }
 
-/**
- * Get current admin session
- */
+//Get current admin session
 export async function getAdminSession(): Promise<string | null> {
   const cookieStore = await cookies();
   const session = cookieStore.get(ADMIN_SESSION_COOKIE);
   return session?.value || null;
 }
 
-/**
- * Destroy admin session
- */
+//Destroy admin session
 export async function destroyAdminSession() {
   const cookieStore = await cookies();
   cookieStore.delete(ADMIN_SESSION_COOKIE);
 }
 
-/**
- * Get current admin user
- */
+//Get current admin user
 export async function getCurrentAdmin() {
   const adminId = await getAdminSession();
   

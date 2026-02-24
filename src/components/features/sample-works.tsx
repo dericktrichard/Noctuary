@@ -16,7 +16,7 @@ export async function SampleWorks() {
             Sample Works
           </h2>
           <p className="text-lg font-nunito text-muted-foreground max-w-2xl mx-auto">
-            A glimpse into the craft. Each piece reflects the human touch that algorithms cannot replicate.
+            A glimpse into the craft. Each a genius and flawed write.
           </p>
         </div>
 

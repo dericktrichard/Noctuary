@@ -1,9 +1,7 @@
 import 'server-only';
 import { prisma } from '@/lib/prisma';
 
-/**
- * Get all visible sample works (for public site)
- */
+//Get all visible sample works (for public site)
 export async function getVisibleSampleWorks() {
   return prisma.sampleWork.findMany({
     where: { isVisible: true },
@@ -11,27 +9,21 @@ export async function getVisibleSampleWorks() {
   });
 }
 
-/**
- * Get all sample works (for admin)
- */
+//Get all sample works (for admin)
 export async function getSampleWorks() {
   return prisma.sampleWork.findMany({
     orderBy: { createdAt: 'desc' },
   });
 }
 
-/**
- * Get single sample work
- */
+//Get single sample work
 export async function getSampleWorkById(id: string) {
   return prisma.sampleWork.findUnique({
     where: { id },
   });
 }
 
-/**
- * Create sample work
- */
+//Create sample work
 export async function createSampleWork(data: {
   title: string;
   content: string;
@@ -49,9 +41,7 @@ export async function createSampleWork(data: {
   });
 }
 
-/**
- * Update sample work
- */
+//Update sample work
 export async function updateSampleWork(
   id: string,
   data: {
@@ -68,18 +58,14 @@ export async function updateSampleWork(
   });
 }
 
-/**
- * Delete sample work
- */
+//Delete sample work
 export async function deleteSampleWork(id: string) {
   return prisma.sampleWork.delete({
     where: { id },
   });
 }
 
-/**
- * Toggle visibility
- */
+//Toggle visibility
 export async function toggleSampleWorkVisibility(id: string) {
   const work = await getSampleWorkById(id);
   if (!work) throw new Error('Sample work not found');

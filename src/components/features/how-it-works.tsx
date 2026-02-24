@@ -7,12 +7,12 @@ const steps = [
   {
     icon: Mail,
     title: 'Share Your Vision',
-    description: 'Tell us what you need—a quick surprise or a detailed custom piece.',
+    description: 'Tell us what you need; a quick surprise or a detailed custom piece.',
   },
   {
     icon: PenTool,
     title: 'We Craft Your Words',
-    description: 'A human poet writes your poem with care, emotion, and authenticity.',
+    description: 'A real poet writes your poem with care, emotion, and authenticity.',
   },
   {
     icon: Heart,

@@ -1,18 +1,12 @@
 import { z } from 'zod';
 
-/**
- * Poem Type Enum
- */
+//Poem Type Enum
 export const PoemTypeSchema = z.enum(['QUICK', 'CUSTOM']);
 
-/**
- * Order Status Enum
- */
+//Order Status Enum
 export const OrderStatusSchema = z.enum(['PENDING', 'WRITING', 'DELIVERED', 'CANCELLED']);
 
-/**
- * Quick Poem Commission Schema
- */
+//Quick Poem Commission Schema
 export const QuickPoemSchema = z.object({
   type: z.literal('QUICK'),
   email: z.string().email('Please enter a valid email address'),
@@ -24,9 +18,7 @@ export const QuickPoemSchema = z.object({
   currency: z.enum(['USD', 'KES']),
 });
 
-/**
- * Custom Poem Commission Schema
- */
+//Custom Poem Commission Schema
 export const CustomPoemSchema = z.object({
   type: z.literal('CUSTOM'),
   email: z.string().email('Please enter a valid email address'),
@@ -46,25 +38,19 @@ export const CustomPoemSchema = z.object({
   currency: z.enum(['USD', 'KES']),
 });
 
-/**
- * Union of both commission types
- */
+//Union of both commission types
 export const CommissionSchema = z.discriminatedUnion('type', [
   QuickPoemSchema,
   CustomPoemSchema,
 ]);
 
-/**
- * Order tracking by email
- */
+//Order tracking by email
 export const OrderTrackingSchema = z.object({
   orderId: z.string().uuid(),
   email: z.string().email(),
 });
 
-/**
- * Admin - Deliver Poem Schema
- */
+//Admin - Deliver Poem Schema
 export const DeliverPoemSchema = z.object({
   orderId: z.string().uuid(),
   poemContent: z
@@ -73,17 +59,13 @@ export const DeliverPoemSchema = z.object({
     .max(5000, 'Poem exceeds maximum length'),
 });
 
-/**
- * Admin - Update Order Status
- */
+//Admin - Update Order Status
 export const UpdateOrderStatusSchema = z.object({
   orderId: z.string().uuid(),
   status: OrderStatusSchema,
 });
 
-/**
- * Sample Work Schema (Admin CMS)
- */
+//Sample Work Schema (Admin CMS)
 export const SampleWorkSchema = z.object({
   title: z.string().min(3, 'Title required').max(100),
   excerpt: z.string().min(10).max(300),
@@ -94,17 +76,13 @@ export const SampleWorkSchema = z.object({
   sortOrder: z.number().int().default(0),
 });
 
-/**
- * Update Sample Work Schema
- */
+//Update Sample Work Schema
 export const UpdateSampleWorkSchema = SampleWorkSchema.extend({
   id: z.string().uuid(),
 });
 
-/**
- * Price Validation Schema
- * Ensures client-side price matches server calculation
- */
+//Price Validation Schema
+//Ensures client-side price matches server calculation
 export const PriceValidationSchema = z.object({
   type: PoemTypeSchema,
   urgency: z.number().int().optional(),
@@ -112,9 +90,7 @@ export const PriceValidationSchema = z.object({
   currency: z.enum(['USD', 'KES']),
 });
 
-/**
- * Type exports for TypeScript
- */
+//Type exports for TypeScript
 export type QuickPoemInput = z.infer<typeof QuickPoemSchema>;
 export type CustomPoemInput = z.infer<typeof CustomPoemSchema>;
 export type CommissionInput = z.infer<typeof CommissionSchema>;

@@ -47,7 +47,6 @@ export function Footer() {
               {socialLinks.map((social) => {
                 const Icon = social.icon;
                 return (
-                  // --- FIX START: Added the opening <a> tag below ---
                   <a
                     key={social.label}
                     href={social.href}
@@ -112,13 +111,13 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="border-t border-border pt-8">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+        <div className="border-t border-border pt-5">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-2">
             <p className="font-nunito text-sm text-muted-foreground">
               © {currentYear} Noctuary. All rights reserved. Human Ink, Digital Canvas.
             </p>
             <p className="font-nunito text-sm text-muted-foreground">
-              Made with care for people who value authenticity.
+              Made with heart, to your soul, for your mind.
             </p>
           </div>
         </div>
