@@ -1,38 +1,31 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { validateEnv } from './lib/env';
-
-// Validate env on startup
-if (process.env.NODE_ENV === 'production') {
-  validateEnv();
-}
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Protect admin routes
+  // Admin routes protection
   if (pathname.startsWith('/admin') && pathname !== '/admin/login') {
-    const adminSession = request.cookies.get('noctuary_admin_session');
-
+    // Check for admin session cookie
+    const adminSession = request.cookies.get('admin_session');
+    
     if (!adminSession) {
-      return NextResponse.redirect(new URL('/admin/login', request.url));
+      // Redirect to login if no session
+      const loginUrl = new URL('/admin/login', request.url);
+      return NextResponse.redirect(loginUrl);
     }
   }
 
-  // Redirect /admin to /admin/dashboard if logged in
+  // Redirect /admin to /admin/dashboard
   if (pathname === '/admin') {
-    const adminSession = request.cookies.get('noctuary_admin_session');
-    
-    if (adminSession) {
-      return NextResponse.redirect(new URL('/admin/dashboard', request.url));
-    } else {
-      return NextResponse.redirect(new URL('/admin/login', request.url));
-    }
+    return NextResponse.redirect(new URL('/admin/dashboard', request.url));
   }
 
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: '/admin/:path*',
+  matcher: [
+    '/admin/:path*',
+  ],
 };
