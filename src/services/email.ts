@@ -5,7 +5,7 @@ import { sanitizeText } from '@/lib/sanitize';
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 // Use the ONLY allowed sender on free tier
-const FROM_EMAIL = 'onboarding@resend.dev';
+const FROM_EMAIL = 'hello@noctuary.ink';
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 
 //Send order confirmation email
