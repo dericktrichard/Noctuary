@@ -46,10 +46,10 @@ export function Testimonials() {
           className="text-center mb-16"
         >
           <h2 className="text-4xl md:text-5xl font-bold mb-4">
-            Voices of Connection
+            Voices of Feedback
           </h2>
           <p className="font-nunito text-lg max-w-2xl mx-auto text-muted-foreground">
-            Real stories from people who found the perfect words through Noctuary
+            True reviews of those who have commissioned poetry under Noctuary
           </p>
         </motion.div>
 

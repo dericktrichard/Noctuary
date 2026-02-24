@@ -2,9 +2,7 @@ import 'server-only';
 import { prisma } from '@/lib/prisma';
 import { OrderStatus } from '@prisma/client';
 
-/**
- * Get revenue statistics
- */
+//Get revenue statistics
 export async function getRevenueStats(startDate?: Date, endDate?: Date) {
   const where = {
     status: OrderStatus.DELIVERED, // Use enum instead of string
@@ -61,9 +59,7 @@ export async function getRevenueStats(startDate?: Date, endDate?: Date) {
   };
 }
 
-/**
- * Export transactions for accounting
- */
+//Export transactions for accounting
 export async function exportTransactions(format: 'csv' | 'json' = 'csv') {
   const orders = await prisma.order.findMany({
     where: { status: OrderStatus.DELIVERED },

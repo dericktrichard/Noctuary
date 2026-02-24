@@ -2,9 +2,7 @@ import 'server-only';
 import { prisma } from '@/lib/prisma';
 import { PoemType, OrderStatus, Currency, PaymentProvider } from '@prisma/client';
 
-/**
- * Create a new order
- */
+//Create a new order
 export async function createOrder(data: {
   email: string;
   type: 'QUICK' | 'CUSTOM';
@@ -32,9 +30,7 @@ export async function createOrder(data: {
   return order;
 }
 
-/**
- * Get order by ID
- */
+//Get order by ID
 export async function getOrderById(orderId: string) {
   const order = await prisma.order.findUnique({
     where: { id: orderId },
@@ -43,9 +39,7 @@ export async function getOrderById(orderId: string) {
   return order;
 }
 
-/**
- * Get order by access token (magic link)
- */
+//Get order by access token (magic link)
 export async function getOrderByAccessToken(accessToken: string) {
   const order = await prisma.order.findUnique({
     where: { accessToken },
@@ -54,9 +48,7 @@ export async function getOrderByAccessToken(accessToken: string) {
   return order;
 }
 
-/**
- * Get order by ID and email (for client access)
- */
+//Get order by ID and email (for client access)
 export async function getOrderByIdAndEmail(orderId: string, email: string) {
   const order = await prisma.order.findFirst({
     where: {
@@ -68,9 +60,7 @@ export async function getOrderByIdAndEmail(orderId: string, email: string) {
   return order;
 }
 
-/**
- * Update order after payment verification
- */
+//Update order after payment verification
 export async function updateOrderPayment(
   orderId: string,
   paymentData: {
@@ -95,9 +85,7 @@ export async function updateOrderPayment(
   return order;
 }
 
-/**
- * Update order status
- */
+//Update order status
 export async function updateOrderStatus(orderId: string, status: OrderStatus) {
   const order = await prisma.order.update({
     where: { id: orderId },
@@ -107,9 +95,7 @@ export async function updateOrderStatus(orderId: string, status: OrderStatus) {
   return order;
 }
 
-/**
- * Deliver poem to client
- */
+//Deliver poem to client
 export async function deliverPoem(orderId: string, poemContent: string) {
   const order = await prisma.order.update({
     where: { id: orderId },
@@ -123,10 +109,8 @@ export async function deliverPoem(orderId: string, poemContent: string) {
   return order;
 }
 
-/**
- * Get all orders (for admin dashboard)
- * Sorted by priority: Status > Type > Price > Created
- */
+//Get all orders (for admin dashboard)
+//Sorted by priority: Status > Type > Price > Created
 export async function getAllOrders() {
   const orders = await prisma.order.findMany({
     orderBy: [
@@ -140,9 +124,7 @@ export async function getAllOrders() {
   return orders;
 }
 
-/**
- * Get orders by status
- */
+//Get orders by status
 export async function getOrdersByStatus(status: OrderStatus) {
   const orders = await prisma.order.findMany({
     where: { status },
@@ -156,9 +138,7 @@ export async function getOrdersByStatus(status: OrderStatus) {
   return orders;
 }
 
-/**
- * Check if email is a first-time customer
- */
+//Check if email is a first-time customer
 export async function isFirstTimeCustomer(email: string): Promise<boolean> {
   const orderCount = await prisma.order.count({
     where: { 
@@ -172,9 +152,7 @@ export async function isFirstTimeCustomer(email: string): Promise<boolean> {
   return orderCount === 1;
 }
 
-/**
- * Get order count by email
- */
+//Get order count by email
 export async function getOrderCountByEmail(email: string): Promise<number> {
   return prisma.order.count({
     where: { 
@@ -186,9 +164,7 @@ export async function getOrderCountByEmail(email: string): Promise<number> {
   });
 }
 
-/**
- * Get dashboard stats
- */
+//Get dashboard stats
 export async function getDashboardStats() {
   const [total, pending, paid, writing, delivered, todayOrders] = await Promise.all([
     prisma.order.count(),

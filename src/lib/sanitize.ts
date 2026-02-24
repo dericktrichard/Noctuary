@@ -1,6 +1,4 @@
-/**
- * Basic HTML sanitization to prevent XSS
- */
+//Basic HTML sanitization to prevent XSS
 export function sanitizeHtml(input: string): string {
   return input
     .replace(/&/g, '&amp;')
@@ -11,17 +9,13 @@ export function sanitizeHtml(input: string): string {
     .replace(/\//g, '&#x2F;');
 }
 
-/**
- * Sanitize text input (allow line breaks but nothing else)
- */
+//Sanitize text input (allow line breaks but nothing else)
 export function sanitizeText(input: string): string {
   // Remove all HTML tags but preserve newlines
   return input.replace(/<[^>]*>/g, '').trim();
 }
 
-/**
- * Validate and sanitize email
- */
+//Validate and sanitize email
 export function sanitizeEmail(email: string): string {
   return email.toLowerCase().trim();
 }

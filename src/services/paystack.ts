@@ -13,9 +13,7 @@ const paystackClient = axios.create({
   timeout: 15000,
 });
 
-/**
- * Initialize Paystack transaction
- */
+//Initialize Paystack transaction
 export async function initializePaystackTransaction(
   email: string,
   amount: number,
@@ -72,9 +70,7 @@ export async function initializePaystackTransaction(
   }
 }
 
-/**
- * Verify Paystack transaction
- */
+//Verify Paystack transaction
 export async function verifyPaystackTransaction(reference: string) {
   try {
     console.log('[PAYSTACK] Verifying transaction:', reference);
@@ -106,9 +102,7 @@ export async function verifyPaystackTransaction(reference: string) {
   }
 }
 
-/**
- * Get transaction details
- */
+//Get transaction details
 export async function getPaystackTransaction(reference: string) {
   try {
     const response = await paystackClient.get(`/transaction/verify/${reference}`);

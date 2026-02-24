@@ -7,9 +7,7 @@ export interface OrderWithTimeRemaining {
   isOverdue: boolean;
 }
 
-/**
- * Calculate time remaining for an order
- */
+//Calculate time remaining for an order
 export function calculateTimeRemaining(order: {
   deliveryHours: number;
   paidAt: string | null;
@@ -31,9 +29,7 @@ export function calculateTimeRemaining(order: {
   };
 }
 
-/**
- * Format time remaining in human-readable format
- */
+//Format time remaining in human-readable format
 export function formatTimeRemaining(minutes: number): string {
   if (minutes < 0) {
     const overdue = Math.abs(minutes);
@@ -52,9 +48,7 @@ export function formatTimeRemaining(minutes: number): string {
   return `${hours}h ${mins}m remaining`;
 }
 
-/**
- * Sort orders by priority (time remaining)
- */
+//Sort orders by priority (time remaining)
 export function sortOrdersByPriority<T extends { deliveryHours: number; paidAt: string | null; status: string }>(
   orders: T[]
 ): T[] {

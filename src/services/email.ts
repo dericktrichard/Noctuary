@@ -8,9 +8,7 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 const FROM_EMAIL = 'onboarding@resend.dev';
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 
-/**
- * Send order confirmation email
- */
+//Send order confirmation email
 export async function sendOrderConfirmation(
   email: string,
   orderData: {
@@ -129,9 +127,7 @@ export async function sendOrderConfirmation(
   }
 }
 
-/**
- * Send poem delivery email
- */
+//Send poem delivery email
 export async function sendPoemDelivery(
   email: string,
   orderData: {
@@ -249,9 +245,7 @@ ${orderData.poemContent}
   }
 }
 
-/**
- * Send payment confirmation email
- */
+//Send payment confirmation email
 export async function sendPaymentConfirmation(
   email: string,
   orderData: {

@@ -288,12 +288,13 @@ export function CommissionForm({ pricing }: CommissionFormProps) {
 
   return (
     <div className="max-w-4xl mx-auto">
-      {/* Exchange rate info */}
-      <div className="mb-6 text-center">
-        <p className="text-xs font-nunito text-muted-foreground">
-          Live exchange rate: 1 USD = {pricing.exchangeRate} KES
-        </p>
-      </div>
+      {/* Exchange rate info
+        <div className="mb-6 text-center">
+          <p className="text-xs font-nunito text-muted-foreground">
+            Live exchange rate: 1 USD = {pricing.exchangeRate} KES
+          </p>
+        </div>
+      */}
 
       {/* Step 1: Choose Poem Type */}
       {!poemType && (
@@ -315,7 +316,7 @@ export function CommissionForm({ pricing }: CommissionFormProps) {
             
             <h3 className="text-2xl font-bold mb-2">Quick Poem</h3>
             <p className="font-nunito text-sm mb-4 text-muted-foreground">
-              A poetic surprise—no details needed
+              A poetic surprise ; no details needed
             </p>
             
             <div className="space-y-1">
@@ -340,7 +341,7 @@ export function CommissionForm({ pricing }: CommissionFormProps) {
           >
             <div className="absolute top-4 right-4">
               <div className="px-3 py-1 bg-primary text-primary-foreground rounded-full text-xs font-nunito font-bold">
-                POPULAR
+                Most Preferred
               </div>
             </div>
 
@@ -772,10 +773,10 @@ export function CommissionForm({ pricing }: CommissionFormProps) {
                     )}
                   </div>
 
-                  <div className="glass-light rounded-xl p-6 space-y-3">
+                  <div className="glass-light rounded-xl p-5 space-y-3">
                     <div className="flex justify-between items-center">
                       <span className="font-nunito text-muted-foreground">Your Price:</span>
-                      <span className="text-3xl font-bold">{getDisplayPrice()}</span>
+                      <span className="text-2xl font-bold">{getDisplayPrice()}</span>
                     </div>
                     <div className="flex justify-between items-center text-sm">
                       <span className="font-nunito text-muted-foreground">You'll Pay:</span>

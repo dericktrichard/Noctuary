@@ -2,7 +2,6 @@ import { Ratelimit } from '@upstash/ratelimit';
 import { Redis } from '@upstash/redis';
 
 // Use in-memory rate limiting for free tier
-// For production with Upstash Redis, uncomment below
 /*
 const redis = new Redis({
   url: process.env.UPSTASH_REDIS_REST_URL!,
