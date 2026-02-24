@@ -5,7 +5,7 @@ import { useTheme } from 'next-themes';
 
 export function VantaBackground() {
   const vantaRef = useRef<HTMLDivElement>(null);
-  const [vantaEffect, setVantaEffect] = useState<any>(null);
+  const vantaEffectRef = useRef<any>(null); 
   const { theme, systemTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
@@ -22,16 +22,16 @@ export function VantaBackground() {
     const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
 
     // Destroy existing effect when theme changes
-    if (vantaEffect) {
+    if (vantaEffectRef.current) {
       try {
-        vantaEffect.destroy();
-        setVantaEffect(null);
+        vantaEffectRef.current.destroy();
+        vantaEffectRef.current = null;
       } catch (err) {
         console.error('Error destroying Vanta effect:', err);
       }
     }
 
-    // Load Vanta with theme-appropriate colors
+    // Dynamically load Vanta with theme-appropriate colors (SSR-safe)
     Promise.all([
       import('vanta/dist/vanta.birds.min'),
       import('three')
@@ -61,22 +61,24 @@ export function VantaBackground() {
           quantity: isMobile ? 2.00 : 3.00,
           birdSize: isMobile ? 1.2 : 1.5,
         });
-        setVantaEffect(effect);
+        vantaEffectRef.current = effect;
       }
     }).catch((err) => {
       console.error('Vanta.js failed to load:', err);
     });
 
+    // Cleanup on unmount or theme change
     return () => {
-      if (vantaEffect) {
+      if (vantaEffectRef.current) {
         try {
-          vantaEffect.destroy();
+          vantaEffectRef.current.destroy();
+          vantaEffectRef.current = null;
         } catch (err) {
           console.error('Error destroying Vanta effect:', err);
         }
       }
     };
-  }, [mounted, theme, systemTheme]);
+  }, [mounted, theme, systemTheme]); 
 
   if (!mounted) {
     return null; // Prevent SSR mismatch
