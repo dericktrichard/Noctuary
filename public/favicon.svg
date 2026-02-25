@@ -1,0 +1,25 @@
+<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Elegant N with quill flourish -->
+  <path
+    d="M20 75 L20 25 L30 25 L60 60 L60 25 L70 25 L70 75 L60 75 L30 40 L30 75 Z"
+    stroke="currentColor"
+    stroke-width="2"
+    fill="none"
+  />
+  
+  <!-- Quill flourish -->
+  <path
+    d="M75 20 Q80 15, 85 20 L75 30 Q78 25, 75 20 Z"
+    fill="currentColor"
+  />
+  
+  <!-- Ink drop -->
+  <circle cx="80" cy="28" r="2" fill="currentColor" />
+  
+  <style>
+    svg { color: #0a0a0a; }
+    @media (prefers-color-scheme: dark) {
+      svg { color: #ffffff; }
+    }
+  </style>
+</svg>
