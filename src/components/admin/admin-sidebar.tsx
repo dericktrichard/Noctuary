@@ -4,14 +4,14 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
+import { Logo } from '@/components/shared/logo';
 import { 
   LayoutDashboard, 
   FileText, 
   Settings,
   ChevronLeft,
   ChevronRight,
-  Home,
-  PenLine
+  Home
 } from 'lucide-react';
 
 const navigation = [
@@ -54,24 +54,61 @@ export function AdminSidebar() {
         )}
       >
         <div className="flex grow flex-col gap-y-5 overflow-y-auto border-r border-border bg-card px-6 pb-4">
+          {/* Logo Header */}
           <div className={cn(
-            "flex h-16 shrink-0 items-center gap-3 border-b border-border",
+            "flex h-16 shrink-0 items-center border-b border-border",
             isCollapsed && "justify-center"
           )}>
             {isCollapsed ? (
-              <div className="w-10 h-10 rounded-lg bg-primary flex items-center justify-center">
-                <span className="text-primary-foreground font-bold text-xl">N</span>
+              // Just the icon when collapsed
+              <div className="w-8 h-8">
+                <svg
+                  viewBox="0 0 100 100"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="w-full h-full"
+                >
+                  <path
+                    d="M20 75 L20 25 L30 25 L60 60 L60 25 L70 25 L70 75 L60 75 L30 40 L30 75 Z"
+                    className="stroke-foreground"
+                    strokeWidth="2"
+                    fill="none"
+                  />
+                  <path
+                    d="M75 20 Q80 15, 85 20 L75 30 Q78 25, 75 20 Z"
+                    className="fill-foreground"
+                  />
+                  <circle cx="80" cy="28" r="2" className="fill-foreground" />
+                </svg>
               </div>
             ) : (
-              <>
-                <div className="w-10 h-10 rounded-lg bg-primary flex items-center justify-center">
-                  <span className="text-primary-foreground font-bold text-xl">N</span>
+              // Full logo when expanded
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8">
+                  <svg
+                    viewBox="0 0 100 100"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="w-full h-full"
+                  >
+                    <path
+                      d="M20 75 L20 25 L30 25 L60 60 L60 25 L70 25 L70 75 L60 75 L30 40 L30 75 Z"
+                      className="stroke-foreground"
+                      strokeWidth="2"
+                      fill="none"
+                    />
+                    <path
+                      d="M75 20 Q80 15, 85 20 L75 30 Q78 25, 75 20 Z"
+                      className="fill-foreground"
+                    />
+                    <circle cx="80" cy="28" r="2" className="fill-foreground" />
+                  </svg>
                 </div>
                 <div>
-                  <h1 className="text-xl font-bold">Noctuary</h1>
+                  <h1 className="text-lg font-bold tracking-wider">NOCTUARY</h1>
                   <p className="text-xs text-muted-foreground">Admin Panel</p>
                 </div>
-              </>
+              </div>
             )}
           </div>
 

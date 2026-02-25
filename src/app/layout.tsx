@@ -20,9 +20,21 @@ const philosopher = Philosopher({
 
 export const metadata: Metadata = {
   title: 'Noctuary Ink - Soul Scripted',
-  description: 'Premium poetry commission platform. Every poem is crafted by human hands, never by algorithms. Order custom or quick poems for any occasion.',
+  description: 'Premium poetry commission platform. Every poem is crafted by human hands. Order custom or quick poems for any occasion.',
   keywords: ['poetry', 'custom poems', 'commission poetry', 'human-written', 'poet for hire', 'bespoke poetry'],
   authors: [{ name: 'Noctuary' }],
+  
+  // Favicon configuration
+  icons: {
+    icon: [
+      { url: '/favicon.svg', type: 'image/svg+xml' },
+      { url: '/icon.png', type: 'image/png', sizes: '512x512' },
+    ],
+    apple: [
+      { url: '/icon.png', sizes: '180x180', type: 'image/png' },
+    ],
+  },
+  
   openGraph: {
     title: 'Noctuary Ink - Soul Scripted',
     description: 'Commission premium, human-written poetry crafted with intention.',
