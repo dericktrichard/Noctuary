@@ -28,7 +28,7 @@ const socialLinks = [
   { icon: Twitter, href: 'https://twitter.com', label: 'Twitter' },
   { icon: Instagram, href: 'https://instagram.com', label: 'Instagram' },
   { icon: Facebook, href: 'https://facebook.com', label: 'Facebook' },
-  { icon: Mail, href: 'mailto:hello@noctuary.com', label: 'Email' },
+  { icon: Mail, href: 'mailto:hello@noctuary.ink', label: 'Email' },
 ];
 
 export function Footer() {
@@ -41,7 +41,7 @@ export function Footer() {
           <div>
             <Logo size="md" />
             <p className="mt-6 font-nunito leading-relaxed text-muted-foreground">
-              Premium poetry commissions crafted by human hands. Every word written with intention, never by algorithm.
+              Premium poetry commissions crafted by human hands. Every word written with intention and true flaws.
             </p>
             <div className="flex gap-4 mt-6">
               {socialLinks.map((social) => {
@@ -114,7 +114,7 @@ export function Footer() {
         <div className="border-t border-border pt-5">
           <div className="flex flex-col md:flex-row justify-between items-center gap-2">
             <p className="font-nunito text-sm text-muted-foreground">
-              © {currentYear} Noctuary. All rights reserved. Human Ink, Digital Canvas.
+              © {currentYear} Noctuary. All rights reserved.
             </p>
             <p className="font-nunito text-sm text-muted-foreground">
               Made with heart, to your soul, for your mind.
