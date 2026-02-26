@@ -288,13 +288,12 @@ export function CommissionForm({ pricing }: CommissionFormProps) {
 
   return (
     <div className="max-w-4xl mx-auto">
-      {/* Exchange rate info
-        <div className="mb-6 text-center">
+      {/* Alerts */}
+        <div className="mb-2 text-center">
           <p className="text-xs font-nunito text-muted-foreground">
-            Live exchange rate: 1 USD = {pricing.exchangeRate} KES
+            The PayPal Option is currently Unavailable until approved in 7 Business Days
           </p>
         </div>
-      */}
 
       {/* Step 1: Choose Poem Type */}
       {!poemType && (
