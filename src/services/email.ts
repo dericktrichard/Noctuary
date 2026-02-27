@@ -273,3 +273,108 @@ export async function sendPaymentConfirmation(
     return null;
   }
 }
+
+/**
+ * Send admin notification for new order
+ */
+/**
+ * Send admin notification for new order
+ */
+export async function sendAdminOrderNotification(data: {
+  orderId: string;
+  type: string;
+  amount: number;
+  currency: string;
+  customerEmail: string;
+  title?: string | null;
+  deliveryHours: number;
+}) {
+  const { orderId, type, amount, currency, customerEmail, title, deliveryHours } = data;
+  const adminEmail = 'dericktrichard@gmail.com'; 
+  const orderUrl = `${process.env.NEXT_PUBLIC_APP_URL}/admin/dashboard/orders`;
+
+  try {
+    const { data: result, error } = await resend.emails.send({
+      from: FROM_ADDRESS,
+      to: adminEmail,
+      subject: `🎨 New ${type} Poem Order - ${currency} ${amount}`,
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <style>
+            body { font-family: system-ui, sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .alert { background: #6366f1; color: white; padding: 20px; border-radius: 8px; text-align: center; }
+            .details { background: #f9f9f9; padding: 20px; border-radius: 8px; margin: 20px 0; }
+            .button { display: inline-block; padding: 12px 30px; background: #6366f1; color: white; text-decoration: none; border-radius: 6px; margin: 20px 0; }
+            table { width: 100%; border-collapse: collapse; }
+            td { padding: 8px 0; border-bottom: 1px solid #eee; }
+            td:first-child { font-weight: bold; width: 40%; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="alert">
+              <h1 style="margin: 0; font-size: 24px;">🎨 New Order Received!</h1>
+            </div>
+
+            <div class="details">
+              <h2 style="margin-top: 0;">Order Details</h2>
+              <table>
+                <tr>
+                  <td>Order ID:</td>
+                  <td><code>${orderId}</code></td>
+                </tr>
+                <tr>
+                  <td>Type:</td>
+                  <td><strong>${type} POEM</strong></td>
+                </tr>
+                ${title ? `
+                <tr>
+                  <td>Title:</td>
+                  <td>${title}</td>
+                </tr>
+                ` : ''}
+                <tr>
+                  <td>Amount:</td>
+                  <td><strong>${currency} ${amount.toFixed(2)}</strong></td>
+                </tr>
+                <tr>
+                  <td>Customer:</td>
+                  <td>${customerEmail}</td>
+                </tr>
+                <tr>
+                  <td>Delivery:</td>
+                  <td>Within ${deliveryHours} hours</td>
+                </tr>
+              </table>
+            </div>
+
+            <div style="text-align: center;">
+              <a href="${orderUrl}" class="button">
+                View in Dashboard
+              </a>
+            </div>
+
+            <p style="text-align: center; color: #666; font-size: 12px; margin-top: 30px;">
+              This is an automated notification from Noctuary
+            </p>
+          </div>
+        </body>
+        </html>
+      `,
+    });
+
+    if (error) {
+      console.error('[EMAIL] Admin notification failed:', error);
+      return null;
+    }
+
+    return result;
+  } catch (error) {
+    console.error('[EMAIL] Admin notification error:', error);
+    return null;
+  }
+}

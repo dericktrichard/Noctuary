@@ -5,18 +5,20 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Logo } from '@/components/shared/logo';
-import { Star } from 'lucide-react';
 import { 
   LayoutDashboard, 
   FileText, 
   Settings,
   ChevronLeft,
   ChevronRight,
-  Home
+  Home,
+  Star,
+  ShoppingCart
 } from 'lucide-react';
 
 const navigation = [
   { name: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard },
+  { name: 'Orders', href: '/admin/dashboard/orders', icon: ShoppingCart },
   { name: 'Sample Works', href: '/admin/dashboard/samples', icon: FileText },
   { name: 'Testimonials', href: '/admin/dashboard/testimonials', icon: Star }, 
   { name: 'Settings', href: '/admin/dashboard/settings', icon: Settings },
@@ -135,8 +137,10 @@ export function AdminSidebar() {
 
                   {/* Navigation Items */}
                   {navigation.map((item) => {
-                    const isActive = pathname === item.href || 
+                    const isActive = 
+                      pathname === item.href || 
                       (item.href !== '/admin/dashboard' && pathname.startsWith(item.href));
+                    
                     return (
                       <li key={item.name}>
                         <Link

@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { headers } from 'next/headers';
 import { checkOrderRateLimit } from '@/lib/rate-limit';
 import { createOrder, updateOrderPayment, getOrderCountByEmail } from '@/services/orders';
-import { sendPaymentConfirmation } from '@/services/email';
+import { sendPaymentConfirmation, sendAdminOrderNotification } from '@/services/email';
 import { getCurrentPricing } from './pricing';
 import { prisma } from '@/lib/prisma';
 
@@ -169,16 +169,32 @@ export async function verifyPayPalPaymentAction(orderId: string, paypalOrderId: 
       pricePaid: parseFloat(captureResult.amount.value),
     });
 
-    // Send ONLY payment confirmation email 
+    // Send payment confirmation email 
     try {
       await sendPaymentConfirmation(order.email, {
         orderId: order.id,
         amount: Number(order.pricePaid),
         currency: order.currency,
       });
-      console.log('[EMAIL] Payment confirmation sent successfully');
+      console.log('[EMAIL] Payment confirmation sent');
     } catch (emailError) {
       console.error('[EMAIL] Payment confirmation failed (non-critical):', emailError);
+    }
+
+    // Send admin notification
+    try {
+      await sendAdminOrderNotification({
+        orderId: order.id,
+        type: order.type,
+        amount: Number(order.pricePaid),
+        currency: order.currency,
+        customerEmail: order.email,
+        title: order.title,
+        deliveryHours: order.deliveryHours,
+      });
+      console.log('[EMAIL] Admin notification sent');
+    } catch (emailError) {
+      console.error('[EMAIL] Admin notification failed (non-critical):', emailError);
     }
 
     return {
@@ -216,16 +232,32 @@ export async function verifyPaystackPaymentAction(orderId: string, reference: st
       pricePaid: verification.amount,
     });
 
-    // Send ONLY payment confirmation email 
+    // Send payment confirmation email 
     try {
       await sendPaymentConfirmation(order.email, {
         orderId: order.id,
         amount: Number(order.pricePaid),
         currency: order.currency,
       });
-      console.log('[EMAIL] Payment confirmation sent successfully');
+      console.log('[EMAIL] Payment confirmation sent');
     } catch (emailError) {
       console.error('[EMAIL] Payment confirmation failed (non-critical):', emailError);
+    }
+
+    // Send admin notification
+    try {
+      await sendAdminOrderNotification({
+        orderId: order.id,
+        type: order.type,
+        amount: Number(order.pricePaid),
+        currency: order.currency,
+        customerEmail: order.email,
+        title: order.title,
+        deliveryHours: order.deliveryHours,
+      });
+      console.log('[EMAIL] Admin notification sent');
+    } catch (emailError) {
+      console.error('[EMAIL] Admin notification failed (non-critical):', emailError);
     }
 
     return {
