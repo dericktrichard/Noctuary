@@ -5,7 +5,9 @@ import { sanitizeText } from '@/lib/sanitize';
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 // Use the ONLY allowed sender on free tier
+const FROM_NAME = 'Noctuary';
 const FROM_EMAIL = 'hello@noctuary.ink';
+const FROM_ADDRESS = `${FROM_NAME} <${FROM_EMAIL}>`;
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 
 //Send order confirmation email
@@ -109,7 +111,7 @@ export async function sendOrderConfirmation(
 
   try {
     const { data, error } = await resend.emails.send({
-      from: FROM_EMAIL,
+      from: FROM_ADDRESS,
       to: email,
       subject,
       html,
@@ -130,151 +132,139 @@ export async function sendOrderConfirmation(
 //Send poem delivery email
 export async function sendPoemDelivery(
   email: string,
-  orderData: {
-    orderId: string;
-    accessToken: string;
-    title?: string;
-    poemContent: string;
-  }
+  data: { orderId: string; poemContent: string; accessToken: string; title: string }
 ) {
-  const viewUrl = `${APP_URL}/order/${orderData.accessToken}`;
-  const sanitizedContent = sanitizeText(orderData.poemContent);
-  
-  const html = `
-    <!DOCTYPE html>
-    <html>
-      <head>
-        <style>
-          body { font-family: 'Georgia', serif; line-height: 1.6; color: #333; }
-          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-          .header { text-align: center; padding: 30px 0; border-bottom: 2px solid #f0f0f0; }
-          .content { padding: 30px 0; }
-          .poem { 
-            background: #f8f8f8; 
-            padding: 30px; 
-            margin: 30px 0;
-            border-left: 4px solid #000;
-            white-space: pre-wrap;
-            font-family: 'Georgia', serif;
-            line-height: 1.8;
-          }
-          .button { 
-            display: inline-block; 
-            padding: 12px 30px; 
-            background: #000; 
-            color: #fff !important; 
-            text-decoration: none; 
-            border-radius: 5px;
-            margin: 20px 0;
-          }
-          .footer { 
-            text-align: center; 
-            padding: 20px 0; 
-            border-top: 2px solid #f0f0f0; 
-            color: #666;
-            font-size: 14px;
-          }
-        </style>
-      </head>
-      <body>
-        <div class="container">
-          <div class="header">
-            <h1 style="margin: 0; font-size: 32px; letter-spacing: 2px;">NOCTUARY</h1>
-            <p style="margin: 10px 0 0 0; color: #666;">Human Ink, Digital Canvas</p>
-          </div>
-          
-          <div class="content">
-            <h2>Your poem is ready!</h2>
-            
-            ${orderData.title ? `<h3 style="font-style: italic; color: #666;">"${orderData.title}"</h3>` : ''}
-            
-            <p>We're delighted to present your commissioned poem, crafted with care and intention:</p>
-            
-            <div class="poem">
-${orderData.poemContent}
-            </div>
-            
-            <div style="background: #fffbeb; padding: 15px; border-left: 4px solid #f59e0b; margin: 20px 0;">
-              <strong>Copyright Notice</strong><br>
-              Full copyright of this poem has been transferred to you. You may use it however you wish.
-            </div>
-            
-            <p>You can view and download your poem anytime:</p>
-            
-            <div style="text-align: center;">
-              <a href="${viewUrl}" class="button">View Your Poem</a>
-            </div>
-            
-            <p style="margin-top: 30px;">
-              Thank you for commissioning with Noctuary. We hope these words bring meaning to your life.
-            </p>
-            
-            <p style="font-style: italic; color: #666; text-align: center;">
-              &mdash; With gratitude, your poet
-            </p>
-          </div>
-          
-          <div class="footer">
-            <p>&copy; ${new Date().getFullYear()} Noctuary. All rights reserved.</p>
-            <p>We'd love to hear your thoughts. Reply to share your feedback!</p>
-          </div>
-        </div>
-      </body>
-    </html>
-  `;
+  const { orderId, poemContent, accessToken, title } = data;
+  const trackingUrl = `${process.env.NEXT_PUBLIC_APP_URL}/order/${accessToken}`;
 
   try {
-    const { data, error } = await resend.emails.send({
-      from: FROM_EMAIL,
+    const { data: result, error } = await resend.emails.send({
+      from: FROM_ADDRESS,
       to: email,
-      subject: orderData.title 
-        ? `Your Poem "${orderData.title}" Has Been Delivered`
-        : 'Your Poem Has Been Delivered',
-      html,
+      subject: `Your Poem is Ready: "${title}"`,
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <style>
+            body { font-family: 'Georgia', serif; line-height: 1.8; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 40px 20px; }
+            .header { text-align: center; margin-bottom: 30px; }
+            .poem { background: #f9f9f9; padding: 30px; border-left: 4px solid #6366f1; margin: 30px 0; white-space: pre-wrap; font-style: italic; }
+            .button { display: inline-block; padding: 12px 30px; background: #6366f1; color: white; text-decoration: none; border-radius: 6px; margin: 20px 0; }
+            .footer { text-align: center; margin-top: 30px; font-size: 12px; color: #666; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1 style="margin: 0; font-size: 24px;">NOCTUARY</h1>
+              <p style="margin: 5px 0; color: #666; font-size: 14px;">Human Ink, Soul Scripted</p>
+            </div>
+
+            <h2 style="text-align: center;">"${title}"</h2>
+            
+            <div class="poem">${poemContent}</div>
+            
+            <p style="text-align: center;">
+              <a href="${trackingUrl}" class="button">View & Download</a>
+            </p>
+            
+            <p style="font-size: 14px; color: #666; text-align: center;">
+              <strong>Copyright Notice:</strong> Full copyright transferred to you.<br>
+              Use this poem however you wish.
+            </p>
+
+            <div class="footer">
+              <p>© ${new Date().getFullYear()} Noctuary. All rights reserved.</p>
+              <p>We'd love your feedback — reply to this email!</p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `,
     });
 
     if (error) {
-      console.error('[EMAIL] Send failed (non-critical):', error);
+      console.error('[EMAIL] Delivery failed (non-critical):', error);
       return null;
     }
 
-    return data;
+    return result;
   } catch (error) {
-    console.error('Email service error:', error);
-    throw error;
+    console.error('[EMAIL] Delivery error:', error);
+    return null;
   }
 }
 
 //Send payment confirmation email
 export async function sendPaymentConfirmation(
   email: string,
-  orderData: {
-    orderId: string;
-    amount: number;
-    currency: string;
-  }
+  data: { orderId: string; amount: number; currency: string }
 ) {
-  const html = `
-    <!DOCTYPE html>
-    <html>
-      <body style="font-family: Georgia, serif; padding: 20px;">
-        <h2>Payment Confirmed</h2>
-        <p>Your payment of ${orderData.currency} ${orderData.amount.toFixed(2)} has been received.</p>
-        <p>Order ID: ${orderData.orderId}</p>
-        <p>Our poet will begin working on your commission shortly.</p>
-      </body>
-    </html>
-  `;
+  const { orderId, amount, currency } = data;
 
   try {
-    await resend.emails.send({
-      from: FROM_EMAIL,
+    const { data: result, error } = await resend.emails.send({
+      from: FROM_ADDRESS,
       to: email,
-      subject: 'Payment Confirmed - Noctuary',
-      html,
+      subject: 'Payment Received - Your Poem is Being Crafted',
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <style>
+            body { font-family: 'Georgia', serif; line-height: 1.6; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 40px 20px; }
+            .header { text-align: center; margin-bottom: 30px; }
+            .content { background: #f9f9f9; padding: 30px; border-radius: 8px; }
+            .footer { text-align: center; margin-top: 30px; font-size: 12px; color: #666; }
+            .button { display: inline-block; padding: 12px 30px; background: #6366f1; color: white; text-decoration: none; border-radius: 6px; margin: 20px 0; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1 style="margin: 0; font-size: 24px;">NOCTUARY</h1>
+              <p style="margin: 5px 0; color: #666; font-size: 14px;">Human Ink, Soul Scripted</p>
+            </div>
+
+            <div class="content">
+              <h2 style="margin-top: 0;">Payment Confirmed ✓</h2>
+              
+              <p>Your payment of <strong>${currency} ${amount.toFixed(2)}</strong> has been received.</p>
+              
+              <p>Our poet is now crafting your piece with care and intention.</p>
+              
+              <a href="${process.env.NEXT_PUBLIC_APP_URL}/order/${orderId}" class="button">
+                Track Your Order
+              </a>
+              
+              <p style="font-size: 14px; color: #666; margin-top: 30px;">
+                Order ID: ${orderId}
+              </p>
+            </div>
+
+            <div class="footer">
+              <p>© ${new Date().getFullYear()} Noctuary. All rights reserved.</p>
+              <p>Questions? Reply to this email.</p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `,
     });
+
+    if (error) {
+      console.error('[EMAIL] Payment confirmation failed (non-critical):', error);
+      return null;
+    }
+
+    return result;
   } catch (error) {
-    console.error('Payment confirmation email error:', error);
-    // Don't throw - this is a secondary notification
+    console.error('[EMAIL] Payment confirmation error:', error);
+    return null;
   }
 }

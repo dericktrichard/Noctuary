@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { headers } from 'next/headers';
 import { checkOrderRateLimit } from '@/lib/rate-limit';
 import { createOrder, updateOrderPayment, getOrderCountByEmail } from '@/services/orders';
-import { sendOrderConfirmation, sendPaymentConfirmation } from '@/services/email';
+import { sendPaymentConfirmation } from '@/services/email';
 import { getCurrentPricing } from './pricing';
 import { prisma } from '@/lib/prisma';
 
@@ -160,6 +160,7 @@ export async function verifyPayPalPaymentAction(orderId: string, paypalOrderId: 
       };
     }
 
+    // Update order with payment info
     const order = await updateOrderPayment(orderId, {
       paymentProvider: 'PAYPAL',
       paymentId: paypalOrderId,
@@ -167,25 +168,16 @@ export async function verifyPayPalPaymentAction(orderId: string, paypalOrderId: 
       pricePaid: parseFloat(captureResult.amount.value),
     });
 
-    const orderCount = await getOrderCountByEmail(order.email);
-    const isFirstTime = orderCount === 1;
-
+    // Send ONLY payment confirmation email 
     try {
-      await sendOrderConfirmation(order.email, {
-        orderId: order.id,
-        accessToken: order.accessToken,
-        type: order.type,
-        deliveryHours: order.deliveryHours,
-        isFirstTime,
-      });
-
       await sendPaymentConfirmation(order.email, {
         orderId: order.id,
         amount: Number(order.pricePaid),
         currency: order.currency,
       });
+      console.log('[EMAIL] Payment confirmation sent successfully');
     } catch (emailError) {
-      console.error('Email notification failed (non-critical):', emailError);
+      console.error('[EMAIL] Payment confirmation failed (non-critical):', emailError);
     }
 
     return {
@@ -215,6 +207,7 @@ export async function verifyPaystackPaymentAction(orderId: string, reference: st
       };
     }
 
+    // Update order with payment info
     const order = await updateOrderPayment(orderId, {
       paymentProvider: 'PAYSTACK',
       paymentId: reference,
@@ -222,25 +215,16 @@ export async function verifyPaystackPaymentAction(orderId: string, reference: st
       pricePaid: verification.amount,
     });
 
-    const orderCount = await getOrderCountByEmail(order.email);
-    const isFirstTime = orderCount === 1;
-
+    // Send ONLY payment confirmation email 
     try {
-      await sendOrderConfirmation(order.email, {
-        orderId: order.id,
-        accessToken: order.accessToken,
-        type: order.type,
-        deliveryHours: order.deliveryHours,
-        isFirstTime,
-      });
-
       await sendPaymentConfirmation(order.email, {
         orderId: order.id,
         amount: Number(order.pricePaid),
         currency: order.currency,
       });
+      console.log('[EMAIL] Payment confirmation sent successfully');
     } catch (emailError) {
-      console.error('Email notification failed (non-critical):', emailError);
+      console.error('[EMAIL] Payment confirmation failed (non-critical):', emailError);
     }
 
     return {
