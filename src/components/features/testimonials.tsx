@@ -29,10 +29,10 @@ export function TestimonialsClient({ testimonials }: TestimonialsProps) {
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-bold mb-4">
-            What Our Clients Say
+            Voices of Feedback
           </h2>
           <p className="font-nunito text-lg text-muted-foreground max-w-2xl mx-auto">
-            Real experiences from people who commissioned human-written poetry
+            Reviews from people who commissioned with us.
           </p>
         </div>
 
@@ -91,7 +91,7 @@ export function TestimonialsClient({ testimonials }: TestimonialsProps) {
                 </>
               ) : (
                 <>
-                  View More ({testimonials.length - 3} more) <ChevronDown className="w-5 h-5" />
+                  View More <ChevronDown className="w-5 h-5" />
                 </>
               )}
             </Button>

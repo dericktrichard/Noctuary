@@ -37,7 +37,7 @@ export function HeroSection() {
               </h1>
               
               <p className="font-nunito text-lg text-muted-foreground mb-8 max-w-md leading-relaxed">
-                To move a bit beyond the digital noise. Commission a bespoke poem crafted with intention, heartbeat, 
+                To move a bit beyond the digital noise. <br/> Commission a bespoke poem crafted with intention, heartbeat, 
                 and the timeless touch of human hands.
               </p>
 
@@ -59,7 +59,7 @@ export function HeroSection() {
                     </div>
                   ))}
                   <div className="pl-6 text-sm font-nunito text-muted-foreground">
-                    <span className="text-foreground font-bold block">100+</span>
+                    <span className="text-foreground font-bold block">10+</span>
                     Commissions Done
                   </div>
                 </div>
@@ -139,7 +139,7 @@ export function HeroSection() {
                 className="absolute -bottom-6 -right-2 p-4 glass-card rounded-2xl max-w-[200px] hidden lg:block z-20 shadow-2xl"
               >
                 <p className="italic text-sm text-muted-foreground leading-relaxed">
-                  "Words are but the shadow of the heart's true ink."
+                  "A literati world penned by inked words." ..Aprel
                 </p>
               </motion.div>
             </motion.div>

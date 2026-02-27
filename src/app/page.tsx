@@ -54,21 +54,21 @@ export default async function HomePage() {
         <section id="about" className="py-24 px-4">
           <div className="max-w-4xl mx-auto text-center">
             <h2 className="text-4xl md:text-5xl font-bold mb-8">
-              This is Noctuary's Essence
+              Noctuary's Essence
             </h2>
             <div className="space-y-6 font-philosopher text-lg leading-relaxed text-muted-foreground">
               <p>
-                Noctuary was born as a rebellion against the rise of AI-generated poetry.
+                "Noctuary was born as a rebellion against the rise of AI-generated poetry."
               </p>
               <p>
                 Whereas that is true, Noctuary was meant as a precussor to my main <strong>VISION</strong>.
-                It is here to make way for the project I have in mind that will be the true embodiment of my vision 
-                for the poetry community and literati at large. A project that will be the next step in the community of readers and writers.<br/>
+                It is here to make way for the project that will be the true embodiment of my vision 
+                for the poetry community and literati at large. It will be the next step in the community of readers and writers.<br/>
                 But for now Noctuary is here to be a sanctuary for those who seek the human touch in poetry, a place where the soul of the poet can shine through every word.
-                So I appreciate your help and hoping to add more poets so they can also get your support and love.
+                So you are appreciated and hoping to add more poets so they can also get your support and love.
               </p>
               <p className="font-bold text-foreground">
-                If you are interested as a Partner or an Investor just contact me via the Contact Page, whether in this Noctuary as a poet or the coming project.
+                If you are interested as a Partner or an Investor just contact me via the email, whether as a poet or in the coming project.
               </p>
             </div>
           </div>
