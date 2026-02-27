@@ -136,6 +136,7 @@ export async function createPayPalOrderAction(orderId: string, amount: number) {
       success: true,
       paypalOrderId: paypalOrder.id,
       orderId,
+      approvalUrl: paypalOrder.approvalUrl
     };
   } catch (error) {
     console.error('PayPal order creation error:', error);

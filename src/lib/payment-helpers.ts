@@ -16,21 +16,23 @@ export async function processPayment({
     if (method === 'PAYPAL') {
       const result = await createPayPalOrderAction(orderId, amount);
       
-      if (!result.success || !result.paypalOrderId) {
+      // Check if the server successfully returned an approvalUrl
+      if (!result.success || !result.approvalUrl) {
         toast.error(result.error || 'Failed to create PayPal order');
         return { success: false };
       }
 
-      const approveUrl = `https://www.${process.env.NEXT_PUBLIC_PAYPAL_MODE === 'live' ? '' : 'sandbox.'}paypal.com/checkoutnow?token=${result.paypalOrderId}`;
-      
       if (typeof window !== 'undefined') {
         sessionStorage.setItem('noctuaryOrderId', orderId);
-        sessionStorage.setItem('noctuaryPaypalOrderId', result.paypalOrderId);
+        sessionStorage.setItem('noctuaryPaypalOrderId', result.paypalOrderId || '');
       }
 
-      window.location.href = approveUrl;
+      // REDIRECT: Use the official URL from the PayPal API
+      window.location.href = result.approvalUrl;
       return { success: true };
+      
     } else {
+      // Paystack logic remains the same
       const result = await initializePaystackPaymentAction(orderId, email, amount);
       
       if (!result.success || !result.authorizationUrl) {
