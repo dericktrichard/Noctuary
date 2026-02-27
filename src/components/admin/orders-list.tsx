@@ -34,6 +34,41 @@ interface OrdersListProps {
   orders: SerializedOrder[];
 }
 
+function getDeadlineStatus(paidAt: string | null, deliveryHours: number) {
+  if (!paidAt) return { status: 'none', color: '' };
+
+  const deadline = new Date(paidAt);
+  deadline.setHours(deadline.getHours() + deliveryHours);
+  
+  const now = new Date();
+  const hoursRemaining = (deadline.getTime() - now.getTime()) / (1000 * 60 * 60);
+
+  if (hoursRemaining < 0) {
+    return { 
+      status: 'overdue', 
+      color: 'bg-red-500/10 text-red-500 border-red-500',
+      text: 'OVERDUE',
+      icon: '🚨'
+    };
+  } else if (hoursRemaining < 2) {
+    return { 
+      status: 'urgent', 
+      color: 'bg-orange-500/10 text-orange-500 border-orange-500',
+      text: 'URGENT',
+      icon: '⚠️'
+    };
+  } else if (hoursRemaining < 6) {
+    return { 
+      status: 'soon', 
+      color: 'bg-yellow-500/10 text-yellow-500 border-yellow-500',
+      text: 'SOON',
+      icon: '⏰'
+    };
+  }
+
+  return { status: 'normal', color: '', text: '', icon: '' };
+}
+
 export function OrdersList({ orders }: OrdersListProps) {
   const [selectedOrder, setSelectedOrder] = useState<SerializedOrder | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -214,6 +249,19 @@ export function OrdersList({ orders }: OrdersListProps) {
                             <span className="text-xs text-muted-foreground font-nunito">
                               ID: {order.id.slice(0, 8)}...
                             </span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            {order.status === 'PAID' && order.paidAt && (() => {
+                              const alert = getDeadlineStatus(order.paidAt, order.deliveryHours);
+                              if (alert.status !== 'normal') {
+                                return (
+                                  <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-md border text-xs font-bold ${alert.color}`}>
+                                    {alert.icon} {alert.text}
+                                  </span>
+                                );
+                              }
+                              return null;
+                            })()}
                           </div>
                         </div>
                       </td>
