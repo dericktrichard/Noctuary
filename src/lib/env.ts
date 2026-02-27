@@ -12,7 +12,7 @@ const envSchema = z.object({
   // PayPal
   NEXT_PUBLIC_PAYPAL_CLIENT_ID: z.string().min(1),
   PAYPAL_CLIENT_SECRET: z.string().min(1),
-  PAYPAL_MODE: z.enum(['sandbox', 'live']),
+  NEXT_PUBLIC_PAYPAL_MODE: z.enum(['sandbox', 'live']),
 
   // Paystack
   PAYSTACK_SECRET_KEY: z.string().min(1),

@@ -8,7 +8,6 @@ const PAYPAL_API_BASE = process.env.PAYPAL_MODE === 'live'
 const PAYPAL_CLIENT_ID = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID!;
 const PAYPAL_CLIENT_SECRET = process.env.PAYPAL_CLIENT_SECRET!;
 
-//Get PayPal access token
 async function getAccessToken(): Promise<string> {
   const auth = Buffer.from(`${PAYPAL_CLIENT_ID}:${PAYPAL_CLIENT_SECRET}`).toString('base64');
 
@@ -21,10 +20,9 @@ async function getAccessToken(): Promise<string> {
           'Authorization': `Basic ${auth}`,
           'Content-Type': 'application/x-www-form-urlencoded',
         },
-        timeout: 10000, // 10 second timeout
+        timeout: 10000,
       }
     );
-
     return response.data.access_token;
   } catch (error: any) {
     console.error('PayPal auth error:', error.response?.data || error.message);
@@ -32,12 +30,9 @@ async function getAccessToken(): Promise<string> {
   }
 }
 
-//Create PayPal order
 export async function createPayPalOrder(amount: number, currency: 'USD' = 'USD') {
   try {
     const accessToken = await getAccessToken();
-
-    console.log('Creating PayPal order with amount:', amount);
 
     const response = await axios.post(
       `${PAYPAL_API_BASE}/v2/checkout/orders`,
@@ -65,22 +60,20 @@ export async function createPayPalOrder(amount: number, currency: 'USD' = 'USD')
           'Authorization': `Bearer ${accessToken}`,
           'Content-Type': 'application/json',
         },
-        timeout: 15000, // 15 second timeout
+        timeout: 15000,
       }
     );
 
-    console.log('PayPal order created successfully:', response.data.id);
+    // FIX: Extract the actual approval URL from PayPal's response links
+    const approvalLink = response.data.links.find((link: any) => link.rel === 'approve');
 
     return {
       id: response.data.id,
       status: response.data.status,
+      approvalUrl: approvalLink?.href, // This will be live or sandbox automatically
     };
   } catch (error: any) {
-    console.error('PayPal order creation error:', {
-      message: error.message,
-      status: error.response?.status,
-      data: error.response?.data,
-    });
+    console.error('PayPal order creation error:', error.response?.data || error.message);
     throw new Error('Failed to create PayPal order');
   }
 }
