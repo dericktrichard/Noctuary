@@ -1,7 +1,7 @@
 import 'server-only';
 import axios from 'axios';
 
-const PAYPAL_API_BASE = process.env.PAYPAL_MODE === 'live'
+const PAYPAL_API_BASE = process.env.NEXT_PUBLIC_PAYPAL_MODE === 'live'
   ? 'https://api-m.paypal.com'
   : 'https://api-m.sandbox.paypal.com';
 
