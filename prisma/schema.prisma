@@ -99,3 +99,19 @@ model Admin {
 
   @@index([email])
 }
+
+// Testimonials
+model Testimonial {
+  id        String   @id @default(uuid())
+  orderId   String   @unique // Link to order
+  email     String   // Customer email (anonymized in display)
+  name      String?  // Optional customer name
+  rating    Int      // 1-5 stars
+  comment   String   @db.Text
+  isVisible Boolean  @default(false) // Admin approval required
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isVisible])
+  @@index([createdAt])
+}

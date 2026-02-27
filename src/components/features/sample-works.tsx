@@ -1,11 +1,29 @@
-import { getVisibleSampleWorks } from '@/services/sample-works';
+'use client';
+
+import { useState } from 'react';
 import { GlassCard } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { ChevronDown, ChevronUp } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
-export async function SampleWorks() {
-  const sampleWorks = await getVisibleSampleWorks();
+interface SampleWork {
+  id: string;
+  title: string;
+  content: string;
+  mood: string | null;
+  imageUrl: string | null;
+}
 
-  if (sampleWorks.length === 0) {
-    return null; // Don't show section if no samples
+interface SampleWorksProps {
+  samples: SampleWork[];
+}
+
+export function SampleWorksClient({ samples }: SampleWorksProps) {
+  const [showAll, setShowAll] = useState(false);
+  const displayedSamples = showAll ? samples : samples.slice(0, 3);
+
+  if (samples.length === 0) {
+    return null;
   }
 
   return (
@@ -21,35 +39,64 @@ export async function SampleWorks() {
         </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {sampleWorks.map((work, index) => (
-            <GlassCard
-              key={work.id}
-              className="p-6 hover:scale-[1.02] transition-transform duration-300"
-            >
-              {work.imageUrl && (
-                <div className="w-full h-48 mb-4 rounded-lg overflow-hidden">
-                  <img
-                    src={work.imageUrl}
-                    alt={work.title}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              )}
+          <AnimatePresence mode="popLayout">
+            {displayedSamples.map((work, index) => (
+              <motion.div
+                key={work.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.3, delay: index * 0.1 }}
+              >
+                <GlassCard className="p-6 hover:scale-[1.02] transition-transform duration-300 h-full">
+                  {work.imageUrl && (
+                    <div className="w-full h-48 mb-4 rounded-lg overflow-hidden">
+                      <img
+                        src={work.imageUrl}
+                        alt={work.title}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  )}
 
-              <h3 className="text-xl font-bold mb-2">{work.title}</h3>
-              
-              {work.mood && (
-                <p className="text-sm font-nunito text-muted-foreground italic mb-3">
-                  {work.mood}
-                </p>
-              )}
+                  <h3 className="text-xl font-bold mb-2">{work.title}</h3>
+                  
+                  {work.mood && (
+                    <p className="text-sm font-nunito text-muted-foreground italic mb-3">
+                      {work.mood}
+                    </p>
+                  )}
 
-              <p className="font-serif text-sm leading-relaxed whitespace-pre-line line-clamp-6">
-                {work.content}
-              </p>
-            </GlassCard>
-          ))}
+                  <p className="font-serif text-sm leading-relaxed whitespace-pre-line line-clamp-6">
+                    {work.content}
+                  </p>
+                </GlassCard>
+              </motion.div>
+            ))}
+          </AnimatePresence>
         </div>
+
+        {/* View More Button */}
+        {samples.length > 3 && (
+          <div className="text-center mt-12">
+            <Button
+              onClick={() => setShowAll(!showAll)}
+              variant="outline"
+              size="lg"
+              className="font-nunito gap-2"
+            >
+              {showAll ? (
+                <>
+                  View Less <ChevronUp className="w-5 h-5" />
+                </>
+              ) : (
+                <>
+                  View More ({samples.length - 3} more) <ChevronDown className="w-5 h-5" />
+                </>
+              )}
+            </Button>
+          </div>
+        )}
       </div>
     </section>
   );

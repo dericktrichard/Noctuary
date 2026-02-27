@@ -12,6 +12,7 @@ import {
   deleteSampleWork, 
   toggleSampleWorkVisibility 
 } from '@/services/sample-works';
+import { prisma } from '@/lib/prisma';
 
 /**
  * Admin login action
@@ -211,5 +212,53 @@ export async function toggleSampleWorkVisibilityAction(id: string) {
       success: false,
       error: 'Failed to toggle visibility. Please try again.',
     };
+  }
+}
+
+/**
+ * Toggle testimonial visibility
+ */
+export async function toggleTestimonialVisibilityAction(id: string) {
+  try {
+    const testimonial = await prisma.testimonial.findUnique({
+      where: { id },
+      select: { isVisible: true },
+    });
+
+    if (!testimonial) {
+      return { success: false, error: 'Testimonial not found' };
+    }
+
+    await prisma.testimonial.update({
+      where: { id },
+      data: { isVisible: !testimonial.isVisible },
+    });
+
+    revalidatePath('/');
+    revalidatePath('/admin/dashboard/testimonials');
+
+    return { success: true };
+  } catch (error) {
+    console.error('[ADMIN] Toggle testimonial error:', error);
+    return { success: false, error: 'Failed to update' };
+  }
+}
+
+/**
+ * Delete testimonial
+ */
+export async function deleteTestimonialAction(id: string) {
+  try {
+    await prisma.testimonial.delete({
+      where: { id },
+    });
+
+    revalidatePath('/');
+    revalidatePath('/admin/dashboard/testimonials');
+
+    return { success: true };
+  } catch (error) {
+    console.error('[ADMIN] Delete testimonial error:', error);
+    return { success: false, error: 'Failed to delete' };
   }
 }
