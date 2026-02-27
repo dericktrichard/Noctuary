@@ -136,6 +136,7 @@ export async function sendPoemDelivery(
 ) {
   const { orderId, poemContent, accessToken, title } = data;
   const trackingUrl = `${process.env.NEXT_PUBLIC_APP_URL}/order/${accessToken}`;
+  const reviewUrl = `${process.env.NEXT_PUBLIC_APP_URL}/review/${orderId}`;
 
   try {
     const { data: result, error } = await resend.emails.send({
@@ -152,7 +153,8 @@ export async function sendPoemDelivery(
             .container { max-width: 600px; margin: 0 auto; padding: 40px 20px; }
             .header { text-align: center; margin-bottom: 30px; }
             .poem { background: #f9f9f9; padding: 30px; border-left: 4px solid #6366f1; margin: 30px 0; white-space: pre-wrap; font-style: italic; }
-            .button { display: inline-block; padding: 12px 30px; background: #6366f1; color: white; text-decoration: none; border-radius: 6px; margin: 20px 0; }
+            .button { display: inline-block; padding: 12px 30px; background: #6366f1; color: white; text-decoration: none; border-radius: 6px; margin: 10px 5px; }
+            .button-secondary { background: #10b981; }
             .footer { text-align: center; margin-top: 30px; font-size: 12px; color: #666; }
           </style>
         </head>
@@ -169,16 +171,19 @@ export async function sendPoemDelivery(
             
             <p style="text-align: center;">
               <a href="${trackingUrl}" class="button">View & Download</a>
+              <a href="${reviewUrl}" class="button button-secondary">Share Your Feedback</a>
+            </p>
+            
+            <p style="font-size: 14px; color: #666; text-align: center; margin-top: 30px;">
+              <strong>Love your poem?</strong> Help others discover the beauty of human-written poetry by sharing your experience.
             </p>
             
             <p style="font-size: 14px; color: #666; text-align: center;">
-              <strong>Copyright Notice:</strong> Full copyright transferred to you.<br>
-              Use this poem however you wish.
+              <strong>Copyright Notice:</strong> Full copyright transferred to you. Use this poem however you wish.
             </p>
 
             <div class="footer">
               <p>© ${new Date().getFullYear()} Noctuary. All rights reserved.</p>
-              <p>We'd love your feedback — reply to this email!</p>
             </div>
           </div>
         </body>

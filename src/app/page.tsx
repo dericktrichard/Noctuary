@@ -3,9 +3,9 @@ import { Footer } from '@/components/shared/footer';
 import { VantaBackground } from '@/components/shared/vanta-background';
 import { HeroSection } from '@/components/features/hero-section';
 import { HowItWorks } from '@/components/features/how-it-works';
-import { SampleWorks } from '@/components/features/sample-works';
 import { AuthorsPact } from '@/components/features/authors-pact';
-import { Testimonials } from '@/components/features/testimonials';
+import { SampleWorks } from '@/components/features/sample-works-wrapper';
+import { Testimonials } from '@/components/features/testimonials-wrapper';
 import { CommissionForm } from '@/components/features/commission-form';
 import { getCurrentPricing } from '@/app/actions/pricing';
 

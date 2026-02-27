@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Logo } from '@/components/shared/logo';
+import { Star } from 'lucide-react';
 import { 
   LayoutDashboard, 
   FileText, 
@@ -17,6 +18,7 @@ import {
 const navigation = [
   { name: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard },
   { name: 'Sample Works', href: '/admin/dashboard/samples', icon: FileText },
+  { name: 'Testimonials', href: '/admin/dashboard/testimonials', icon: Star }, 
   { name: 'Settings', href: '/admin/dashboard/settings', icon: Settings },
 ];
 
