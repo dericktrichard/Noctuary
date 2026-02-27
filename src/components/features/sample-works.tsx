@@ -34,7 +34,7 @@ export function SampleWorksClient({ samples }: SampleWorksProps) {
             Sample Works
           </h2>
           <p className="text-lg font-nunito text-muted-foreground max-w-2xl mx-auto">
-            A glimpse into the craft. Each a genius and flawed write.
+            A glimpse into the craft. Each, a genius and flawed write.
           </p>
         </div>
 
@@ -91,7 +91,7 @@ export function SampleWorksClient({ samples }: SampleWorksProps) {
                 </>
               ) : (
                 <>
-                  View More ({samples.length - 3} more) <ChevronDown className="w-5 h-5" />
+                  View More <ChevronDown className="w-5 h-5" />
                 </>
               )}
             </Button>

@@ -8,7 +8,7 @@ const guarantees = [
   {
     icon: Shield,
     title: 'No AI',
-    description: 'Every word written by me, a human poet.',
+    description: 'Every word written by a human poet.',
   },
   {
     icon: Sparkles,

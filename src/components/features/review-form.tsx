@@ -132,7 +132,7 @@ export function ReviewForm({ orderId, email }: ReviewFormProps) {
       </Button>
 
       <p className="text-xs text-center text-muted-foreground font-nunito">
-        Your review will be visible after admin approval
+        Your review will be visible soon. We appreciate your feedback!
       </p>
     </form>
   );
