@@ -20,6 +20,12 @@ export function VantaBackground() {
     const currentTheme = theme === 'system' ? systemTheme : theme;
     const isDark = currentTheme === 'dark';
     const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+    const isVerySmall = typeof window !== 'undefined' && window.innerWidth < 375;
+
+    if (isVerySmall) {
+      console.log('[VANTA] Skipping on very small screen');
+      return;
+    }
 
     // Destroy existing effect when theme changes
     if (vantaEffectRef.current) {
