@@ -46,7 +46,7 @@ export default async function ReviewPage({ params }: ReviewPageProps) {
             <div className="text-5xl mb-4">✓</div>
             <h2 className="text-xl font-bold mb-2">Thank You!</h2>
             <p className="font-nunito text-muted-foreground">
-              Your feedback has been submitted and is awaiting approval.
+              Your feedback has been submitted. We appreciate your time and support!
             </p>
           </div>
         ) : (

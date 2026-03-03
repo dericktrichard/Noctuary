@@ -136,7 +136,7 @@ export function HeroSection() {
               <motion.div 
                 animate={{ y: [0, 10, 0] }}
                 transition={{ duration: 6, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-                className="absolute -bottom-6 -right-2 p-4 glass-card rounded-2xl max-w-[200px] hidden lg:block z-20 shadow-2xl"
+                className="absolute -bottom-6 -left-4 p-4 glass-card rounded-2xl max-w-[200px] hidden lg:block z-20 shadow-2xl"
               >
                 <p className="italic text-sm text-muted-foreground leading-relaxed">
                   "A literati world penned by inked words." ..Aprel
@@ -145,12 +145,6 @@ export function HeroSection() {
             </motion.div>
           </div>
         </div>
-      </div>
-
-      {/* Scroll Indicator */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-3 opacity-30">
-        <div className="w-[1px] h-12 bg-gradient-to-b from-foreground to-transparent" />
-        <span className="font-nunito text-[9px] uppercase tracking-[0.4em]">Scroll</span>
       </div>
     </section>
   );
