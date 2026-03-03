@@ -68,7 +68,7 @@ export function TestimonialsClient({ testimonials }: TestimonialsProps) {
 
                   {/* Author */}
                   <p className="text-xs text-muted-foreground font-nunito">
-                    — {testimonial.name || 'Anonymous Client'}
+                    .. {testimonial.name || 'Anonymous'}
                   </p>
                 </div>
               </motion.div>
