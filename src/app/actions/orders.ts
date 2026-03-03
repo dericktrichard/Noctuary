@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { headers } from 'next/headers';
 import { checkOrderRateLimit } from '@/lib/rate-limit';
 import { createOrder, updateOrderPayment, getOrderCountByEmail } from '@/services/orders';
+import { createStripeCheckoutSession, verifyStripePayment } from '@/services/stripe';
 import { sendPaymentConfirmation, sendAdminOrderNotification } from '@/services/email';
 import { getCurrentPricing } from './pricing';
 import { prisma } from '@/lib/prisma';
@@ -295,6 +296,114 @@ export async function initializePaystackPaymentAction(orderId: string, email: st
     return {
       success: false,
       error: 'Failed to initialize payment. Please try again.',
+    };
+  }
+}
+
+//Create Stripe checkout session
+export async function createStripeSessionAction(orderId: string, email: string, amount: number) {
+  try {
+    const successUrl = `${process.env.NEXT_PUBLIC_APP_URL}/payment/success?session_id={CHECKOUT_SESSION_ID}`;
+    const cancelUrl = `${process.env.NEXT_PUBLIC_APP_URL}/payment/cancelled`;
+
+    const result = await createStripeCheckoutSession(
+      orderId,
+      email,
+      amount,
+      'USD',
+      successUrl,
+      cancelUrl
+    );
+
+    if (!result.success || !result.url) {
+      return {
+        success: false,
+        error: result.error || 'Failed to create Stripe session',
+      };
+    }
+
+    return {
+      success: true,
+      url: result.url,
+      sessionId: result.sessionId,
+    };
+  } catch (error) {
+    console.error('[STRIPE] Session creation error:', error);
+    return {
+      success: false,
+      error: 'Failed to initialize Stripe payment. Please try again.',
+    };
+  }
+}
+
+//Verify Stripe payment
+export async function verifyStripePaymentAction(sessionId: string) {
+  try {
+    const { stripe } = await import('@/services/stripe');
+    
+    // Retrieve the checkout session
+    const session = await stripe.checkout.sessions.retrieve(sessionId);
+
+    if (session.payment_status !== 'paid') {
+      return {
+        success: false,
+        error: 'Payment was not completed',
+      };
+    }
+
+    const orderId = session.metadata?.orderId;
+    if (!orderId) {
+      return {
+        success: false,
+        error: 'Order ID not found',
+      };
+    }
+
+    // Update order with payment info
+    const order = await updateOrderPayment(orderId, {
+      paymentProvider: 'STRIPE',
+      paymentId: session.payment_intent as string,
+      paymentStatus: session.payment_status,
+      pricePaid: (session.amount_total || 0) / 100,
+    });
+
+    // Send payment confirmation email
+    try {
+      await sendPaymentConfirmation(order.email, {
+        orderId: order.id,
+        amount: Number(order.pricePaid),
+        currency: order.currency,
+      });
+      console.log('[EMAIL] Payment confirmation sent');
+    } catch (emailError) {
+      console.error('[EMAIL] Payment confirmation failed (non-critical):', emailError);
+    }
+
+    // Send admin notification
+    try {
+      await sendAdminOrderNotification({
+        orderId: order.id,
+        type: order.type,
+        amount: Number(order.pricePaid),
+        currency: order.currency,
+        customerEmail: order.email,
+        title: order.title,
+        deliveryHours: order.deliveryHours,
+      });
+      console.log('[EMAIL] Admin notification sent');
+    } catch (emailError) {
+      console.error('[EMAIL] Admin notification failed (non-critical):', emailError);
+    }
+
+    return {
+      success: true,
+      accessToken: order.accessToken,
+    };
+  } catch (error) {
+    console.error('[STRIPE] Verification error:', error);
+    return {
+      success: false,
+      error: 'Failed to verify payment. Please contact support.',
     };
   }
 }

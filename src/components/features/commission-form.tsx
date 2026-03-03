@@ -20,12 +20,17 @@ import { z } from 'zod';
 import { formatCurrency } from '@/lib/utils';
 import { Zap, Sparkles, CreditCard, Smartphone, AlertCircle } from 'lucide-react';
 import { calculateDeliveryHoursFromBudget } from '@/lib/pricing';
-import { createOrderAction, initializePaystackPaymentAction, createPayPalOrderAction } from '@/app/actions/orders';
+import { 
+  createOrderAction, 
+  initializePaystackPaymentAction, 
+  createPayPalOrderAction,
+  createStripeSessionAction, 
+} from '@/app/actions/orders';
 import { toast } from 'sonner';
 import type { DynamicPricing } from '@/app/actions/pricing';
 
 type PoemType = 'QUICK' | 'CUSTOM' | null;
-type PaymentMethod = 'PAYPAL' | 'PAYSTACK';
+type PaymentMethod = 'PAYPAL' | 'PAYSTACK' | 'STRIPE';
 
 const MOODS = [
   'Happy',
@@ -197,7 +202,7 @@ export function CommissionForm({ pricing }: CommissionFormProps) {
     }
   };
 
-  const handleQuickSubmit = async (data: QuickPoemForm) => {
+const handleQuickSubmit = async (data: QuickPoemForm) => {
     setIsSubmitting(true);
     
     try {
@@ -206,7 +211,7 @@ export function CommissionForm({ pricing }: CommissionFormProps) {
 
       const result = await createOrderAction({
         type: 'QUICK',
-        email: data.email,
+        email: data.email, 
         currency: paymentDetails.currency,
       });
 
@@ -216,12 +221,30 @@ export function CommissionForm({ pricing }: CommissionFormProps) {
         return;
       }
 
-      console.log('[PAYMENT] Final amount:', paymentDetails.amount, paymentDetails.currency);
-
+      // Chain the payment providers correctly
       if (paymentMethod === 'PAYPAL') {
         await initiatePayPalPayment(result.orderId, paymentDetails.amount);
-      } else {
+      } else if (paymentMethod === 'PAYSTACK') {
         await initiatePaystackPayment(result.orderId, data.email, paymentDetails.amount);
+      } else if (paymentMethod === 'STRIPE') {
+        const stripeResult = await createStripeSessionAction(
+          result.orderId,
+          data.email, 
+          result.amount
+        );
+
+        if (!stripeResult.success || !stripeResult.url) {
+          toast.error(stripeResult.error || 'Failed to initialize Stripe payment');
+          setIsSubmitting(false);
+          return;
+        }
+
+        if (typeof window !== 'undefined') {
+          sessionStorage.setItem('noctuaryOrderId', result.orderId);
+          sessionStorage.setItem('noctuaryStripeSessionId', stripeResult.sessionId || '');
+        }
+
+        window.location.href = stripeResult.url;
       }
     } catch (error) {
       console.error('Submission error:', error);
@@ -230,7 +253,7 @@ export function CommissionForm({ pricing }: CommissionFormProps) {
     }
   };
 
-  const handleCustomSubmit = async (data: CustomPoemForm) => {
+const handleCustomSubmit = async (data: CustomPoemForm) => {
     setIsSubmitting(true);
     
     try {
@@ -238,7 +261,7 @@ export function CommissionForm({ pricing }: CommissionFormProps) {
 
       const result = await createOrderAction({
         type: 'CUSTOM',
-        email: data.email,
+        email: data.email, 
         title: data.title,
         mood: data.mood,
         instructions: data.instructions,
@@ -252,12 +275,29 @@ export function CommissionForm({ pricing }: CommissionFormProps) {
         return;
       }
 
-      console.log('[PAYMENT] Final amount:', paymentDetails.amount, paymentDetails.currency);
-
       if (paymentMethod === 'PAYPAL') {
         await initiatePayPalPayment(result.orderId, paymentDetails.amount);
-      } else {
+      } else if (paymentMethod === 'PAYSTACK') {
         await initiatePaystackPayment(result.orderId, data.email, paymentDetails.amount);
+      } else if (paymentMethod === 'STRIPE') {
+        const stripeResult = await createStripeSessionAction(
+          result.orderId,
+          data.email, 
+          result.amount
+        );
+
+        if (!stripeResult.success || !stripeResult.url) {
+          toast.error(stripeResult.error || 'Failed to initialize Stripe payment');
+          setIsSubmitting(false);
+          return;
+        }
+
+        if (typeof window !== 'undefined') {
+          sessionStorage.setItem('noctuaryOrderId', result.orderId);
+          sessionStorage.setItem('noctuaryStripeSessionId', stripeResult.sessionId || '');
+        }
+
+        window.location.href = stripeResult.url;
       }
     } catch (error) {
       console.error('Submission error:', error);
@@ -291,7 +331,7 @@ export function CommissionForm({ pricing }: CommissionFormProps) {
       {/* Alerts */}
         <div className="mb-2 text-center">
           <p className="text-xs font-nunito text-muted-foreground">
-            The PayPal Option is currently Unavailable until approved in 7 Business Days
+            The PayPal Payment Option is currently Unavailable
           </p>
         </div>
 
@@ -453,9 +493,12 @@ export function CommissionForm({ pricing }: CommissionFormProps) {
                       </div>
                     </div>
 
+                    {/* Payment Method Selection */}
                     <div>
                       <Label className="text-base font-nunito mb-3 block">Payment Method</Label>
-                      <div className="grid grid-cols-2 gap-3">
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        {/* Paystack */}
                         <button
                           type="button"
                           onClick={() => setPaymentMethod('PAYSTACK')}
@@ -468,9 +511,28 @@ export function CommissionForm({ pricing }: CommissionFormProps) {
                           <Smartphone className="w-5 h-5" />
                           <div className="text-left flex-1">
                             <div className="font-bold text-sm">M-Pesa / Card</div>
-                            <div className="text-xs opacity-80">Paystack</div>
+                            <div className="text-xs opacity-80">Paystack (KES)</div>
                           </div>
                         </button>
+
+                        {/* Stripe */}
+                        <button
+                          type="button"
+                          onClick={() => setPaymentMethod('STRIPE')}
+                          className={`p-4 rounded-lg font-nunito transition-all border flex items-center gap-3 ${
+                            paymentMethod === 'STRIPE'
+                              ? 'bg-primary text-primary-foreground border-primary'
+                              : 'glass-card border-border glass-hover'
+                          }`}
+                        >
+                          <CreditCard className="w-5 h-5" />
+                          <div className="text-left flex-1">
+                            <div className="font-bold text-sm">Credit Card</div>
+                            <div className="text-xs opacity-80">Stripe (USD)</div>
+                          </div>
+                        </button>
+
+                        {/* PayPal - if enabled */}
                         <button
                           type="button"
                           onClick={() => setPaymentMethod('PAYPAL')}

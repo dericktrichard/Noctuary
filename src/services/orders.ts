@@ -64,7 +64,7 @@ export async function getOrderByIdAndEmail(orderId: string, email: string) {
 export async function updateOrderPayment(
   orderId: string,
   paymentData: {
-    paymentProvider: 'PAYPAL' | 'PAYSTACK';
+    paymentProvider: 'PAYPAL' | 'PAYSTACK' | 'STRIPE';
     paymentId: string;
     paymentStatus: string;
     pricePaid: number;

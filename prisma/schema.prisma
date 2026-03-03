@@ -30,6 +30,7 @@ enum Currency {
 enum PaymentProvider {
   PAYPAL
   PAYSTACK
+  STRIPE
 }
 
 // Main Order Model
