@@ -7,14 +7,11 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 //Format currency based on locale
-export function formatCurrency(amount: number, currency: 'USD' | 'KES' = 'USD'): string {
-  const formatter = new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency,
-    minimumFractionDigits: 2,
-  });
-  
-  return formatter.format(amount);
+export function formatCurrency(amount: number, currency: 'USD' | 'KES'): string {
+  if (currency === 'KES') {
+    return `KES ${Math.round(amount)}`; 
+  }
+  return `$${amount.toFixed(2)}`; 
 }
 
 //Calculate deadline based on urgency hours

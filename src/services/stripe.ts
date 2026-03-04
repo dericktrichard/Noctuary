@@ -67,13 +67,13 @@ export async function verifyStripePayment(paymentIntentId: string) {
 }
 
 /**
- * Create a Stripe Checkout Session (alternative approach)
+ * Create a Stripe Checkout Session (supports both KES and USD)
  */
 export async function createStripeCheckoutSession(
   orderId: string,
   email: string,
   amount: number,
-  currency: string,
+  currency: string, 
   successUrl: string,
   cancelUrl: string
 ) {
@@ -83,12 +83,12 @@ export async function createStripeCheckoutSession(
       line_items: [
         {
           price_data: {
-            currency: currency.toLowerCase(),
+            currency: currency.toLowerCase(), 
             product_data: {
               name: 'Poetry Commission',
               description: `Order ID: ${orderId}`,
             },
-            unit_amount: Math.round(amount * 100),
+            unit_amount: Math.round(amount * 100), 
           },
           quantity: 1,
         },
@@ -99,6 +99,7 @@ export async function createStripeCheckoutSession(
       customer_email: email,
       metadata: {
         orderId,
+        currency,
       },
     });
 

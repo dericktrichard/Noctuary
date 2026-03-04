@@ -2,60 +2,101 @@ import 'server-only';
 import { prisma } from '@/lib/prisma';
 import { OrderStatus } from '@prisma/client';
 
+interface RevenueStats {
+  revenue: {
+    usd: {
+      gross: number;
+      fees: number;
+      net: number;
+    };
+    kes: {
+      gross: number;
+      fees: number;
+      net: number;
+    };
+  };
+  byProvider: {
+    paypal: number;
+    paystack: number;
+    stripe: number; 
+  };
+  totalOrders: number;
+}
+
 //Get revenue statistics
-export async function getRevenueStats(startDate?: Date, endDate?: Date) {
-  const where = {
-    status: OrderStatus.DELIVERED, // Use enum instead of string
-    paidAt: {
-      gte: startDate || new Date(0),
-      lte: endDate || new Date(),
+export async function getRevenueStats(
+  startDate?: Date,
+  endDate?: Date
+): Promise<RevenueStats> {
+  const whereClause = {
+    status: OrderStatus.DELIVERED,
+    deliveredAt: {
+      gte: startDate,
+      lte: endDate,
     },
   };
 
   const orders = await prisma.order.findMany({
-    where,
+    where: whereClause,
     select: {
       pricePaid: true,
       currency: true,
       paymentProvider: true,
-      paidAt: true,
     },
   });
 
-  // Separate by currency
-  const usdOrders = orders.filter(o => o.currency === 'USD');
-  const kesOrders = orders.filter(o => o.currency === 'KES');
+  let usdGross = 0;
+  let kesGross = 0;
+  let paypalCount = 0;
+  let paystackCount = 0;
+  let stripeCount = 0; 
 
-  const usdRevenue = usdOrders.reduce((sum, o) => sum + Number(o.pricePaid), 0);
-  const kesRevenue = kesOrders.reduce((sum, o) => sum + Number(o.pricePaid), 0);
+  orders.forEach((order) => {
+    const amount = Number(order.pricePaid);
 
-  // Payment provider fees (approximate)
-  const paypalFee = usdOrders
-    .filter(o => o.paymentProvider === 'PAYPAL')
-    .reduce((sum, o) => sum + (Number(o.pricePaid) * 0.029 + 0.30), 0);
+    if (order.currency === 'USD') {
+      usdGross += amount;
+    } else if (order.currency === 'KES') {
+      kesGross += amount;
+    }
 
-  const paystackFee = kesOrders
-    .filter(o => o.paymentProvider === 'PAYSTACK')
-    .reduce((sum, o) => sum + (Number(o.pricePaid) * 0.035), 0);
+    // Count by provider
+    if (order.paymentProvider === 'PAYPAL') {
+      paypalCount++;
+    } else if (order.paymentProvider === 'PAYSTACK') {
+      paystackCount++;
+    } else if (order.paymentProvider === 'STRIPE') {
+      stripeCount++; 
+    }
+  });
+
+  // Calculate fees
+  const paypalFees = usdGross * 0.029 + (paypalCount * 0.30);
+  const paystackFees = kesGross * 0.035;
+  const stripeFees = usdGross * 0.029 + (stripeCount * 0.30); 
+
+  const usdFees = paypalFees + stripeFees;
+  const kesFees = paystackFees;
 
   return {
-    totalOrders: orders.length,
     revenue: {
       usd: {
-        gross: usdRevenue,
-        fees: paypalFee,
-        net: usdRevenue - paypalFee,
+        gross: usdGross,
+        fees: usdFees,
+        net: usdGross - usdFees,
       },
       kes: {
-        gross: kesRevenue,
-        fees: paystackFee,
-        net: kesRevenue - paystackFee,
+        gross: kesGross,
+        fees: kesFees,
+        net: kesGross - kesFees,
       },
     },
     byProvider: {
-      paypal: usdOrders.length,
-      paystack: kesOrders.length,
+      paypal: paypalCount,
+      paystack: paystackCount,
+      stripe: stripeCount, 
     },
+    totalOrders: orders.length,
   };
 }
 

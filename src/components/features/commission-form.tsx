@@ -18,7 +18,7 @@ import {
 } from '@/components/ui/select';
 import { z } from 'zod';
 import { formatCurrency } from '@/lib/utils';
-import { Zap, Sparkles, CreditCard, Smartphone, AlertCircle } from 'lucide-react';
+import { Zap, Sparkles, CreditCard, Smartphone, AlertCircle, Loader2 } from 'lucide-react';
 import { calculateDeliveryHoursFromBudget } from '@/lib/pricing';
 import { 
   createOrderAction, 
@@ -87,7 +87,7 @@ export function CommissionForm({ pricing }: CommissionFormProps) {
     if (currency === 'KES') {
       setPaymentMethod('PAYSTACK');
     } else {
-      setPaymentMethod('PAYPAL');
+      setPaymentMethod('STRIPE');
     }
   }, [currency]);
 
@@ -314,18 +314,6 @@ const handleCustomSubmit = async (data: CustomPoemForm) => {
     }
   };
 
-  const getActualPaymentAmount = () => {
-    const amount = poemType === 'QUICK' 
-      ? (currency === 'USD' ? pricing.quick.usd : pricing.quick.kes)
-      : customBudget;
-    const paymentDetails = getFinalPaymentDetails(currency, amount, paymentMethod);
-    
-    if (currency !== paymentDetails.currency) {
-      return `${formatCurrency(paymentDetails.amount, paymentDetails.currency)} (converted)`;
-    }
-    return formatCurrency(paymentDetails.amount, paymentDetails.currency);
-  };
-
   return (
     <div className="max-w-4xl mx-auto">
       {/* Alerts */}
@@ -497,58 +485,57 @@ const handleCustomSubmit = async (data: CustomPoemForm) => {
                     <div>
                       <Label className="text-base font-nunito mb-3 block">Payment Method</Label>
                       
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                        {/* Paystack */}
-                        <button
-                          type="button"
-                          onClick={() => setPaymentMethod('PAYSTACK')}
-                          className={`p-4 rounded-lg font-nunito transition-all border flex items-center gap-3 ${
-                            paymentMethod === 'PAYSTACK'
-                              ? 'bg-primary text-primary-foreground border-primary'
-                              : 'glass-card border-border glass-hover'
-                          }`}
-                        >
-                          <Smartphone className="w-5 h-5" />
-                          <div className="text-left flex-1">
-                            <div className="font-bold text-sm">M-Pesa / Card</div>
-                            <div className="text-xs opacity-80">Paystack (KES)</div>
+                      {currency === 'KES' ? (
+                        // KES - Only Paystack
+                        <div className="p-4 rounded-lg glass-card border border-primary bg-primary/5">
+                          <div className="flex items-center gap-3">
+                            <Smartphone className="w-5 h-5 text-primary" />
+                            <div className="flex-1">
+                              <div className="font-bold">M-Pesa / Debit Card / Credit Card</div>
+                              <div className="text-xs text-muted-foreground font-nunito">
+                                Secure payment via Paystack
+                              </div>
+                            </div>
                           </div>
-                        </button>
+                        </div>
+                      ) : (
+                        // USD - Stripe and PayPal
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          {/* Stripe */}
+                          <button
+                            type="button"
+                            onClick={() => setPaymentMethod('STRIPE')}
+                            className={`p-4 rounded-lg font-nunito transition-all border flex items-center gap-3 ${
+                              paymentMethod === 'STRIPE'
+                                ? 'bg-primary text-primary-foreground border-primary'
+                                : 'glass-card border-border glass-hover'
+                            }`}
+                          >
+                            <CreditCard className="w-5 h-5" />
+                            <div className="text-left flex-1">
+                              <div className="font-bold text-sm">Credit / Debit Card</div>
+                              <div className="text-xs opacity-80">Stripe</div>
+                            </div>
+                          </button>
 
-                        {/* Stripe */}
-                        <button
-                          type="button"
-                          onClick={() => setPaymentMethod('STRIPE')}
-                          className={`p-4 rounded-lg font-nunito transition-all border flex items-center gap-3 ${
-                            paymentMethod === 'STRIPE'
-                              ? 'bg-primary text-primary-foreground border-primary'
-                              : 'glass-card border-border glass-hover'
-                          }`}
-                        >
-                          <CreditCard className="w-5 h-5" />
-                          <div className="text-left flex-1">
-                            <div className="font-bold text-sm">Credit Card</div>
-                            <div className="text-xs opacity-80">Stripe (USD)</div>
-                          </div>
-                        </button>
-
-                        {/* PayPal - if enabled */}
-                        <button
-                          type="button"
-                          onClick={() => setPaymentMethod('PAYPAL')}
-                          className={`p-4 rounded-lg font-nunito transition-all border flex items-center gap-3 ${
-                            paymentMethod === 'PAYPAL'
-                              ? 'bg-primary text-primary-foreground border-primary'
-                              : 'glass-card border-border glass-hover'
-                          }`}
-                        >
-                          <CreditCard className="w-5 h-5" />
-                          <div className="text-left flex-1">
-                            <div className="font-bold text-sm">PayPal</div>
-                            <div className="text-xs opacity-80">USD only</div>
-                          </div>
-                        </button>
-                      </div>
+                          {/* PayPal */}
+                          <button
+                            type="button"
+                            onClick={() => setPaymentMethod('PAYPAL')}
+                            className={`p-4 rounded-lg font-nunito transition-all border flex items-center gap-3 ${
+                              paymentMethod === 'PAYPAL'
+                                ? 'bg-primary text-primary-foreground border-primary'
+                                : 'glass-card border-border glass-hover'
+                            }`}
+                          >
+                            <CreditCard className="w-5 h-5" />
+                            <div className="text-left flex-1">
+                              <div className="font-bold text-sm">PayPal</div>
+                              <div className="text-xs opacity-80">USD</div>
+                            </div>
+                          </button>
+                        </div>
+                      )}
                     </div>
 
                     {/* Conversion Notice */}
@@ -569,10 +556,6 @@ const handleCustomSubmit = async (data: CustomPoemForm) => {
                       <span className="text-3xl font-bold">{getDisplayPrice()}</span>
                     </div>
                     <div className="flex justify-between items-center text-sm">
-                      <span className="font-nunito text-muted-foreground">You'll Pay:</span>
-                      <span className="font-nunito font-bold">{getActualPaymentAmount()}</span>
-                    </div>
-                    <div className="flex justify-between items-center text-sm">
                       <span className="font-nunito text-muted-foreground">Delivery:</span>
                       <span className="font-nunito">Within 24 hours</span>
                     </div>
@@ -584,7 +567,14 @@ const handleCustomSubmit = async (data: CustomPoemForm) => {
                     size="lg" 
                     disabled={isSubmitting}
                   >
-                    {isSubmitting ? 'Processing...' : 'Proceed to Payment'}
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                        Processing...
+                      </>
+                    ) : (
+                      'Proceed to Payment'
+                    )}
                   </Button>
                 </form>
               ) : (
@@ -786,40 +776,61 @@ const handleCustomSubmit = async (data: CustomPoemForm) => {
                       </div>
                     </div>
 
+                    {/* Payment Method Selection */}
                     <div>
                       <Label className="text-base font-nunito mb-3 block">Payment Method</Label>
-                      <div className="grid grid-cols-2 gap-3">
-                        <button
-                          type="button"
-                          onClick={() => setPaymentMethod('PAYSTACK')}
-                          className={`p-4 rounded-lg font-nunito transition-all border flex items-center gap-3 ${
-                            paymentMethod === 'PAYSTACK'
-                              ? 'bg-primary text-primary-foreground border-primary'
-                              : 'glass-card border-border glass-hover'
-                          }`}
-                        >
-                          <Smartphone className="w-5 h-5" />
-                          <div className="text-left flex-1">
-                            <div className="font-bold text-sm">M-Pesa / Card</div>
-                            <div className="text-xs opacity-80">Paystack</div>
+                      
+                      {currency === 'KES' ? (
+                        // KES - Only Paystack
+                        <div className="p-4 rounded-lg glass-card border border-primary bg-primary/5">
+                          <div className="flex items-center gap-3">
+                            <Smartphone className="w-5 h-5 text-primary" />
+                            <div className="flex-1">
+                              <div className="font-bold">M-Pesa / Debit Card / Credit Card</div>
+                              <div className="text-xs text-muted-foreground font-nunito">
+                                Secure payment via Paystack
+                              </div>
+                            </div>
                           </div>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setPaymentMethod('PAYPAL')}
-                          className={`p-4 rounded-lg font-nunito transition-all border flex items-center gap-3 ${
-                            paymentMethod === 'PAYPAL'
-                              ? 'bg-primary text-primary-foreground border-primary'
-                              : 'glass-card border-border glass-hover'
-                          }`}
-                        >
-                          <CreditCard className="w-5 h-5" />
-                          <div className="text-left flex-1">
-                            <div className="font-bold text-sm">PayPal</div>
-                            <div className="text-xs opacity-80">USD only</div>
-                          </div>
-                        </button>
-                      </div>
+                        </div>
+                      ) : (
+                        // USD - Stripe and PayPal
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          {/* Stripe */}
+                          <button
+                            type="button"
+                            onClick={() => setPaymentMethod('STRIPE')}
+                            className={`p-4 rounded-lg font-nunito transition-all border flex items-center gap-3 ${
+                              paymentMethod === 'STRIPE'
+                                ? 'bg-primary text-primary-foreground border-primary'
+                                : 'glass-card border-border glass-hover'
+                            }`}
+                          >
+                            <CreditCard className="w-5 h-5" />
+                            <div className="text-left flex-1">
+                              <div className="font-bold text-sm">Credit / Debit Card</div>
+                              <div className="text-xs opacity-80">Stripe</div>
+                            </div>
+                          </button>
+
+                          {/* PayPal */}
+                          <button
+                            type="button"
+                            onClick={() => setPaymentMethod('PAYPAL')}
+                            className={`p-4 rounded-lg font-nunito transition-all border flex items-center gap-3 ${
+                              paymentMethod === 'PAYPAL'
+                                ? 'bg-primary text-primary-foreground border-primary'
+                                : 'glass-card border-border glass-hover'
+                            }`}
+                          >
+                            <CreditCard className="w-5 h-5" />
+                            <div className="text-left flex-1">
+                              <div className="font-bold text-sm">PayPal</div>
+                              <div className="text-xs opacity-80">USD</div>
+                            </div>
+                          </button>
+                        </div>
+                      )}
                     </div>
 
                     {/* Conversion Notice */}
@@ -832,22 +843,23 @@ const handleCustomSubmit = async (data: CustomPoemForm) => {
                         </p>
                       </div>
                     )}
-                  </div>
+                    </div>
 
-                  <div className="glass-light rounded-xl p-5 space-y-3">
-                    <div className="flex justify-between items-center">
-                      <span className="font-nunito text-muted-foreground">Your Price:</span>
-                      <span className="text-2xl font-bold">{getDisplayPrice()}</span>
+                    {/* Summary section*/}
+                    <div className="glass-light rounded-xl p-6 space-y-3">
+                      <div className="flex justify-between items-center">
+                        <span className="font-nunito text-muted-foreground">Your Price:</span>
+                        <span className="text-3xl font-bold">
+                          {currency === 'KES' 
+                            ? `KES ${Math.round(customBudget)}` 
+                            : `$${customBudget.toFixed(2)}`}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="font-nunito text-muted-foreground">Delivery:</span>
+                        <span className="font-nunito">≈ {deliveryTime} hours</span>
+                      </div>
                     </div>
-                    <div className="flex justify-between items-center text-sm">
-                      <span className="font-nunito text-muted-foreground">You'll Pay:</span>
-                      <span className="font-nunito font-bold">{getActualPaymentAmount()}</span>
-                    </div>
-                    <div className="flex justify-between items-center text-sm">
-                      <span className="font-nunito text-muted-foreground">Delivery:</span>
-                      <span className="font-nunito">≈ {deliveryTime} hours</span>
-                    </div>
-                  </div>
 
                   <Button 
                     type="submit" 
@@ -855,7 +867,14 @@ const handleCustomSubmit = async (data: CustomPoemForm) => {
                     size="lg" 
                     disabled={isSubmitting}
                   >
-                    {isSubmitting ? 'Processing...' : 'Proceed to Payment'}
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                        Processing...
+                      </>
+                    ) : (
+                      'Proceed to Payment'
+                    )}
                   </Button>
                 </form>
               )}
