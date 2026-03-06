@@ -11,6 +11,7 @@ export default async function OrdersPage() {
     updatedAt: order.updatedAt.toISOString(),
     paidAt: order.paidAt?.toISOString() || null,
     deliveredAt: order.deliveredAt?.toISOString() || null,
+    writingStartedAt: order.writingStartedAt?.toISOString() || null,
     pricePaid: Number(order.pricePaid),
   }));
 

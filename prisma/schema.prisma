@@ -30,6 +30,7 @@ enum Currency {
 enum PaymentProvider {
   PAYPAL
   PAYSTACK
+  STRIPE
 }
 
 // Main Order Model
@@ -60,6 +61,9 @@ model Order {
   paymentId       String?          
   paymentStatus   String?          
   paidAt          DateTime?
+
+  // Writing (when admin accepts order)
+  writingStartedAt DateTime?
 
   // Delivery
   poemContent  String?   @db.Text

@@ -64,7 +64,7 @@ export async function getOrderByIdAndEmail(orderId: string, email: string) {
 export async function updateOrderPayment(
   orderId: string,
   paymentData: {
-    paymentProvider: 'PAYPAL' | 'PAYSTACK';
+    paymentProvider: 'PAYPAL' | 'PAYSTACK' | 'STRIPE';
     paymentId: string;
     paymentStatus: string;
     pricePaid: number;
@@ -110,14 +110,13 @@ export async function deliverPoem(orderId: string, poemContent: string) {
 }
 
 //Get all orders (for admin dashboard)
-//Sorted by priority: Status > Type > Price > Created
 export async function getAllOrders() {
   const orders = await prisma.order.findMany({
     orderBy: [
-      { status: 'asc' },     // PENDING first
-      { type: 'desc' },      // CUSTOM before QUICK
-      { pricePaid: 'desc' }, // Higher price first
-      { createdAt: 'asc' },  // Oldest first
+      { status: 'desc' },     
+      { type: 'desc' },      
+      { pricePaid: 'desc' }, 
+      { createdAt: 'desc' },  
     ],
   });
 

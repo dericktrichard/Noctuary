@@ -177,12 +177,16 @@ export default async function AdminDashboardPage() {
             </h3>
             <div className="space-y-3">
               <div className="flex justify-between items-center">
-                <span className="text-sm">PayPal</span>
-                <span className="font-bold">{revenueStats.byProvider.paypal}</span>
+                <span className="text-sm">Stripe</span>
+                <span className="font-bold">{revenueStats.byProvider.stripe}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm">Paystack</span>
                 <span className="font-bold">{revenueStats.byProvider.paystack}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm">PayPal</span>
+                <span className="font-bold">{revenueStats.byProvider.paypal}</span>
               </div>
               <div className="flex justify-between items-center pt-2 border-t border-border">
                 <span className="font-bold">Total</span>
@@ -190,7 +194,7 @@ export default async function AdminDashboardPage() {
               </div>
             </div>
           </div>
-        </div>
+       </div>
 
         {/* Revenue Charts */}
         <RevenueCharts orders={serializedOrders} />
