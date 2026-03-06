@@ -62,6 +62,9 @@ model Order {
   paymentStatus   String?          
   paidAt          DateTime?
 
+  // Writing (when admin accepts order)
+  writingStartedAt DateTime?
+
   // Delivery
   poemContent  String?   @db.Text
   deliveredAt  DateTime?

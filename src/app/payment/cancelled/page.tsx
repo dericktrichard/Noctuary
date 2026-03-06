@@ -4,15 +4,27 @@ import { useEffect } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { XCircle, Home } from 'lucide-react';
+import { cancelOrderAction } from '@/app/actions/orders';
 
 export default function PaymentCancelledPage() {
   useEffect(() => {
-    // Try to get orderId from session storage and cancel it
+    // Get orderId from session storage and cancel it immediately
     const orderId = sessionStorage.getItem('noctuaryOrderId');
     if (orderId) {
+      // Cancel the order in the database
+      cancelOrderAction(orderId).then((result) => {
+        if (result.success) {
+          console.log('[ORDER] Cancelled successfully');
+        } else {
+          console.error('[ORDER] Cancel failed:', result.error);
+        }
+      });
+
+      // Clean up session storage
       sessionStorage.removeItem('noctuaryOrderId');
       sessionStorage.removeItem('noctuaryPaypalOrderId');
       sessionStorage.removeItem('noctuaryPaystackReference');
+      sessionStorage.removeItem('noctuaryStripeSessionId');
     }
   }, []);
 
@@ -23,7 +35,6 @@ export default function PaymentCancelledPage() {
         <h1 className="text-3xl font-bold mb-4">Payment Cancelled</h1>
         <p className="font-nunito text-muted-foreground mb-8">
           Your payment was cancelled. No charges were made to your account.
-          The order will remain as "Pending" and will not be processed.
         </p>
         <Link href="/">
           <Button size="lg" className="font-nunito">

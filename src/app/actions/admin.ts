@@ -262,3 +262,81 @@ export async function deleteTestimonialAction(id: string) {
     return { success: false, error: 'Failed to delete' };
   }
 }
+
+/**
+ * Accept order and start writing
+ */
+export async function acceptOrderAction(orderId: string) {
+  try {
+    const order = await prisma.order.findUnique({
+      where: { id: orderId },
+      select: { status: true }
+    });
+
+    if (!order || order.status !== 'PAID') {
+      return {
+        success: false,
+        error: 'Can only accept PAID orders'
+      };
+    }
+
+    await prisma.order.update({
+      where: { id: orderId },
+      data: { 
+        status: 'WRITING',
+        writingStartedAt: new Date() // Deadline starts NOW
+      }
+    });
+
+    revalidatePath('/admin/dashboard');
+    revalidatePath('/admin/dashboard/orders');
+
+    return { success: true };
+  } catch (error) {
+    console.error('[ADMIN] Accept order error:', error);
+    return {
+      success: false,
+      error: 'Failed to accept order. Please try again.'
+    };
+  }
+}
+
+/**
+ * Reject order
+ */
+export async function rejectOrderAction(orderId: string, reason: string) {
+  try {
+    const order = await prisma.order.findUnique({
+      where: { id: orderId },
+      select: { status: true, instructions: true }
+    });
+
+    if (!order || order.status !== 'PAID') {
+      return {
+        success: false,
+        error: 'Can only reject PAID orders'
+      };
+    }
+
+    await prisma.order.update({
+      where: { id: orderId },
+      data: { 
+        status: 'CANCELLED',
+        instructions: `[REJECTED: ${reason}]\n\n${order.instructions || ''}`
+      }
+    });
+
+    console.log(`[ADMIN] Order ${orderId} rejected: ${reason}`);
+
+    revalidatePath('/admin/dashboard');
+    revalidatePath('/admin/dashboard/orders');
+
+    return { success: true };
+  } catch (error) {
+    console.error('[ADMIN] Reject order error:', error);
+    return {
+      success: false,
+      error: 'Failed to reject order. Please try again.'
+    };
+  }
+}
