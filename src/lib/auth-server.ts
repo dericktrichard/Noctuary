@@ -3,25 +3,30 @@ import { prisma } from '@/lib/prisma';
 
 /**
  * Verify admin session from cookie value (admin ID)
- * Returns admin if valid, null if invalid
  */
-export async function verifyAdminSession(sessionValue: string) {
+export async function verifyAdminSession(token: string) {
   try {
-    // sessionValue is the admin ID from the cookie
-    const admin = await prisma.admin.findUnique({
-      where: {
-        id: sessionValue,
-      },
-      select: {
-        id: true,
-        email: true,
-        name: true,
+    const session = await prisma.adminSession.findUnique({
+      where: { token },
+      include: { 
+        admin: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            passwordHash: true,
+          }
+        } 
       },
     });
 
-    return admin;
+    if (!session || session.expiresAt < new Date()) {
+      return null;
+    }
+
+    return session.admin;
   } catch (error) {
-    console.error('[AUTH] Session verification error:', error);
+    console.error('Session verification error:', error);
     return null;
   }
 }

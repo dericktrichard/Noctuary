@@ -100,8 +100,23 @@ model Admin {
   email        String   @unique
   passwordHash String   // Hashed with bcrypt
   name         String
+  
+  sessions     AdminSession[]
 
   @@index([email])
+}
+
+// Admin Sessions
+model AdminSession {
+  id        String   @id @default(uuid())
+  adminId   String
+  admin     Admin    @relation(fields: [adminId], references: [id], onDelete: Cascade)
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([adminId])
+  @@index([token])
 }
 
 // Testimonials
