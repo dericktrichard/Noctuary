@@ -13,6 +13,7 @@ import {
   toggleSampleWorkVisibility 
 } from '@/services/sample-works';
 import { prisma } from '@/lib/prisma';
+import crypto from 'crypto';
 
 /**
  * Admin login action
@@ -29,9 +30,23 @@ export async function loginAdminAction(email: string, password: string) {
       };
     }
 
-    // Set HTTP-only session cookie with admin ID
+    // Create session token
+    const sessionToken = crypto.randomBytes(32).toString('hex');
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 7); // 7 days
+
+    // Store session in database
+    await prisma.adminSession.create({
+      data: {
+        adminId: admin.id,
+        token: sessionToken,
+        expiresAt,
+      },
+    });
+
+    // Set HTTP-only session cookie with SESSION TOKEN (not admin ID)
     const cookieStore = await cookies();
-    cookieStore.set('admin_session', admin.id, {
+    cookieStore.set('admin_session', sessionToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
@@ -57,6 +72,16 @@ export async function loginAdminAction(email: string, password: string) {
 export async function logoutAdminAction() {
   try {
     const cookieStore = await cookies();
+    const sessionToken = cookieStore.get('admin_session');
+
+    // Delete session from database
+    if (sessionToken) {
+      await prisma.adminSession.deleteMany({
+        where: { token: sessionToken.value },
+      });
+    }
+
+    // Delete cookie
     cookieStore.delete('admin_session');
     
     return {
