@@ -401,7 +401,7 @@ export function CommissionForm({ pricing }: CommissionFormProps) {
         className="mb-2 text-center"
       >
         <p className="text-xs font-nunito text-muted-foreground">
-          The PayPal Payment Option is currently Unavailable
+          The USD; PayPal and Stripe Payment Options are currently Unavailable
         </p>
       </motion.div>
 
