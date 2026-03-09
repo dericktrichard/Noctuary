@@ -27,9 +27,13 @@ export default async function AdminDashboardLayout({
   return (
     <div className="min-h-screen bg-background">
       <AdminSidebar />
-      <div id="admin-content">
+      
+      {/* Mobile: No left padding, Desktop: Left padding from sidebar */}
+      <div id="admin-content" className="lg:pl-64">
         <AdminTopbar admin={admin} />
-        <main className="p-6 lg:p-8">
+        
+        {/* Mobile-optimized padding - extra top padding for hamburger button */}
+        <main className="p-4 pt-16 sm:p-6 lg:p-8 lg:pt-8">
           {children}
         </main>
       </div>

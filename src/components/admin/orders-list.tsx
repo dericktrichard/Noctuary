@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { deliverPoemAction, acceptOrderAction, rejectOrderAction } from '@/app/actions/admin';
 import { toast } from 'sonner';
 import { formatCurrency } from '@/lib/utils';
-import { Search, Eye, Send, ChevronDown, ChevronUp } from 'lucide-react';
+import { Search, Eye, Send, ChevronDown, ChevronUp, Clock, Mail, Calendar } from 'lucide-react';
 import React from 'react';
 
 type Order = {
@@ -34,7 +34,6 @@ interface OrdersListProps {
   orders: Order[];
 }
 
-// Calculate deadline status based on writingStartedAt for WRITING, paidAt for PAID
 function getDeadlineStatus(order: Order) {
   let startTime: string | null = null;
 
@@ -78,7 +77,6 @@ function getDeadlineStatus(order: Order) {
   return { status: 'normal', color: '', text: '', icon: '' };
 }
 
-// Calculate time remaining for sorting
 function calculateTimeRemaining(order: Order) {
   if (order.status === 'DELIVERED' || order.status === 'CANCELLED') {
     return null;
@@ -128,7 +126,6 @@ function calculateTimeRemaining(order: Order) {
   };
 }
 
-// Get status badge color
 function getStatusColor(status: Order['status']) {
   switch (status) {
     case 'PENDING': return 'bg-gray-500/10 text-gray-500 border-gray-500/20';
@@ -152,7 +149,6 @@ export function OrdersList({ orders }: OrdersListProps) {
   const [statusFilter, setStatusFilter] = useState<Order['status'] | 'ALL'>('ALL');
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
 
-  // Accept order handler
   const handleAcceptOrder = async (orderId: string) => {
     if (!confirm('Accept this order and start writing? The deadline timer will start now.')) return;
 
@@ -166,7 +162,6 @@ export function OrdersList({ orders }: OrdersListProps) {
     }
   };
 
-  // Reject order handler
   const handleRejectOrder = (orderId: string) => {
     setRejectingOrderId(orderId);
   };
@@ -189,7 +184,6 @@ export function OrdersList({ orders }: OrdersListProps) {
     }
   };
 
-  // Deliver poem handler
   const handleDeliverPoem = async () => {
     if (!poemContent.trim()) {
       toast.error('Please write the poem first');
@@ -214,7 +208,6 @@ export function OrdersList({ orders }: OrdersListProps) {
     setIsSubmitting(false);
   };
 
-  // Filter orders
   const filteredOrders = orders.filter((order) => {
     const matchesSearch = 
       order.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -226,17 +219,14 @@ export function OrdersList({ orders }: OrdersListProps) {
     return matchesSearch && matchesStatus;
   });
 
-  // Sort by priority (time remaining, then status)
   const sortedOrders = [...filteredOrders].sort((a, b) => {
     const aTime = calculateTimeRemaining(a);
     const bTime = calculateTimeRemaining(b);
 
-    // Orders without time remaining go to bottom
     if (!aTime && !bTime) return 0;
     if (!aTime) return 1;
     if (!bTime) return -1;
 
-    // Sort by time remaining (least time first = highest priority)
     return aTime.minutes - bTime.minutes;
   });
 
@@ -250,15 +240,15 @@ export function OrdersList({ orders }: OrdersListProps) {
 
   return (
     <>
-      {/* Filters */}
-      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="relative flex-1 max-w-md">
+      {/* Filters - Mobile Responsive */}
+      <div className="mb-6 flex flex-col gap-4">
+        <div className="relative w-full">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             placeholder="Search by email, order ID, or title..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9 font-nunito"
+            className="pl-9 font-nunito w-full"
           />
         </div>
         
@@ -269,7 +259,7 @@ export function OrdersList({ orders }: OrdersListProps) {
               variant={statusFilter === status ? 'default' : 'outline'}
               size="sm"
               onClick={() => setStatusFilter(status)}
-              className="font-nunito"
+              className="font-nunito text-xs sm:text-sm"
             >
               {status}
             </Button>
@@ -277,28 +267,179 @@ export function OrdersList({ orders }: OrdersListProps) {
         </div>
       </div>
 
-      {/* Orders Table */}
-      <div className="rounded-lg border border-border bg-card shadow-sm overflow-hidden">
+      {/* Mobile Card View */}
+      <div className="lg:hidden space-y-4">
+        {sortedOrders.map((order) => {
+          const timeRemaining = calculateTimeRemaining(order);
+          const deadlineAlert = getDeadlineStatus(order);
+          const hasDetails = order.title || order.mood || order.instructions;
+          
+          return (
+            <div
+              key={order.id}
+              className="glass-card p-4 rounded-lg border border-border"
+            >
+              {/* Header */}
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-2 flex-wrap">
+                    <Badge className={getStatusColor(order.status)}>
+                      {order.status}
+                    </Badge>
+                    <Badge variant="outline" className="text-xs">
+                      {order.type}
+                    </Badge>
+                    {deadlineAlert.status !== 'none' && (
+                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md border text-xs font-bold ${deadlineAlert.color}`}>
+                        {deadlineAlert.icon} {deadlineAlert.text}
+                      </span>
+                    )}
+                  </div>
+                  {order.title && (
+                    <h3 className="font-bold text-base mb-1">{order.title}</h3>
+                  )}
+                </div>
+              </div>
+
+              {/* Details */}
+              <div className="space-y-2 text-sm mb-4">
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Mail className="w-3.5 h-3.5 flex-shrink-0" />
+                  <span className="truncate">{order.email}</span>
+                </div>
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Calendar className="w-3.5 h-3.5 flex-shrink-0" />
+                  <span>{order.createdAt.split('T')[0]}</span>
+                </div>
+                {timeRemaining && (
+                  <div className="flex items-center gap-2">
+                    <Clock className={`w-3.5 h-3.5 flex-shrink-0 ${timeRemaining.color}`} />
+                    <span className={`font-semibold ${timeRemaining.color}`}>
+                      {timeRemaining.text}
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              {/* Amount */}
+              <div className="mb-4 p-3 bg-muted/50 rounded-lg">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">Amount</span>
+                  <span className="font-bold text-lg">
+                    {formatCurrency(order.pricePaid, order.currency as 'USD' | 'KES')}
+                  </span>
+                </div>
+              </div>
+
+              {/* Expandable Details */}
+              {hasDetails && (
+                <div className="mb-4">
+                  <button
+                    onClick={() => setExpandedOrder(expandedOrder === order.id ? null : order.id)}
+                    className="w-full flex items-center justify-between p-2 hover:bg-accent rounded-lg transition-colors text-sm font-semibold"
+                  >
+                    <span>Order Details</span>
+                    {expandedOrder === order.id ? (
+                      <ChevronUp className="w-4 h-4" />
+                    ) : (
+                      <ChevronDown className="w-4 h-4" />
+                    )}
+                  </button>
+                  {expandedOrder === order.id && (
+                    <div className="mt-2 p-3 bg-muted/30 rounded-lg space-y-2 text-sm">
+                      {order.title && (
+                        <div>
+                          <span className="font-semibold">Title:</span> {order.title}
+                        </div>
+                      )}
+                      {order.mood && (
+                        <div>
+                          <span className="font-semibold">Mood:</span> {order.mood}
+                        </div>
+                      )}
+                      {order.instructions && (
+                        <div>
+                          <span className="font-semibold">Instructions:</span>
+                          <p className="mt-1 whitespace-pre-wrap">{order.instructions}</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Actions */}
+              <div className="flex flex-col gap-2">
+                {order.status === 'PAID' && (
+                  <>
+                    <Button
+                      size="sm"
+                      onClick={() => handleAcceptOrder(order.id)}
+                      className="w-full bg-blue-500 hover:bg-blue-600"
+                    >
+                      Accept & Start
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      onClick={() => handleRejectOrder(order.id)}
+                      className="w-full"
+                    >
+                      Reject
+                    </Button>
+                  </>
+                )}
+
+                {order.status === 'WRITING' && (
+                  <Button
+                    onClick={() => setDeliveringOrderId(order.id)}
+                    size="sm"
+                    className="w-full bg-green-500 hover:bg-green-600"
+                  >
+                    <Send className="h-3.5 w-3.5 mr-1.5" />
+                    Deliver Poem
+                  </Button>
+                )}
+
+                {order.status === 'DELIVERED' && order.poemContent && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setViewingOrder(order)}
+                    className="w-full"
+                  >
+                    <Eye className="h-3.5 w-3.5 mr-1.5" />
+                    View Poem
+                  </Button>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Desktop Table View */}
+      <div className="hidden lg:block rounded-lg border border-border bg-card shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="border-b border-border bg-muted/50">
               <tr>
-                <th className="px-6 py-4 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider font-nunito">
-                  Order Details
+                <th className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider font-nunito">
+                  Order
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider font-nunito">
+                <th className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider font-nunito">
                   Customer
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider font-nunito">
+                <th className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider font-nunito">
                   Status
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider font-nunito">
+                <th className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider font-nunito">
                   Amount
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider font-nunito">
-                  Time Remaining
+                <th className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider font-nunito">
+                  Deadline
                 </th>
-                <th className="px-6 py-4 text-right text-xs font-medium text-muted-foreground uppercase tracking-wider font-nunito">
+                <th className="px-6 py-4 text-right text-xs font-semibold text-muted-foreground uppercase tracking-wider font-nunito">
                   Actions
                 </th>
               </tr>
@@ -307,18 +448,17 @@ export function OrdersList({ orders }: OrdersListProps) {
               {sortedOrders.map((order) => {
                 const timeRemaining = calculateTimeRemaining(order);
                 const deadlineAlert = getDeadlineStatus(order);
+                const hasDetails = order.title || order.mood || order.instructions;
                 
                 return (
                   <React.Fragment key={order.id}>
-                    {/* Main Row */}
-                    <tr className="hover:bg-muted/50 transition-colors">
+                    <tr className="hover:bg-muted/30 transition-colors group">
                       <td className="px-6 py-4">
-                        <div className="flex items-center gap-2">
-                          {(order.instructions || order.title || order.mood) && (
+                        <div className="flex items-center gap-3">
+                          {hasDetails && (
                             <button
                               onClick={() => setExpandedOrder(expandedOrder === order.id ? null : order.id)}
-                              className="p-1 hover:bg-accent rounded transition-colors"
-                              title="View details"
+                              className="p-1.5 hover:bg-accent rounded transition-colors flex-shrink-0"
                             >
                               {expandedOrder === order.id ? (
                                 <ChevronUp className="w-4 h-4 text-muted-foreground" />
@@ -327,34 +467,45 @@ export function OrdersList({ orders }: OrdersListProps) {
                               )}
                             </button>
                           )}
-                          <div className="flex flex-col">
-                            <span className="text-sm font-medium font-nunito">
-                              {order.type} Poem
-                            </span>
-                            <span className="text-xs text-muted-foreground font-nunito">
-                              {order.id.slice(0, 8)}...
+                          
+                          <div className="flex flex-col min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <Badge variant="outline" className="text-xs font-mono">
+                                {order.type}
+                              </Badge>
+                              {deadlineAlert.status !== 'none' && (
+                                <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md border text-xs font-bold ${deadlineAlert.color}`}>
+                                  <span className="text-sm">{deadlineAlert.icon}</span>
+                                  {deadlineAlert.text}
+                                </span>
+                              )}
+                            </div>
+                            {order.title && (
+                              <span className="text-sm font-semibold truncate">{order.title}</span>
+                            )}
+                            <span className="text-xs text-muted-foreground font-mono">
+                              #{order.id.slice(0, 8)}
                             </span>
                           </div>
-                          {deadlineAlert.status !== 'none' && (
-                            <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-md border text-xs font-bold ${deadlineAlert.color}`}>
-                              {deadlineAlert.icon} {deadlineAlert.text}
-                            </span>
-                          )}
                         </div>
                       </td>
+
                       <td className="px-6 py-4">
-                        <span className="text-sm font-nunito">{order.email}</span>
+                        <span className="text-sm font-nunito truncate">{order.email}</span>
                       </td>
+
                       <td className="px-6 py-4">
                         <Badge className={getStatusColor(order.status)}>
                           {order.status}
                         </Badge>
                       </td>
+
                       <td className="px-6 py-4">
-                        <span className="text-sm font-medium font-nunito">
+                        <span className="text-sm font-semibold font-mono">
                           {formatCurrency(order.pricePaid, order.currency as 'USD' | 'KES')}
                         </span>
                       </td>
+
                       <td className="px-6 py-4">
                         {timeRemaining ? (
                           <span className={`text-sm font-nunito font-semibold ${timeRemaining.color}`}>
@@ -362,14 +513,15 @@ export function OrdersList({ orders }: OrdersListProps) {
                           </span>
                         ) : (
                           <span className="text-sm font-nunito text-muted-foreground">
-                            {order.status === 'DELIVERED' ? 'Completed' : 
-                             order.status === 'CANCELLED' ? 'Cancelled' : 'Pending payment'}
+                            {order.status === 'DELIVERED' ? 'Complete' : 
+                             order.status === 'CANCELLED' ? 'Cancelled' : 
+                             order.status === 'PAID' ? 'Awaiting accept' : 'Pending'}
                           </span>
                         )}
                       </td>
+
                       <td className="px-6 py-4 text-right">
                         <div className="flex justify-end gap-2">
-                          {/* PAID - Accept or Reject */}
                           {order.status === 'PAID' && (
                             <>
                               <Button
@@ -390,19 +542,17 @@ export function OrdersList({ orders }: OrdersListProps) {
                             </>
                           )}
 
-                          {/* WRITING - Deliver */}
                           {order.status === 'WRITING' && (
                             <Button
                               onClick={() => setDeliveringOrderId(order.id)}
                               size="sm"
                               className="bg-green-500 hover:bg-green-600 font-nunito"
                             >
-                              <Send className="h-4 w-4 mr-1" />
+                              <Send className="h-3.5 w-3.5 mr-1.5" />
                               Deliver
                             </Button>
                           )}
 
-                          {/* DELIVERED - View */}
                           {order.status === 'DELIVERED' && order.poemContent && (
                             <Button
                               variant="outline"
@@ -410,7 +560,7 @@ export function OrdersList({ orders }: OrdersListProps) {
                               onClick={() => setViewingOrder(order)}
                               className="font-nunito"
                             >
-                              <Eye className="h-4 w-4 mr-1" />
+                              <Eye className="h-3.5 w-3.5 mr-1.5" />
                               View
                             </Button>
                           )}
@@ -418,37 +568,30 @@ export function OrdersList({ orders }: OrdersListProps) {
                       </td>
                     </tr>
 
-                    {/* Expanded Row for Details */}
-                    {expandedOrder === order.id && (
-                      <tr className="bg-muted/30">
+                    {expandedOrder === order.id && hasDetails && (
+                      <tr className="bg-muted/20 border-t border-border/50">
                         <td colSpan={6} className="px-6 py-4">
-                          <div className="max-w-3xl">
-                            <h4 className="font-semibold font-nunito text-sm mb-3 flex items-center gap-2">
-                              <ChevronDown className="w-4 h-4" />
-                              Order Details:
-                            </h4>
-                            <div className="pl-6 p-4 rounded-lg bg-card border border-border space-y-3">
-                              {order.title && (
-                                <div>
-                                  <span className="text-xs font-semibold text-muted-foreground uppercase">Title:</span>
-                                  <p className="text-sm font-nunito text-foreground mt-1">{order.title}</p>
-                                </div>
-                              )}
-                              {order.mood && (
-                                <div>
-                                  <span className="text-xs font-semibold text-muted-foreground uppercase">Mood:</span>
-                                  <p className="text-sm font-nunito text-foreground mt-1">{order.mood}</p>
-                                </div>
-                              )}
-                              {order.instructions && (
-                                <div>
-                                  <span className="text-xs font-semibold text-muted-foreground uppercase">Special Instructions:</span>
-                                  <p className="text-sm font-nunito text-foreground mt-1 whitespace-pre-wrap leading-relaxed">
-                                    {order.instructions}
-                                  </p>
-                                </div>
-                              )}
-                            </div>
+                          <div className="max-w-4xl ml-6 p-4 rounded-lg bg-card/50 border border-border space-y-3">
+                            {order.title && (
+                              <div>
+                                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Title</span>
+                                <p className="text-sm font-nunito text-foreground mt-1 font-medium">{order.title}</p>
+                              </div>
+                            )}
+                            {order.mood && (
+                              <div>
+                                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Mood</span>
+                                <p className="text-sm font-nunito text-foreground mt-1 italic">{order.mood}</p>
+                              </div>
+                            )}
+                            {order.instructions && (
+                              <div>
+                                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Special Instructions</span>
+                                <p className="text-sm font-nunito text-foreground mt-1 whitespace-pre-wrap leading-relaxed">
+                                  {order.instructions}
+                                </p>
+                              </div>
+                            )}
                           </div>
                         </td>
                       </tr>
@@ -467,18 +610,26 @@ export function OrdersList({ orders }: OrdersListProps) {
         )}
       </div>
 
-      {/* Deliver Poem Modal */}
+      {/* Empty State for Mobile */}
+      {sortedOrders.length === 0 && (
+        <div className="lg:hidden p-12 text-center glass-card rounded-lg border border-border">
+          <p className="font-nunito text-muted-foreground">No orders match your filters</p>
+        </div>
+      )}
+
+      {/* Modals (unchanged) */}
       {deliveringOrderId && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-card rounded-lg border border-border p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <h3 className="text-xl font-bold mb-4">Deliver Poem</h3>
+          <div className="bg-card rounded-lg border border-border p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-xl">
+            <h3 className="text-xl font-bold mb-1">Deliver Poem</h3>
+            <p className="text-sm text-muted-foreground mb-4">Write or paste the finished poem below</p>
             
             <Textarea
-              placeholder="Write or paste the poem here..."
+              placeholder="Write your poem here..."
               value={poemContent}
               onChange={(e) => setPoemContent(e.target.value)}
-              rows={12}
-              className="mb-4 font-serif"
+              rows={14}
+              className="mb-4 font-serif text-base leading-relaxed"
             />
             
             <div className="flex gap-3">
@@ -498,6 +649,7 @@ export function OrdersList({ orders }: OrdersListProps) {
                 disabled={isSubmitting || !poemContent.trim()}
                 className="flex-1 bg-green-500 hover:bg-green-600"
               >
+                <Send className="w-4 h-4 mr-2" />
                 {isSubmitting ? 'Sending...' : 'Deliver to Customer'}
               </Button>
             </div>
@@ -505,15 +657,19 @@ export function OrdersList({ orders }: OrdersListProps) {
         </div>
       )}
 
-      {/* View Delivered Poem Modal */}
       {viewingOrder && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-card rounded-lg border border-border p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <h3 className="text-xl font-bold mb-2">{viewingOrder.title || 'Poem'}</h3>
-            <p className="text-sm text-muted-foreground mb-4">Delivered to {viewingOrder.email}</p>
+          <div className="bg-card rounded-lg border border-border p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-xl">
+            <div className="mb-4">
+              <h3 className="text-xl font-bold mb-1">{viewingOrder.title || 'Delivered Poem'}</h3>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Mail className="w-3.5 h-3.5" />
+                <span>{viewingOrder.email}</span>
+              </div>
+            </div>
             
-            <div className="p-4 bg-muted/30 rounded-lg mb-4">
-              <p className="font-serif whitespace-pre-wrap leading-relaxed">
+            <div className="p-6 bg-muted/20 rounded-lg mb-4 border border-border">
+              <p className="font-serif text-base whitespace-pre-wrap leading-relaxed">
                 {viewingOrder.poemContent}
               </p>
             </div>
@@ -529,16 +685,15 @@ export function OrdersList({ orders }: OrdersListProps) {
         </div>
       )}
 
-      {/* Reject Order Modal */}
       {rejectingOrderId && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-card rounded-lg border border-border p-6 max-w-md w-full">
-            <h3 className="text-lg font-bold mb-4">Reject Order</h3>
+          <div className="bg-card rounded-lg border border-border p-6 max-w-md w-full shadow-xl">
+            <h3 className="text-lg font-bold mb-2">Reject Order</h3>
             <p className="text-sm text-muted-foreground mb-4">
-              This will cancel the order and mark it as rejected. You'll need to process the refund manually.
+              This will cancel the order. You'll need to process the refund manually via your payment provider.
             </p>
             <Textarea
-              placeholder="Reason for rejection (e.g., 'Inappropriate content requested', 'Unable to fulfill within timeline')"
+              placeholder="e.g., 'Inappropriate content requested', 'Unable to fulfill within timeline'"
               value={rejectReason}
               onChange={(e) => setRejectReason(e.target.value)}
               rows={3}
