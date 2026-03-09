@@ -8,7 +8,6 @@ const FROM_EMAIL = 'hello@noctuary.ink';
 const FROM_ADDRESS = `${FROM_NAME} <${FROM_EMAIL}>`;
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 
-// CRITICAL: Always include plain text version to avoid spam
 export async function sendOrderConfirmation(
   email: string,
   orderData: {
@@ -21,10 +20,8 @@ export async function sendOrderConfirmation(
 ) {
   const trackingUrl = `${APP_URL}/order/${orderData.accessToken}`;
   
-  // Simple, spam-safe subject line
   const subject = `Order Confirmation - Noctuary #${orderData.orderId.slice(0, 8)}`;
 
-  // Plain text version (CRITICAL for spam prevention)
   const text = `
 NOCTUARY - Human Ink, Digital Canvas
 
@@ -49,7 +46,6 @@ Questions? Simply reply to this email.
 ---
 © ${new Date().getFullYear()} Noctuary
 Noctuary Poetry Services
-Based in Nairobi, Kenya
   `.trim();
 
   const html = `
@@ -162,7 +158,7 @@ Based in Nairobi, Kenya
           <div class="content">
             <h2>Order Confirmation</h2>
             
-            <p>Thank you for commissioning a ${orderData.type === 'QUICK' ? 'quick poem' : 'custom poem'}. Your order has been received and will be crafted by a human poet.</p>
+            <p>Thank you for commissioning a ${orderData.type === 'QUICK' ? 'quick poem' : 'custom poem'}. Your order has been received and will be crafted by our poet.</p>
             
             <div class="info-box">
               <p><strong>Order ID:</strong> ${orderData.orderId}</p>
@@ -189,7 +185,6 @@ Based in Nairobi, Kenya
           
           <div class="footer">
             <p><strong>Noctuary Poetry Services</strong></p>
-            <p>Based in Nairobi, Kenya</p>
             <p>© ${new Date().getFullYear()} Noctuary. All rights reserved.</p>
             <p>Questions? Simply reply to this email.</p>
           </div>
@@ -204,7 +199,7 @@ Based in Nairobi, Kenya
       to: email,
       subject,
       html,
-      text, // CRITICAL: Plain text version
+      text, 
     });
 
     if (error) {
@@ -225,6 +220,7 @@ export async function sendPoemDelivery(
 ) {
   const { orderId, poemContent, accessToken, title } = data;
   const trackingUrl = `${APP_URL}/order/${accessToken}`;
+  const reviewUrl = `${APP_URL}/review/${orderId}`;
 
   const subject = `Your Poem: ${title}`;
 
@@ -235,7 +231,9 @@ Your Poem: "${title}"
 
 ${poemContent}
 
-View and download: ${trackingUrl}
+View your poem: ${trackingUrl}
+
+Love your poem?: ${reviewUrl}
 
 Copyright Notice: Full copyright has been transferred to you. Use this poem however you wish.
 
@@ -244,7 +242,6 @@ Questions? Reply to this email.
 ---
 © ${new Date().getFullYear()} Noctuary
 Noctuary Poetry Services
-Based in Nairobi, Kenya
   `.trim();
 
   const html = `
@@ -317,6 +314,9 @@ Based in Nairobi, Kenya
           margin: 8px;
           font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
         }
+        .button-secondary {
+          background: #10b981;
+        }
         .notice {
           background: #f3f4f6;
           padding: 16px;
@@ -351,7 +351,8 @@ Based in Nairobi, Kenya
           <div class="poem-box">${poemContent}</div>
           
           <div class="button-wrapper">
-            <a href="${trackingUrl}" class="button">View & Download</a>
+            <a href="${trackingUrl}" class="button">View</a>
+            <a href="${reviewUrl}" class="button button-secondary">Feedback</a>
           </div>
           
           <div class="notice">
@@ -361,7 +362,6 @@ Based in Nairobi, Kenya
         
         <div class="footer">
           <p><strong>Noctuary Poetry Services</strong></p>
-          <p>Based in Nairobi, Kenya</p>
           <p>© ${new Date().getFullYear()} Noctuary. All rights reserved.</p>
           <p>Questions? Simply reply to this email.</p>
         </div>
@@ -376,7 +376,7 @@ Based in Nairobi, Kenya
       to: email,
       subject,
       html,
-      text, // CRITICAL: Plain text version
+      text, 
     });
 
     if (error) {
@@ -416,7 +416,6 @@ Order ID: ${orderId}
 ---
 © ${new Date().getFullYear()} Noctuary
 Noctuary Poetry Services
-Based in Nairobi, Kenya
   `.trim();
 
   const html = `
@@ -514,7 +513,6 @@ Based in Nairobi, Kenya
 
         <div class="footer">
           <p><strong>Noctuary Poetry Services</strong></p>
-          <p>Based in Nairobi, Kenya</p>
           <p>© ${new Date().getFullYear()} Noctuary. All rights reserved.</p>
           <p>Questions? Simply reply to this email.</p>
         </div>
@@ -529,7 +527,7 @@ Based in Nairobi, Kenya
       to: email,
       subject,
       html,
-      text, // CRITICAL: Plain text version
+      text, 
     });
 
     if (error) {
@@ -687,7 +685,7 @@ View in dashboard: ${orderUrl}
       to: adminEmail,
       subject,
       html,
-      text, // CRITICAL: Plain text version
+      text, 
     });
 
     if (error) {

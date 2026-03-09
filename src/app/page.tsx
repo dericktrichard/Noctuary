@@ -41,13 +41,12 @@ export default async function HomePage() {
         
         <section id="about" className="py-12 px-4">
           <div className="max-w-2xl mx-auto">
-            <div className="notebook-paper">
-              <div className="pt-8 pb-4 px-8 md:px-16">
-                <h2 className="text-2xl md:text-3xl font-bold text-center notebook-line">
-                  Noctuary&apos;s Essence
-                </h2>
-              </div>
-              
+            <div className="pt-10 pb-8 px-10 md:px-20">
+              <h2 className="text-3xl md:text-5xl font-bold mb-3 text-center">
+                Noctuary&apos;s Essence
+              </h2>
+            </div>
+            <div className="notebook-paper notebook-line pt-8 pb-5">              
               <div className="px-8 md:px-16 pb-12 text-muted-foreground">
                 <p className="notebook-line mb-7">
                   &ldquo;Noctuary was born as a rebellion against the rise of AI-generated poetry.&rdquo;
