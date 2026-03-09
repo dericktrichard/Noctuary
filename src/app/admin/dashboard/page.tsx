@@ -34,6 +34,7 @@ export default async function AdminDashboardPage() {
     updatedAt: order.updatedAt.toISOString(),
     paidAt: order.paidAt?.toISOString() || null,
     deliveredAt: order.deliveredAt?.toISOString() || null,
+    writingStartedAt: order.writingStartedAt?.toISOString() || null,
     pricePaid: Number(order.pricePaid),
   }));
 
@@ -60,61 +61,70 @@ export default async function AdminDashboardPage() {
   }).length;
 
   return (
-    <div className="space-y-8">
-      <div className="flex items-center justify-between">
+    <div className="space-y-6 lg:space-y-8">
+      {/* Header - Mobile Responsive */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-          <p className="font-nunito text-muted-foreground mt-2">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Dashboard</h1>
+          <p className="font-nunito text-muted-foreground mt-1 sm:mt-2 text-sm sm:text-base">
             Overview of your poetry business
           </p>
         </div>
         
-        <Link href="/admin/dashboard/orders">
-          <Button className="font-nunito gap-2">
+        <Link href="/admin/dashboard/orders" className="w-full sm:w-auto">
+          <Button className="font-nunito gap-2 w-full sm:w-auto">
             View All Orders
             <ArrowRight className="w-4 h-4" />
           </Button>
         </Link>
       </div>
 
-      {/* Alert Banners */}
+      {/* Alert Banners - Mobile Responsive */}
       {(overdueOrders > 0 || urgentOrders > 0) && (
         <div className="space-y-3">
           {overdueOrders > 0 && (
-            <div className="bg-red-500/10 border border-red-500 rounded-lg p-4 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <span className="text-2xl">🚨</span>
-                <div>
-                  <p className="font-bold text-red-500">
-                    {overdueOrders} {overdueOrders === 1 ? 'Order' : 'Orders'} Overdue
-                  </p>
-                  <p className="text-sm text-muted-foreground font-nunito">
-                    These orders have passed their delivery deadline
-                  </p>
+            <div className="bg-red-500/10 border border-red-500 rounded-lg p-4">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div className="flex items-start sm:items-center gap-3">
+                  <span className="text-2xl flex-shrink-0">🚨</span>
+                  <div>
+                    <p className="font-bold text-red-500">
+                      {overdueOrders} {overdueOrders === 1 ? 'Order' : 'Orders'} Overdue
+                    </p>
+                    <p className="text-sm text-muted-foreground font-nunito mt-0.5">
+                      These orders have passed their delivery deadline
+                    </p>
+                  </div>
                 </div>
+                <Link href="/admin/dashboard/orders" className="w-full sm:w-auto">
+                  <Button variant="destructive" size="sm" className="w-full sm:w-auto">
+                    View Orders
+                  </Button>
+                </Link>
               </div>
-              <Link href="/admin/dashboard/orders">
-                <Button variant="destructive" size="sm">View Orders</Button>
-              </Link>
             </div>
           )}
 
           {urgentOrders > 0 && (
-            <div className="bg-orange-500/10 border border-orange-500 rounded-lg p-4 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <span className="text-2xl">⚠️</span>
-                <div>
-                  <p className="font-bold text-orange-500">
-                    {urgentOrders} {urgentOrders === 1 ? 'Order' : 'Orders'} Due Soon
-                  </p>
-                  <p className="text-sm text-muted-foreground font-nunito">
-                    Less than 6 hours remaining
-                  </p>
+            <div className="bg-orange-500/10 border border-orange-500 rounded-lg p-4">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div className="flex items-start sm:items-center gap-3">
+                  <span className="text-2xl flex-shrink-0">⚠️</span>
+                  <div>
+                    <p className="font-bold text-orange-500">
+                      {urgentOrders} {urgentOrders === 1 ? 'Order' : 'Orders'} Due Soon
+                    </p>
+                    <p className="text-sm text-muted-foreground font-nunito mt-0.5">
+                      Less than 6 hours remaining
+                    </p>
+                  </div>
                 </div>
+                <Link href="/admin/dashboard/orders" className="w-full sm:w-auto">
+                  <Button variant="outline" size="sm" className="w-full sm:w-auto">
+                    View Orders
+                  </Button>
+                </Link>
               </div>
-              <Link href="/admin/dashboard/orders">
-                <Button variant="outline" size="sm">View Orders</Button>
-              </Link>
             </div>
           )}
         </div>
@@ -125,11 +135,12 @@ export default async function AdminDashboardPage() {
 
       {/* Revenue Analytics */}
       <div className="space-y-4">
-        <h2 className="text-2xl font-bold tracking-tight">Revenue Overview</h2>
+        <h2 className="text-xl sm:text-2xl font-bold tracking-tight">Revenue Overview</h2>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Revenue Cards - Mobile: Stack, Tablet+: Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {/* USD Revenue Card */}
-          <div className="rounded-lg border border-border bg-card p-6">
+          <div className="rounded-lg border border-border bg-card p-4 sm:p-6">
             <h3 className="font-semibold font-nunito text-sm text-muted-foreground mb-4">
               USD Revenue
             </h3>
@@ -150,7 +161,7 @@ export default async function AdminDashboardPage() {
           </div>
 
           {/* KES Revenue Card */}
-          <div className="rounded-lg border border-border bg-card p-6">
+          <div className="rounded-lg border border-border bg-card p-4 sm:p-6">
             <h3 className="font-semibold font-nunito text-sm text-muted-foreground mb-4">
               KES Revenue
             </h3>
@@ -171,7 +182,7 @@ export default async function AdminDashboardPage() {
           </div>
 
           {/* Payment Providers Card */}
-          <div className="rounded-lg border border-border bg-card p-6">
+          <div className="rounded-lg border border-border bg-card p-4 sm:p-6 sm:col-span-2 lg:col-span-1">
             <h3 className="font-semibold font-nunito text-sm text-muted-foreground mb-4">
               Payment Methods
             </h3>
