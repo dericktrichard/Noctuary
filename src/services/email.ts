@@ -20,7 +20,7 @@ export async function sendOrderConfirmation(
 ) {
   const trackingUrl = `${APP_URL}/order/${orderData.accessToken}`;
   
-  const subject = `Order Confirmation - Noctuary #${orderData.orderId.slice(0, 8)}`;
+  const subject = `Order Confirmation - Noctuary`;
 
   const text = `
 NOCTUARY - Human Ink, Digital Canvas
@@ -30,7 +30,6 @@ Order Confirmation
 Thank you for your ${orderData.type === 'QUICK' ? 'quick poem' : 'custom poem'} commission.
 
 Order Details:
-- Order ID: ${orderData.orderId}
 - Expected Delivery: Within ${orderData.deliveryHours} hours
 - Type: ${orderData.type} Poem
 
@@ -161,7 +160,6 @@ Noctuary Poetry Services
             <p>Thank you for commissioning a ${orderData.type === 'QUICK' ? 'quick poem' : 'custom poem'}. Your order has been received and will be crafted by our poet.</p>
             
             <div class="info-box">
-              <p><strong>Order ID:</strong> ${orderData.orderId}</p>
               <p><strong>Expected Delivery:</strong> Within ${orderData.deliveryHours} hours</p>
               <p><strong>Type:</strong> ${orderData.type} Poem</p>
             </div>
@@ -233,7 +231,7 @@ ${poemContent}
 
 View your poem: ${trackingUrl}
 
-Love your poem?: ${reviewUrl}
+Love your poem? Share your feedback: ${reviewUrl}
 
 Copyright Notice: Full copyright has been transferred to you. Use this poem however you wish.
 
@@ -351,8 +349,8 @@ Noctuary Poetry Services
           <div class="poem-box">${poemContent}</div>
           
           <div class="button-wrapper">
-            <a href="${trackingUrl}" class="button">View</a>
-            <a href="${reviewUrl}" class="button button-secondary">Feedback</a>
+            <a href="${trackingUrl}" class="button">View Your Poem</a>
+            <a href="${reviewUrl}" class="button button-secondary">Share Your Feedback</a>
           </div>
           
           <div class="notice">
@@ -393,12 +391,12 @@ Noctuary Poetry Services
 
 export async function sendPaymentConfirmation(
   email: string,
-  data: { orderId: string; amount: number; currency: string }
+  data: { accessToken: string; amount: number; currency: string }
 ) {
-  const { orderId, amount, currency } = data;
-  const trackingUrl = `${APP_URL}/order/${orderId}`;
+  const { accessToken, amount, currency } = data;
+  const trackingUrl = `${APP_URL}/order/${accessToken}`;
 
-  const subject = `Payment Confirmed - Order #${orderId.slice(0, 8)}`;
+  const subject = `Payment Confirmed - Noctuary`;
 
   const text = `
 NOCTUARY
@@ -410,8 +408,6 @@ Your payment of ${currency} ${amount.toFixed(2)} has been received.
 Our poet is now crafting your piece.
 
 Track your order: ${trackingUrl}
-
-Order ID: ${orderId}
 
 ---
 © ${new Date().getFullYear()} Noctuary
@@ -507,8 +503,6 @@ Noctuary Poetry Services
           <div class="button-wrapper">
             <a href="${trackingUrl}" class="button">Track Your Order</a>
           </div>
-          
-          <p style="font-size: 13px; color: #6b7280;">Order ID: ${orderId}</p>
         </div>
 
         <div class="footer">

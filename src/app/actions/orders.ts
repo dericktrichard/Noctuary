@@ -1,15 +1,13 @@
 'use server';
 
 import { z } from 'zod';
-import { headers } from 'next/headers';
 import { checkOrderRateLimit } from '@/lib/rate-limit';
-import { createOrder, updateOrderPayment, getOrderCountByEmail } from '@/services/orders';
-import { createStripeCheckoutSession, verifyStripePayment } from '@/services/stripe';
+import { createOrder, updateOrderPayment } from '@/services/orders';
+import { createStripeCheckoutSession } from '@/services/stripe';
 import { sendPaymentConfirmation, sendAdminOrderNotification } from '@/services/email';
 import { getCurrentPricing } from './pricing';
 import { prisma } from '@/lib/prisma';
 
-// Validation schemas with automatic email normalization
 const QuickPoemSchema = z.object({
   type: z.literal('QUICK'),
   email: z.string()
@@ -32,11 +30,8 @@ const CustomPoemSchema = z.object({
 
 type OrderInput = z.infer<typeof QuickPoemSchema> | z.infer<typeof CustomPoemSchema>;
 
-// Create a new order
 export async function createOrderAction(input: OrderInput) {
   try {
-    // Rate limiting by email
-    const headersList = await headers();
     const identifier = input.email.toLowerCase().trim();
     
     const rateLimit = await checkOrderRateLimit(identifier);
@@ -47,7 +42,6 @@ export async function createOrderAction(input: OrderInput) {
       };
     }
 
-    // Validate and normalize input
     const validatedData = input.type === 'QUICK' 
       ? QuickPoemSchema.parse(input)
       : CustomPoemSchema.parse(input);
@@ -56,7 +50,6 @@ export async function createOrderAction(input: OrderInput) {
 
     const pricing = await getCurrentPricing();
 
-    // Currency-specific validation for custom poems
     if (validatedData.type === 'CUSTOM') {
       const customData = validatedData as z.infer<typeof CustomPoemSchema>;
       
@@ -77,7 +70,6 @@ export async function createOrderAction(input: OrderInput) {
       }
     }
 
-    // Calculate pricing
     let pricePaid: number;
     let deliveryHours: number;
 
@@ -88,14 +80,12 @@ export async function createOrderAction(input: OrderInput) {
       const customData = validatedData as z.infer<typeof CustomPoemSchema>;
       pricePaid = customData.budget;
       
-      // Calculate delivery hours (12h to 6h based on budget)
       const min = customData.currency === 'USD' ? pricing.custom.minUsd : pricing.custom.minKes;
       const max = customData.currency === 'USD' ? pricing.custom.maxUsd : pricing.custom.maxKes;
       const ratio = (pricePaid - min) / (max - min);
       deliveryHours = Math.round(12 - (ratio * 6));
     }
 
-    // Create order (status: PENDING)
     const order = await createOrder({
       email: normalizedEmail,
       type: validatedData.type,
@@ -107,7 +97,6 @@ export async function createOrderAction(input: OrderInput) {
       deliveryHours,
     });
 
-    // Auto-cancel order after 3 minutes if payment not completed
     setTimeout(async () => {
       try {
         const checkOrder = await prisma.order.findUnique({
@@ -115,7 +104,6 @@ export async function createOrderAction(input: OrderInput) {
           select: { status: true }
         });
 
-        // Cancel if still PENDING after 3 minutes
         if (checkOrder?.status === 'PENDING') {
           await prisma.order.update({
             where: { id: order.id },
@@ -151,9 +139,6 @@ export async function createOrderAction(input: OrderInput) {
   }
 }
 
-/**
- * Create PayPal order
- */
 export async function createPayPalOrderAction(orderId: string, amount: number) {
   try {
     const { createPayPalOrder } = await import('@/services/paypal');
@@ -175,9 +160,6 @@ export async function createPayPalOrderAction(orderId: string, amount: number) {
   }
 }
 
-/**
- * Verify PayPal payment
- */
 export async function verifyPayPalPaymentAction(orderId: string, paypalOrderId: string) {
   try {
     const { capturePayPalPayment } = await import('@/services/paypal');
@@ -185,7 +167,6 @@ export async function verifyPayPalPaymentAction(orderId: string, paypalOrderId: 
     const captureResult = await capturePayPalPayment(paypalOrderId);
 
     if (captureResult.status !== 'COMPLETED') {
-      // Mark as cancelled if payment failed
       await prisma.order.update({
         where: { id: orderId },
         data: { status: 'CANCELLED' }
@@ -197,7 +178,6 @@ export async function verifyPayPalPaymentAction(orderId: string, paypalOrderId: 
       };
     }
 
-    // Update order: PENDING → PAID
     const order = await updateOrderPayment(orderId, {
       paymentProvider: 'PAYPAL',
       paymentId: paypalOrderId,
@@ -205,10 +185,9 @@ export async function verifyPayPalPaymentAction(orderId: string, paypalOrderId: 
       pricePaid: parseFloat(captureResult.amount.value),
     });
 
-    // Send payment confirmation email 
     try {
       await sendPaymentConfirmation(order.email, {
-        orderId: order.id,
+        accessToken: order.accessToken,
         amount: Number(order.pricePaid),
         currency: order.currency,
       });
@@ -217,7 +196,6 @@ export async function verifyPayPalPaymentAction(orderId: string, paypalOrderId: 
       console.error('[EMAIL] Payment confirmation failed (non-critical):', emailError);
     }
 
-    // Send admin notification
     try {
       await sendAdminOrderNotification({
         orderId: order.id,
@@ -240,7 +218,6 @@ export async function verifyPayPalPaymentAction(orderId: string, paypalOrderId: 
   } catch (error) {
     console.error('[PAYPAL] Verification error:', error);
     
-    // Mark as cancelled on error
     try {
       await prisma.order.update({
         where: { id: orderId },
@@ -257,9 +234,6 @@ export async function verifyPayPalPaymentAction(orderId: string, paypalOrderId: 
   }
 }
 
-/**
- * Verify Paystack payment
- */
 export async function verifyPaystackPaymentAction(orderId: string, reference: string) {
   try {
     const { verifyPaystackTransaction } = await import('@/services/paystack');
@@ -267,7 +241,6 @@ export async function verifyPaystackPaymentAction(orderId: string, reference: st
     const verification = await verifyPaystackTransaction(reference);
 
     if (verification.status !== 'success') {
-      // Mark as cancelled if payment failed
       await prisma.order.update({
         where: { id: orderId },
         data: { status: 'CANCELLED' }
@@ -279,7 +252,6 @@ export async function verifyPaystackPaymentAction(orderId: string, reference: st
       };
     }
 
-    // Update order: PENDING → PAID
     const order = await updateOrderPayment(orderId, {
       paymentProvider: 'PAYSTACK',
       paymentId: reference,
@@ -287,10 +259,9 @@ export async function verifyPaystackPaymentAction(orderId: string, reference: st
       pricePaid: verification.amount,
     });
 
-    // Send payment confirmation email 
     try {
       await sendPaymentConfirmation(order.email, {
-        orderId: order.id,
+        accessToken: order.accessToken,
         amount: Number(order.pricePaid),
         currency: order.currency,
       });
@@ -299,7 +270,6 @@ export async function verifyPaystackPaymentAction(orderId: string, reference: st
       console.error('[EMAIL] Payment confirmation failed (non-critical):', emailError);
     }
 
-    // Send admin notification
     try {
       await sendAdminOrderNotification({
         orderId: order.id,
@@ -322,7 +292,6 @@ export async function verifyPaystackPaymentAction(orderId: string, reference: st
   } catch (error) {
     console.error('[PAYSTACK] Verification error:', error);
     
-    // Mark as cancelled on error
     try {
       await prisma.order.update({
         where: { id: orderId },
@@ -339,14 +308,10 @@ export async function verifyPaystackPaymentAction(orderId: string, reference: st
   }
 }
 
-/**
- * Initialize Paystack transaction
- */
 export async function initializePaystackPaymentAction(orderId: string, email: string, amount: number) {
   try {
     const { initializePaystackTransaction } = await import('@/services/paystack');
     
-    // Normalize email before sending to Paystack
     const normalizedEmail = email.toLowerCase().trim();
     
     const result = await initializePaystackTransaction(
@@ -370,12 +335,8 @@ export async function initializePaystackPaymentAction(orderId: string, email: st
   }
 }
 
-/**
- * Create Stripe checkout session
- */
 export async function createStripeSessionAction(orderId: string, email: string, amount: number) {
   try {
-    // Normalize email before sending to Stripe
     const normalizedEmail = email.toLowerCase().trim();
     
     const successUrl = `${process.env.NEXT_PUBLIC_APP_URL}/payment/success?session_id={CHECKOUT_SESSION_ID}`;
@@ -411,20 +372,15 @@ export async function createStripeSessionAction(orderId: string, email: string, 
   }
 }
 
-/**
- * Verify Stripe payment
- */
 export async function verifyStripePaymentAction(sessionId: string) {
   try {
     const { stripe } = await import('@/services/stripe');
     
-    // Retrieve the checkout session
     const session = await stripe.checkout.sessions.retrieve(sessionId);
 
     if (session.payment_status !== 'paid') {
       const orderId = session.metadata?.orderId;
       
-      // Mark as cancelled if payment failed
       if (orderId) {
         await prisma.order.update({
           where: { id: orderId },
@@ -446,7 +402,6 @@ export async function verifyStripePaymentAction(sessionId: string) {
       };
     }
 
-    // Update order: PENDING → PAID
     const order = await updateOrderPayment(orderId, {
       paymentProvider: 'STRIPE',
       paymentId: session.payment_intent as string,
@@ -454,10 +409,9 @@ export async function verifyStripePaymentAction(sessionId: string) {
       pricePaid: (session.amount_total || 0) / 100,
     });
 
-    // Send payment confirmation email
     try {
       await sendPaymentConfirmation(order.email, {
-        orderId: order.id,
+        accessToken: order.accessToken,
         amount: Number(order.pricePaid),
         currency: order.currency,
       });
@@ -466,7 +420,6 @@ export async function verifyStripePaymentAction(sessionId: string) {
       console.error('[EMAIL] Payment confirmation failed (non-critical):', emailError);
     }
 
-    // Send admin notification
     try {
       await sendAdminOrderNotification({
         orderId: order.id,
@@ -495,9 +448,6 @@ export async function verifyStripePaymentAction(sessionId: string) {
   }
 }
 
-/**
- * Manually cancel an order
- */
 export async function cancelOrderAction(orderId: string) {
   try {
     const order = await prisma.order.findUnique({
@@ -505,7 +455,6 @@ export async function cancelOrderAction(orderId: string) {
       select: { status: true }
     });
 
-    // Allow cancelling PENDING or PAID orders
     if (!order || (order.status !== 'PENDING' && order.status !== 'PAID')) {
       return {
         success: false,

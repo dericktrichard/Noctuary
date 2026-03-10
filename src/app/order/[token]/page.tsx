@@ -59,11 +59,10 @@ export default async function OrderTrackingPage({
         <div className="text-center mb-12">
           <h1 className="text-4xl md:text-5xl font-bold mb-4">Order Tracking</h1>
           <p className="font-nunito text-muted-foreground">
-            Order ID: {order.id}
+            Track your commission
           </p>
         </div>
 
-        {/* Status Card */}
         <GlassCard className="p-8 mb-8">
           <div className="flex flex-col items-center text-center mb-8">
             {getStatusIcon(order.status)}
@@ -75,7 +74,6 @@ export default async function OrderTrackingPage({
             </p>
           </div>
 
-          {/* Order Details */}
           <div className="space-y-4 border-t border-border pt-6">
             <div className="flex justify-between">
               <span className="font-nunito text-muted-foreground">Type:</span>
@@ -124,7 +122,6 @@ export default async function OrderTrackingPage({
             </div>
           </div>
 
-          {/* Return Home Button */}
           <div className="mt-8 pt-6 border-t border-border">
             <Link href="/" className="block">
               <Button variant="outline" size="lg" className="w-full font-nunito">
@@ -135,7 +132,6 @@ export default async function OrderTrackingPage({
           </div>
         </GlassCard>
 
-        {/* Poem Display (if delivered) */}
         {order.status === 'DELIVERED' && order.poemContent && (
           <GlassCard className="p-8">
             <h3 className="text-2xl font-bold mb-6 text-center">
@@ -154,7 +150,6 @@ export default async function OrderTrackingPage({
           </GlassCard>
         )}
 
-        {/* Instructions Display (for poet reference) */}
         {order.instructions && order.status !== 'DELIVERED' && (
           <GlassCard className="p-6 mt-8">
             <h4 className="font-bold mb-3">Special Instructions:</h4>
@@ -164,7 +159,6 @@ export default async function OrderTrackingPage({
           </GlassCard>
         )}
 
-        {/* Additional Info for Non-Delivered Orders */}
         {order.status !== 'DELIVERED' && (
           <div className="mt-8 text-center">
             <p className="font-nunito text-sm text-muted-foreground">
