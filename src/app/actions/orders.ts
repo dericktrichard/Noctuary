@@ -6,6 +6,7 @@ import { createOrder, updateOrderPayment } from '@/services/orders';
 import { createStripeCheckoutSession } from '@/services/stripe';
 import { sendPaymentConfirmation, sendAdminOrderNotification } from '@/services/email';
 import { getCurrentPricing } from './pricing';
+import { validatePrice } from '@/lib/pricing';
 import { prisma } from '@/lib/prisma';
 
 const QuickPoemSchema = z.object({
@@ -84,6 +85,20 @@ export async function createOrderAction(input: OrderInput) {
       const max = customData.currency === 'USD' ? pricing.custom.maxUsd : pricing.custom.maxKes;
       const ratio = (pricePaid - min) / (max - min);
       deliveryHours = Math.round(12 - (ratio * 6));
+    }
+
+    const isPriceValid = validatePrice(
+      validatedData.type,
+      validatedData.currency,
+      pricePaid,
+      deliveryHours
+    );
+
+    if (!isPriceValid) {
+      return {
+        success: false,
+        error: 'Invalid pricing detected. Please refresh and try again.',
+      };
     }
 
     const order = await createOrder({

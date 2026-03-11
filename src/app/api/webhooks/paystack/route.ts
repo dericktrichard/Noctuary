@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { prisma } from '@/lib/prisma';
+import { sendPaymentConfirmation, sendAdminOrderNotification } from '@/services/email';
 
 export async function POST(request: NextRequest) {
   try {
@@ -12,7 +13,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No signature' }, { status: 401 });
     }
 
-    // Verify Paystack signature
     const hash = crypto
       .createHmac('sha512', process.env.PAYSTACK_SECRET_KEY!)
       .update(body)
@@ -26,18 +26,16 @@ export async function POST(request: NextRequest) {
     const event = JSON.parse(body);
     console.log('[PAYSTACK WEBHOOK] Event received:', event.event);
 
-    // Handle charge.success event (payment completed)
     if (event.event === 'charge.success') {
       const { reference, customer, amount, currency } = event.data;
 
       console.log('[PAYSTACK WEBHOOK] Payment successful:', {
         reference,
         email: customer.email,
-        amount: amount / 100, // Paystack sends amount in kobo/cents
+        amount: amount / 100,
         currency,
       });
 
-      // Find order by payment reference
       const order = await prisma.order.findFirst({
         where: {
           paymentId: reference,
@@ -50,7 +48,6 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'Order not found' }, { status: 404 });
       }
 
-      // Verify amount matches (convert from kobo to main currency)
       const paidAmount = amount / 100;
       const expectedAmount = Number(order.pricePaid);
 
@@ -62,7 +59,6 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'Amount mismatch' }, { status: 400 });
       }
 
-      // Update order to PAID
       await prisma.order.update({
         where: { id: order.id },
         data: {
@@ -74,13 +70,38 @@ export async function POST(request: NextRequest) {
 
       console.log('[PAYSTACK WEBHOOK] Order marked as PAID:', order.id);
 
+      try {
+        await sendPaymentConfirmation(order.email, {
+          accessToken: order.accessToken,
+          amount: Number(order.pricePaid),
+          currency: order.currency,
+        });
+        console.log('[PAYSTACK WEBHOOK] Payment confirmation email sent');
+      } catch (emailError) {
+        console.error('[PAYSTACK WEBHOOK] Email failed (non-critical):', emailError);
+      }
+
+      try {
+        await sendAdminOrderNotification({
+          orderId: order.id,
+          type: order.type,
+          amount: Number(order.pricePaid),
+          currency: order.currency,
+          customerEmail: order.email,
+          title: order.title,
+          deliveryHours: order.deliveryHours,
+        });
+        console.log('[PAYSTACK WEBHOOK] Admin notification sent');
+      } catch (emailError) {
+        console.error('[PAYSTACK WEBHOOK] Admin email failed (non-critical):', emailError);
+      }
+
       return NextResponse.json({ 
         success: true,
         message: 'Payment verified and order updated' 
       });
     }
 
-    // Handle failed payments
     if (event.event === 'charge.failed') {
       const { reference } = event.data;
 
@@ -89,6 +110,7 @@ export async function POST(request: NextRequest) {
       const order = await prisma.order.findFirst({
         where: {
           paymentId: reference,
+          status: 'PENDING',
         },
       });
 
@@ -107,7 +129,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: true });
     }
 
-    // Acknowledge other events
     console.log('[PAYSTACK WEBHOOK] Unhandled event:', event.event);
     return NextResponse.json({ success: true });
 
