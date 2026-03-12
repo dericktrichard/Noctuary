@@ -2,36 +2,25 @@
 
 import { motion } from 'framer-motion';
 import { GlassCard } from '@/components/ui/card';
-import { Shield, Copyright, Users, Sparkles } from 'lucide-react';
+import { Shield, Copyright, Users, Sparkles, Check } from 'lucide-react';
 
 const guarantees = [
-  {
-    icon: Shield,
-    title: 'No AI',
-    description: 'Every word written by a human poet.',
-  },
-  {
-    icon: Sparkles,
-    title: 'No Templates',
-    description: 'Each poem is crafted uniquely for you.',
-  },
-  {
-    icon: Copyright,
-    title: 'Full Rights',
-    description: 'Complete copyright ownership transfers to you upon delivery.',
-  },
-  {
-    icon: Users,
-    title: 'Human Touch',
-    description: 'Honest and Flawed expression from lived and read experience.',
-  },
+  { icon: Shield, title: 'No AI', desc: 'Human-written poetry' },
+  { icon: Sparkles, title: 'No Templates', desc: 'Unique every time' },
+  { icon: Copyright, title: 'Full Rights', desc: 'You own it completely' },
+  { icon: Users, title: 'Human Touch', desc: 'Honest expression' },
+];
+
+const beliefs = [
+  'The soul matters in every word',
+  'Human connection beats artificial generation',
+  'Poetry is an art, not automation',
 ];
 
 export function AuthorsPact() {
   return (
     <section id="pact" className="py-24 px-4 relative overflow-hidden">
-      {/* Subtle Background Pattern */}
-      <div className="absolute inset-0 opacity-10 dark:opacity-10 light:opacity-[0.08]">
+      <div className="absolute inset-0 opacity-5">
         <div 
           className="absolute inset-0" 
           style={{
@@ -41,52 +30,68 @@ export function AuthorsPact() {
       </div>
 
       <div className="max-w-7xl mx-auto relative z-10">
-        {/* Section Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-16"
-        >
-          <h2 className="text-4xl md:text-5xl font-bold mb-4">
+        {/* Left-aligned Header */}
+        <div className="mb-16 md:pl-12">
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="inline-flex items-center gap-2 px-3 py-1 rounded-full glass-card mb-4"
+          >
+            <Shield className="w-4 h-4" />
+            <span className="font-nunito text-xs uppercase tracking-widest">Guarantee</span>
+          </motion.div>
+
+          <motion.h2
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+            className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4"
+          >
             The Author&apos;s Pact
-          </h2>
-          <p className="font-nunito text-lg max-w-2xl mx-auto text-muted-foreground">
-            Trying to preserve human honesty in each poetry piece.
-          </p>
-        </motion.div>
+          </motion.h2>
+
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="text-lg font-nunito text-muted-foreground max-w-2xl"
+          >
+            Preserving human honesty in every piece.
+          </motion.p>
+        </div>
 
         <div className="grid lg:grid-cols-2 gap-12 items-center">
-          {/* Left: Guarantees Grid */}
+          {/* Left: Compact 2x2 Grid */}
           <motion.div
             initial={{ opacity: 0, x: -30 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
-            className="grid sm:grid-cols-2 gap-6"
+            className="grid grid-cols-2 gap-4"
           >
             {guarantees.map((item, index) => {
               const Icon = item.icon;
               return (
                 <motion.div
                   key={index}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
                   viewport={{ once: true }}
-                  transition={{ duration: 0.6, delay: index * 0.1 }}
+                  transition={{ duration: 0.5, delay: index * 0.1 }}
                 >
-                  <GlassCard className="p-6 h-full glass-hover">
-                    <div className="mb-4">
-                      <div className="w-12 h-12 glass-light rounded-xl flex items-center justify-center">
-                        <Icon className="w-6 h-6" strokeWidth={1.5} />
-                      </div>
+                  <GlassCard className="p-6 h-full glass-hover group">
+                    <div className="w-12 h-12 glass-light rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                      <Icon className="w-6 h-6" strokeWidth={1.5} />
                     </div>
-                    <h3 className="text-xl font-bold mb-2">
+                    <h3 className="text-lg font-bold mb-1">
                       {item.title}
                     </h3>
-                    <p className="font-nunito text-sm leading-relaxed text-muted-foreground">
-                      {item.description}
+                    <p className="font-nunito text-xs text-muted-foreground">
+                      {item.desc}
                     </p>
                   </GlassCard>
                 </motion.div>
@@ -94,7 +99,7 @@ export function AuthorsPact() {
             })}
           </motion.div>
 
-          {/* Right: Narrative */}
+          {/* Right: Condensed Narrative */}
           <motion.div
             initial={{ opacity: 0, x: 30 }}
             whileInView={{ opacity: 1, x: 0 }}
@@ -102,23 +107,33 @@ export function AuthorsPact() {
             transition={{ duration: 0.6, delay: 0.2 }}
           >
             <GlassCard className="p-8 lg:p-10">
-              <div className="space-y-6 font-nunito leading-relaxed text-muted-foreground">
-                <p className="text-lg">
-                  In this age where artificial intelligence can generate text in milliseconds, 
-                  <strong className="text-foreground"> I choose a different - older path.</strong> <br/>
-                  I don&apos;t just want to write poems. But craft an essense.
-                </p>
+              <h3 className="text-2xl font-bold mb-6">
+                Why Noctuary?
+              </h3>
 
-                <p className="text-foreground">
-                  Noctuary was born from a simple belief, that the soul matters, and that the human 
-                  touch in writing creates connections that artificial intelligence never can.<br/>
-                  In a world increasingly dominated by AI, we stand as guardians of authentic expression. 
-                  Every poem I create is written by me, one who dares claim to understand the weight of words, 
-                  the rhythm of emotion, and the art of capturing what makes each piece unique.
-                </p>
+              <div className="space-y-4 mb-6">
+                {beliefs.map((belief, index) => (
+                  <motion.div
+                    key={index}
+                    initial={{ opacity: 0, x: -10 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: index * 0.1 + 0.3 }}
+                    className="flex items-start gap-3"
+                  >
+                    <div className="mt-1 w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                      <Check className="w-3 h-3 text-primary" strokeWidth={3} />
+                    </div>
+                    <p className="font-nunito text-muted-foreground leading-relaxed">
+                      {belief}
+                    </p>
+                  </motion.div>
+                ))}
+              </div>
 
+              <div className="pt-6 border-t border-border">
                 <p className="font-bold text-foreground">
-                  This is my promise. AND. This is Noctuary.
+                  This is my promise. This is Noctuary.
                 </p>
               </div>
             </GlassCard>
