@@ -25,13 +25,17 @@ async function getAccessToken(): Promise<string> {
     );
     return response.data.access_token;
   } catch (error: any) {
-    console.error('PayPal auth error:', error.response?.data || error.message);
+    console.error('[PAYPAL] Auth error:', error.response?.status);
     throw new Error('Failed to authenticate with PayPal');
   }
 }
 
 export async function createPayPalOrder(amount: number, currency: 'USD' = 'USD') {
   try {
+    if (amount <= 0 || amount > 999999) {
+      throw new Error('Invalid payment amount');
+    }
+
     const accessToken = await getAccessToken();
 
     const response = await axios.post(
@@ -44,7 +48,7 @@ export async function createPayPalOrder(amount: number, currency: 'USD' = 'USD')
               currency_code: currency,
               value: amount.toFixed(2),
             },
-            description: 'Noctuary Poetry Commission',
+            description: 'Custom Poetry Commission',
           },
         ],
         application_context: {
@@ -64,26 +68,41 @@ export async function createPayPalOrder(amount: number, currency: 'USD' = 'USD')
       }
     );
 
-    // FIX: Extract the actual approval URL from PayPal's response links
     const approvalLink = response.data.links.find((link: any) => link.rel === 'approve');
+
+    if (!approvalLink?.href) {
+      throw new Error('PayPal approval URL not found');
+    }
 
     return {
       id: response.data.id,
       status: response.data.status,
-      approvalUrl: approvalLink?.href, // This will be live or sandbox automatically
+      approvalUrl: approvalLink.href,
     };
   } catch (error: any) {
-    console.error('PayPal order creation error:', error.response?.data || error.message);
-    throw new Error('Failed to create PayPal order');
+    console.error('[PAYPAL] Order creation error:', error.response?.status);
+    
+    if (error.response?.status === 401) {
+      throw new Error('PayPal authentication failed. Please contact support.');
+    }
+    
+    if (error.message.includes('Invalid payment amount')) {
+      throw error;
+    }
+    
+    throw new Error('Failed to create PayPal order. Please try again.');
   }
 }
 
-//Capture PayPal payment
 export async function capturePayPalPayment(orderId: string) {
   try {
+    if (!orderId || orderId.length < 5) {
+      throw new Error('Invalid PayPal order ID');
+    }
+
     const accessToken = await getAccessToken();
 
-    console.log('Capturing PayPal payment for order:', orderId);
+    console.log('[PAYPAL] Capturing payment:', orderId);
 
     const response = await axios.post(
       `${PAYPAL_API_BASE}/v2/checkout/orders/${orderId}/capture`,
@@ -97,7 +116,7 @@ export async function capturePayPalPayment(orderId: string) {
       }
     );
 
-    console.log('PayPal payment captured:', response.data.status);
+    console.log('[PAYPAL] Payment captured:', response.data.status);
 
     return {
       id: response.data.id,
@@ -106,34 +125,19 @@ export async function capturePayPalPayment(orderId: string) {
       amount: response.data.purchase_units[0].payments.captures[0].amount,
     };
   } catch (error: any) {
-    console.error('PayPal capture error:', {
-      message: error.message,
+    console.error('[PAYPAL] Capture error:', {
       status: error.response?.status,
-      data: error.response?.data,
+      orderId,
     });
-    throw new Error('Failed to capture PayPal payment');
-  }
-}
-
-//Get PayPal order details
-export async function getPayPalOrder(orderId: string) {
-  try {
-    const accessToken = await getAccessToken();
-
-    const response = await axios.get(
-      `${PAYPAL_API_BASE}/v2/checkout/orders/${orderId}`,
-      {
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json',
-        },
-        timeout: 10000,
-      }
-    );
-
-    return response.data;
-  } catch (error: any) {
-    console.error('PayPal get order error:', error.response?.data || error.message);
-    throw new Error('Failed to get PayPal order');
+    
+    if (error.response?.status === 404) {
+      throw new Error('PayPal order not found. Please try again or contact support.');
+    }
+    
+    if (error.response?.status === 422) {
+      throw new Error('Payment already processed or order expired.');
+    }
+    
+    throw new Error('Failed to process PayPal payment. Please contact support.');
   }
 }

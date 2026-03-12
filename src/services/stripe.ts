@@ -10,9 +10,6 @@ export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
   typescript: true,
 });
 
-/**
- * Create a Stripe Payment Intent
- */
 export async function createStripePaymentIntent(
   amount: number,
   currency: string,
@@ -23,8 +20,12 @@ export async function createStripePaymentIntent(
   }
 ) {
   try {
+    if (amount <= 0 || amount > 999999) {
+      throw new Error('Invalid payment amount');
+    }
+
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: Math.round(amount * 100), // Stripe uses cents
+      amount: Math.round(amount * 100),
       currency: currency.toLowerCase(),
       metadata,
       automatic_payment_methods: {
@@ -46,11 +47,12 @@ export async function createStripePaymentIntent(
   }
 }
 
-/**
- * Verify a Stripe Payment Intent
- */
 export async function verifyStripePayment(paymentIntentId: string) {
   try {
+    if (!paymentIntentId || !paymentIntentId.startsWith('pi_')) {
+      throw new Error('Invalid payment intent ID');
+    }
+
     const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
 
     return {
@@ -66,9 +68,6 @@ export async function verifyStripePayment(paymentIntentId: string) {
   }
 }
 
-/**
- * Create a Stripe Checkout Session (supports both KES and USD)
- */
 export async function createStripeCheckoutSession(
   orderId: string,
   email: string,
@@ -78,6 +77,20 @@ export async function createStripeCheckoutSession(
   cancelUrl: string
 ) {
   try {
+    if (amount <= 0 || amount > 999999) {
+      return {
+        success: false,
+        error: 'Invalid payment amount',
+      };
+    }
+
+    if (!email.includes('@')) {
+      return {
+        success: false,
+        error: 'Invalid email address',
+      };
+    }
+
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: [
@@ -85,8 +98,8 @@ export async function createStripeCheckoutSession(
           price_data: {
             currency: currency.toLowerCase(), 
             product_data: {
-              name: 'Poetry Commission',
-              description: `Order ID: ${orderId}`,
+              name: 'Custom Poetry Commission',
+              description: 'Handwritten poem by flawed poet',
             },
             unit_amount: Math.round(amount * 100), 
           },

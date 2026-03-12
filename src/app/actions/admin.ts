@@ -1,9 +1,8 @@
 'use server';
 
 import { cookies } from 'next/headers';
-import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
-import { verifyAdminCredentials } from '@/lib/auth-server';
+import { verifyAdminCredentials, cleanupExpiredSessions } from '@/lib/auth-server';
 import { deliverPoem } from '@/services/orders';
 import { sendPoemDelivery } from '@/services/email';
 import { 
@@ -15,12 +14,8 @@ import {
 import { prisma } from '@/lib/prisma';
 import crypto from 'crypto';
 
-/**
- * Admin login action
- */
 export async function loginAdminAction(email: string, password: string) {
   try {
-    // Verify credentials
     const admin = await verifyAdminCredentials(email, password);
 
     if (!admin) {
@@ -30,12 +25,10 @@ export async function loginAdminAction(email: string, password: string) {
       };
     }
 
-    // Create session token
     const sessionToken = crypto.randomBytes(32).toString('hex');
     const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + 7); // 7 days
+    expiresAt.setDate(expiresAt.getDate() + 7);
 
-    // Store session in database
     await prisma.adminSession.create({
       data: {
         adminId: admin.id,
@@ -44,19 +37,18 @@ export async function loginAdminAction(email: string, password: string) {
       },
     });
 
-    // Set HTTP-only session cookie with SESSION TOKEN (not admin ID)
     const cookieStore = await cookies();
     cookieStore.set('admin_session', sessionToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: 60 * 60 * 24 * 7, // 7 days
+      maxAge: 60 * 60 * 24 * 7,
       path: '/',
     });
 
-    return {
-      success: true,
-    };
+    await cleanupExpiredSessions();
+
+    return { success: true };
   } catch (error) {
     console.error('[ADMIN] Login error:', error);
     return {
@@ -66,27 +58,20 @@ export async function loginAdminAction(email: string, password: string) {
   }
 }
 
-/**
- * Admin logout action
- */
 export async function logoutAdminAction() {
   try {
     const cookieStore = await cookies();
     const sessionToken = cookieStore.get('admin_session');
 
-    // Delete session from database
     if (sessionToken) {
       await prisma.adminSession.deleteMany({
         where: { token: sessionToken.value },
       });
     }
 
-    // Delete cookie
     cookieStore.delete('admin_session');
     
-    return {
-      success: true,
-    };
+    return { success: true };
   } catch (error) {
     console.error('[ADMIN] Logout error:', error);
     return {
@@ -96,15 +81,10 @@ export async function logoutAdminAction() {
   }
 }
 
-/**
- * Deliver poem to customer
- */
 export async function deliverPoemAction(orderId: string, poemContent: string) {
   try {
-    // Deliver the poem (updates order status to DELIVERED)
     const order = await deliverPoem(orderId, poemContent);
 
-    // Try to send email, but don't fail if it errors
     try {
       await sendPoemDelivery(order.email, {
         orderId: order.id,
@@ -114,16 +94,12 @@ export async function deliverPoemAction(orderId: string, poemContent: string) {
       });
       console.log('[EMAIL] Poem delivery email sent successfully');
     } catch (emailError) {
-      // Email failed but poem is delivered - this is non-critical
       console.error('[EMAIL] Failed to send delivery email (non-critical):', emailError);
     }
 
-    // Revalidate the dashboard page to show updated order
     revalidatePath('/admin/dashboard');
 
-    return {
-      success: true,
-    };
+    return { success: true };
   } catch (error) {
     console.error('[ADMIN] Deliver poem error:', error);
     return {
@@ -133,9 +109,6 @@ export async function deliverPoemAction(orderId: string, poemContent: string) {
   }
 }
 
-/**
- * Create sample work
- */
 export async function createSampleWorkAction(data: {
   title: string;
   content: string;
@@ -146,13 +119,10 @@ export async function createSampleWorkAction(data: {
   try {
     await createSampleWork(data);
     
-    // Revalidate pages that show samples
     revalidatePath('/');
     revalidatePath('/admin/dashboard/samples');
 
-    return {
-      success: true,
-    };
+    return { success: true };
   } catch (error) {
     console.error('[ADMIN] Create sample work error:', error);
     return {
@@ -162,9 +132,6 @@ export async function createSampleWorkAction(data: {
   }
 }
 
-/**
- * Update sample work
- */
 export async function updateSampleWorkAction(
   id: string,
   data: {
@@ -178,13 +145,10 @@ export async function updateSampleWorkAction(
   try {
     await updateSampleWork(id, data);
     
-    // Revalidate pages
     revalidatePath('/');
     revalidatePath('/admin/dashboard/samples');
 
-    return {
-      success: true,
-    };
+    return { success: true };
   } catch (error) {
     console.error('[ADMIN] Update sample work error:', error);
     return {
@@ -194,20 +158,14 @@ export async function updateSampleWorkAction(
   }
 }
 
-/**
- * Delete sample work
- */
 export async function deleteSampleWorkAction(id: string) {
   try {
     await deleteSampleWork(id);
     
-    // Revalidate pages
     revalidatePath('/');
     revalidatePath('/admin/dashboard/samples');
 
-    return {
-      success: true,
-    };
+    return { success: true };
   } catch (error) {
     console.error('[ADMIN] Delete sample work error:', error);
     return {
@@ -217,20 +175,14 @@ export async function deleteSampleWorkAction(id: string) {
   }
 }
 
-/**
- * Toggle sample work visibility
- */
 export async function toggleSampleWorkVisibilityAction(id: string) {
   try {
     await toggleSampleWorkVisibility(id);
     
-    // Revalidate pages
     revalidatePath('/');
     revalidatePath('/admin/dashboard/samples');
 
-    return {
-      success: true,
-    };
+    return { success: true };
   } catch (error) {
     console.error('[ADMIN] Toggle visibility error:', error);
     return {
@@ -240,9 +192,6 @@ export async function toggleSampleWorkVisibilityAction(id: string) {
   }
 }
 
-/**
- * Toggle testimonial visibility
- */
 export async function toggleTestimonialVisibilityAction(id: string) {
   try {
     const testimonial = await prisma.testimonial.findUnique({
@@ -269,9 +218,6 @@ export async function toggleTestimonialVisibilityAction(id: string) {
   }
 }
 
-/**
- * Delete testimonial
- */
 export async function deleteTestimonialAction(id: string) {
   try {
     await prisma.testimonial.delete({
@@ -288,9 +234,6 @@ export async function deleteTestimonialAction(id: string) {
   }
 }
 
-/**
- * Accept order and start writing
- */
 export async function acceptOrderAction(orderId: string) {
   try {
     const order = await prisma.order.findUnique({
@@ -309,7 +252,7 @@ export async function acceptOrderAction(orderId: string) {
       where: { id: orderId },
       data: { 
         status: 'WRITING',
-        writingStartedAt: new Date() // Deadline starts NOW
+        writingStartedAt: new Date()
       }
     });
 
@@ -326,9 +269,6 @@ export async function acceptOrderAction(orderId: string) {
   }
 }
 
-/**
- * Reject order
- */
 export async function rejectOrderAction(orderId: string, reason: string) {
   try {
     const order = await prisma.order.findUnique({

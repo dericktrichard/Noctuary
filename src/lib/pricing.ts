@@ -20,7 +20,7 @@ export const PRICING = {
   },
 };
 
-export function calculatePrice(type: 'QUICK' | 'CUSTOM', currency: 'USD' | 'KES', deliveryHours?: number): number {
+export function calculatePrice(type: 'QUICK' | 'CUSTOM', currency: 'USD' | 'KES'): number {
   if (type === 'QUICK') {
     return PRICING.QUICK.PRICE[currency];
   }
@@ -41,4 +41,29 @@ export function calculateDeliveryHoursFromBudget(budget: number, currency: 'USD'
   const hours = maxHours - ratio * (maxHours - minHours);
 
   return Math.round(hours);
+}
+
+export function validatePrice(
+  type: 'QUICK' | 'CUSTOM',
+  currency: 'USD' | 'KES',
+  clientPrice: number,
+  deliveryHours?: number
+): boolean {
+  if (type === 'QUICK') {
+    return Math.abs(clientPrice - PRICING.QUICK.PRICE[currency]) < 0.01;
+  }
+
+  const min = PRICING.CUSTOM.MIN_PRICE[currency];
+  const max = PRICING.CUSTOM.MAX_PRICE[currency];
+  
+  if (clientPrice < min - 0.01 || clientPrice > max + 0.01) {
+    return false;
+  }
+
+  if (deliveryHours !== undefined) {
+    const expectedHours = calculateDeliveryHoursFromBudget(clientPrice, currency);
+    return Math.abs(deliveryHours - expectedHours) <= 1;
+  }
+
+  return true;
 }

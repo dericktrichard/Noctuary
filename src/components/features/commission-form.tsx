@@ -18,7 +18,7 @@ import {
 } from '@/components/ui/select';
 import { z } from 'zod';
 import { formatCurrency } from '@/lib/utils';
-import { Zap, Sparkles, CreditCard, Smartphone, AlertCircle, Loader2, ChevronDown } from 'lucide-react';
+import { Zap, Sparkles, CreditCard, Smartphone, AlertCircle, Loader2 } from 'lucide-react';
 import { calculateDeliveryHoursFromBudget } from '@/lib/pricing';
 import { 
   createOrderAction, 
@@ -52,7 +52,7 @@ const CustomPoemFormSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
   title: z.string().min(3, 'Title must be at least 3 characters').max(100),
   mood: z.string().min(1, 'Please select a mood'),
-  instructions: z.string().optional(),
+  instructions: z.string().max(1000).optional(),
 });
 
 type QuickPoemForm = z.infer<typeof QuickPoemFormSchema>;
@@ -62,7 +62,6 @@ interface CommissionFormProps {
   pricing: DynamicPricing;
 }
 
-// Animation variants
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: { 
@@ -70,16 +69,6 @@ const containerVariants = {
     transition: { staggerChildren: 0.08, delayChildren: 0.1 }
   },
   exit: { opacity: 0 }
-};
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 15 },
-  visible: { 
-    opacity: 1, 
-    y: 0,
-    transition: { duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }
-  },
-  exit: { opacity: 0, y: -10 }
 };
 
 const cardVariants = {
@@ -96,7 +85,6 @@ const cardVariants = {
   tap: { scale: 0.98 }
 };
 
-// Smooth easing for organic feel
 const smoothEasing = [0.4, 0, 0.2, 1];
 
 export function CommissionForm({ pricing }: CommissionFormProps) {
@@ -105,7 +93,7 @@ export function CommissionForm({ pricing }: CommissionFormProps) {
       const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
       if (timezone === 'Africa/Nairobi') return 'KES';
     } catch {
-      // Fallback to USD
+      // Fallback
     }
     return 'USD';
   }, []);
@@ -124,15 +112,19 @@ export function CommissionForm({ pricing }: CommissionFormProps) {
     setMounted(true);
   }, []);
 
-  // Auto-update payment method based on currency
-  useEffect(() => {
-    setPaymentMethod(currency === 'KES' ? 'PAYSTACK' : 'STRIPE');
-  }, [currency]);
-
-  // Only update budget on initial mount or when pricing prop changes, not on currency switch
-  useEffect(() => {
-    setCustomBudget(currency === 'USD' ? pricing.custom.minUsd : pricing.custom.minKes);
-  }, [pricing]); // Removed currency from dependencies
+  const handleCurrencyChange = useCallback((newCurrency: Currency) => {
+    startTransition(() => {
+      setCurrency(newCurrency);
+      setPaymentMethod(newCurrency === 'KES' ? 'PAYSTACK' : 'STRIPE');
+      
+      const min = newCurrency === 'USD' ? pricing.custom.minUsd : pricing.custom.minKes;
+      const max = newCurrency === 'USD' ? pricing.custom.maxUsd : pricing.custom.maxKes;
+      
+      if (customBudget < min || customBudget > max) {
+        setCustomBudget(min);
+      }
+    });
+  }, [customBudget, pricing.custom]);
 
   const deliveryTime = useMemo(() => 
     poemType === 'CUSTOM' ? calculateDeliveryHoursFromBudget(customBudget, currency) : 24,
@@ -332,18 +324,6 @@ export function CommissionForm({ pricing }: CommissionFormProps) {
     return formatCurrency(customBudget, currency);
   }, [poemType, currency, customBudget, pricing.quick]);
 
-  const handleCurrencyChange = useCallback((newCurrency: Currency) => {
-    startTransition(() => {
-      setCurrency(newCurrency);
-      // Only update budget if it's outside the new currency's range
-      const min = newCurrency === 'USD' ? pricing.custom.minUsd : pricing.custom.minKes;
-      const max = newCurrency === 'USD' ? pricing.custom.maxUsd : pricing.custom.maxKes;
-      if (customBudget < min || customBudget > max) {
-        setCustomBudget(min);
-      }
-    });
-  }, [customBudget, pricing.custom]);
-
   const handleBudgetChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     
@@ -388,12 +368,10 @@ export function CommissionForm({ pricing }: CommissionFormProps) {
     setCustomBudget(currency === 'USD' ? Math.round(mid * 100) / 100 : Math.round(mid));
   }, [currency, pricing.custom]);
 
-  // Prevent hydration mismatch
   if (!mounted) return null;
 
   return (
     <div className="max-w-4xl mx-auto">
-      {/* Alerts */}
       <motion.div 
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
@@ -405,7 +383,6 @@ export function CommissionForm({ pricing }: CommissionFormProps) {
         </p>
       </motion.div>
 
-      {/* Step 1: Choose Poem Type */}
       <AnimatePresence mode="wait">
         {!poemType && (
           <motion.div
@@ -502,7 +479,6 @@ export function CommissionForm({ pricing }: CommissionFormProps) {
         )}
       </AnimatePresence>
 
-      {/* Step 2: Show Form Based on Selection */}
       <AnimatePresence mode="wait">
         {poemType && (
           <motion.div
@@ -538,18 +514,11 @@ export function CommissionForm({ pricing }: CommissionFormProps) {
 
             <GlassCard className="p-8">
               {poemType === 'QUICK' ? (
-                <motion.form
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.3, delay: 0.2 }}
+                <form
                   onSubmit={quickForm.handleSubmit(handleQuickSubmit)}
                   className="space-y-6"
                 >
-                  <motion.div
-                    initial={{ opacity: 0, y: 15 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.25, duration: 0.4, ease: smoothEasing }}
-                  >
+                  <div>
                     <Label htmlFor="quick-email" className="text-lg font-nunito">Email Address</Label>
                     <p className="font-nunito text-sm mb-3 text-muted-foreground">
                       We'll send your poetic surprise here
@@ -558,43 +527,26 @@ export function CommissionForm({ pricing }: CommissionFormProps) {
                       id="quick-email"
                       type="email"
                       placeholder="your@email.com"
-                      className="h-12 transition-all duration-200 focus:ring-2 focus:ring-primary/20"
+                      className="h-12"
                       {...quickForm.register('email')}
                     />
-                    <AnimatePresence mode="wait">
-                      {quickForm.formState.errors.email && (
-                        <motion.p 
-                          initial={{ opacity: 0, height: 0, y: -5 }}
-                          animate={{ opacity: 1, height: 'auto', y: 0 }}
-                          exit={{ opacity: 0, height: 0, y: -5 }}
-                          transition={{ duration: 0.2 }}
-                          className="text-destructive text-sm mt-2 font-nunito"
-                        >
-                          {quickForm.formState.errors.email.message}
-                        </motion.p>
-                      )}
-                    </AnimatePresence>
-                  </motion.div>
+                    {quickForm.formState.errors.email && (
+                      <p className="text-destructive text-sm mt-2 font-nunito">
+                        {quickForm.formState.errors.email.message}
+                      </p>
+                    )}
+                  </div>
 
-                  {/* Currency & Payment Selection */}
-                  <motion.div 
-                    initial={{ opacity: 0, y: 15 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.3, duration: 0.4, ease: smoothEasing }}
-                    className="space-y-4 pt-6 border-t border-border"
-                  >
+                  <div className="space-y-4 pt-6 border-t border-border">
                     <div>
                       <Label className="text-base font-nunito mb-3 block">Select Currency</Label>
                       <div className="grid grid-cols-2 gap-3">
-                        <motion.button
+                        <button
                           type="button"
                           onClick={() => handleCurrencyChange('KES')}
-                          whileHover={{ scale: 1.02, y: -2 }}
-                          whileTap={{ scale: 0.98 }}
-                          transition={{ duration: 0.2 }}
                           className={`p-4 rounded-lg font-nunito transition-all duration-300 border ${
                             currency === 'KES'
-                              ? 'bg-primary text-primary-foreground border-primary shadow-lg shadow-primary/25'
+                              ? 'bg-primary text-primary-foreground border-primary shadow-lg'
                               : 'glass-card border-border hover:border-primary/50'
                           }`}
                         >
@@ -602,16 +554,13 @@ export function CommissionForm({ pricing }: CommissionFormProps) {
                           <div className="text-sm opacity-80">
                             {formatCurrency(pricing.quick.kes, 'KES')}
                           </div>
-                        </motion.button>
-                        <motion.button
+                        </button>
+                        <button
                           type="button"
                           onClick={() => handleCurrencyChange('USD')}
-                          whileHover={{ scale: 1.02, y: -2 }}
-                          whileTap={{ scale: 0.98 }}
-                          transition={{ duration: 0.2 }}
                           className={`p-4 rounded-lg font-nunito transition-all duration-300 border ${
                             currency === 'USD'
-                              ? 'bg-primary text-primary-foreground border-primary shadow-lg shadow-primary/25'
+                              ? 'bg-primary text-primary-foreground border-primary shadow-lg'
                               : 'glass-card border-border hover:border-primary/50'
                           }`}
                         >
@@ -619,21 +568,15 @@ export function CommissionForm({ pricing }: CommissionFormProps) {
                           <div className="text-sm opacity-80">
                             {formatCurrency(pricing.quick.usd, 'USD')}
                           </div>
-                        </motion.button>
+                        </button>
                       </div>
                     </div>
 
-                    {/* Payment Method Selection */}
                     <div>
                       <Label className="text-base font-nunito mb-3 block">Payment Method</Label>
                       
                       {currency === 'KES' ? (
-                        <motion.div 
-                          initial={{ opacity: 0, scale: 0.95 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          transition={{ duration: 0.3, ease: smoothEasing }}
-                          className="p-4 rounded-lg glass-card border border-primary bg-primary/5"
-                        >
+                        <div className="p-4 rounded-lg glass-card border border-primary bg-primary/5">
                           <div className="flex items-center gap-3">
                             <Smartphone className="w-5 h-5 text-primary" />
                             <div className="flex-1">
@@ -643,18 +586,15 @@ export function CommissionForm({ pricing }: CommissionFormProps) {
                               </div>
                             </div>
                           </div>
-                        </motion.div>
+                        </div>
                       ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                          <motion.button
+                          <button
                             type="button"
                             onClick={() => setPaymentMethod('STRIPE')}
-                            whileHover={{ scale: 1.02, y: -2 }}
-                            whileTap={{ scale: 0.98 }}
-                            transition={{ duration: 0.2 }}
                             className={`p-4 rounded-lg font-nunito transition-all duration-300 border flex items-center gap-3 ${
                               paymentMethod === 'STRIPE'
-                                ? 'bg-primary text-primary-foreground border-primary shadow-lg shadow-primary/25'
+                                ? 'bg-primary text-primary-foreground border-primary shadow-lg'
                                 : 'glass-card border-border hover:border-primary/50'
                             }`}
                           >
@@ -663,17 +603,14 @@ export function CommissionForm({ pricing }: CommissionFormProps) {
                               <div className="font-bold text-sm">Credit / Debit Card</div>
                               <div className="text-xs opacity-80">Stripe</div>
                             </div>
-                          </motion.button>
+                          </button>
 
-                          <motion.button
+                          <button
                             type="button"
                             onClick={() => setPaymentMethod('PAYPAL')}
-                            whileHover={{ scale: 1.02, y: -2 }}
-                            whileTap={{ scale: 0.98 }}
-                            transition={{ duration: 0.2 }}
                             className={`p-4 rounded-lg font-nunito transition-all duration-300 border flex items-center gap-3 ${
                               paymentMethod === 'PAYPAL'
-                                ? 'bg-primary text-primary-foreground border-primary shadow-lg shadow-primary/25'
+                                ? 'bg-primary text-primary-foreground border-primary shadow-lg'
                                 : 'glass-card border-border hover:border-primary/50'
                             }`}
                           >
@@ -682,150 +619,90 @@ export function CommissionForm({ pricing }: CommissionFormProps) {
                               <div className="font-bold text-sm">PayPal</div>
                               <div className="text-xs opacity-80">USD</div>
                             </div>
-                          </motion.button>
+                          </button>
                         </div>
                       )}
                     </div>
 
-                    {/* Conversion Notice */}
-                    <AnimatePresence mode="wait">
-                      {((currency === 'KES' && paymentMethod === 'PAYPAL') || 
-                        (currency === 'USD' && paymentMethod === 'PAYSTACK')) && (
-                        <motion.div 
-                          initial={{ opacity: 0, height: 0, y: -10 }}
-                          animate={{ opacity: 1, height: 'auto', y: 0 }}
-                          exit={{ opacity: 0, height: 0, y: -10 }}
-                          transition={{ duration: 0.25, ease: smoothEasing }}
-                          className="p-3 rounded-lg bg-blue-500/10 border border-blue-500/20 flex gap-2"
-                        >
-                          <AlertCircle className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
-                          <p className="text-sm font-nunito text-blue-200">
-                            Your payment will be converted to {paymentMethod === 'PAYPAL' ? 'USD' : 'KES'} at checkout
-                          </p>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </motion.div>
+                    {((currency === 'KES' && paymentMethod === 'PAYPAL') || 
+                      (currency === 'USD' && paymentMethod === 'PAYSTACK')) && (
+                      <div className="p-3 rounded-lg bg-blue-500/10 border border-blue-500/20 flex gap-2">
+                        <AlertCircle className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
+                        <p className="text-sm font-nunito text-blue-200">
+                          Your payment will be converted to {paymentMethod === 'PAYPAL' ? 'USD' : 'KES'} at checkout
+                        </p>
+                      </div>
+                    )}
+                  </div>
 
-                  <motion.div 
-                    initial={{ opacity: 0, y: 15 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.35, duration: 0.4, ease: smoothEasing }}
-                    className="glass-light rounded-xl p-6 space-y-3"
-                  >
+                  <div className="glass-light rounded-xl p-6 space-y-3">
                     <div className="flex justify-between items-center">
                       <span className="font-nunito text-muted-foreground">Your Price:</span>
-                      <motion.span 
-                        key={getDisplayPrice()}
-                        initial={{ opacity: 0, y: 10, scale: 0.9 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        transition={{ duration: 0.3, ease: smoothEasing }}
-                        className="text-3xl font-bold"
-                      >
+                      <span className="text-3xl font-bold">
                         {getDisplayPrice()}
-                      </motion.span>
+                      </span>
                     </div>
                     <div className="flex justify-between items-center text-sm">
                       <span className="font-nunito text-muted-foreground">Delivery:</span>
                       <span className="font-nunito">Within 24 hours</span>
                     </div>
-                  </motion.div>
+                  </div>
 
-                  <motion.div
-                    initial={{ opacity: 0, y: 15 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.4, duration: 0.4, ease: smoothEasing }}
+                  <Button 
+                    type="submit" 
+                    className="w-full h-12 text-lg font-nunito" 
+                    size="lg" 
+                    disabled={isSubmitting}
                   >
-                    <Button 
-                      type="submit" 
-                      className="w-full h-12 text-lg font-nunito relative overflow-hidden group transition-all duration-300 hover:shadow-lg hover:shadow-primary/25" 
-                      size="lg" 
-                      disabled={isSubmitting}
-                    >
-                      <motion.span
-                        className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
-                        initial={{ x: '-100%' }}
-                        whileHover={{ x: '100%' }}
-                        transition={{ duration: 0.6, ease: 'easeInOut' }}
-                      />
-                      {isSubmitting ? (
-                        <span className="flex items-center justify-center">
-                          <Loader2 className="w-5 h-5 animate-spin mr-2" />
-                          Processing...
-                        </span>
-                      ) : (
-                        'Proceed to Payment'
-                      )}
-                    </Button>
-                  </motion.div>
-                </motion.form>
+                    {isSubmitting ? (
+                      <span className="flex items-center justify-center">
+                        <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                        Processing...
+                      </span>
+                    ) : (
+                      'Proceed to Payment'
+                    )}
+                  </Button>
+                </form>
               ) : (
-                <motion.form
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.3, delay: 0.2 }}
+                <form
                   onSubmit={customForm.handleSubmit(handleCustomSubmit)}
                   className="space-y-6"
                 >
-                  <motion.div
-                    initial={{ opacity: 0, y: 15 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.25, duration: 0.4, ease: smoothEasing }}
-                  >
+                  <div>
                     <Label htmlFor="custom-email" className="text-lg font-nunito">Email Address</Label>
                     <Input
                       id="custom-email"
                       type="email"
                       placeholder="your@email.com"
-                      className="h-12 mt-2 transition-all duration-200 focus:ring-2 focus:ring-primary/20"
+                      className="h-12 mt-2"
                       {...customForm.register('email')}
                     />
-                    <AnimatePresence mode="wait">
-                      {customForm.formState.errors.email && (
-                        <motion.p 
-                          initial={{ opacity: 0, height: 0, y: -5 }}
-                          animate={{ opacity: 1, height: 'auto', y: 0 }}
-                          exit={{ opacity: 0, height: 0, y: -5 }}
-                          transition={{ duration: 0.2 }}
-                          className="text-destructive text-sm mt-2 font-nunito"
-                        >
-                          {customForm.formState.errors.email.message}
-                        </motion.p>
-                      )}
-                    </AnimatePresence>
-                  </motion.div>
+                    {customForm.formState.errors.email && (
+                      <p className="text-destructive text-sm mt-2 font-nunito">
+                        {customForm.formState.errors.email.message}
+                      </p>
+                    )}
+                  </div>
 
-                  <motion.div 
-                    initial={{ opacity: 0, y: 15 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.3, duration: 0.4, ease: smoothEasing }}
-                    className="grid md:grid-cols-2 gap-6"
-                  >
+                  <div className="grid md:grid-cols-2 gap-6">
                     <div>
                       <Label htmlFor="custom-title" className="text-lg font-nunito">Poem Title</Label>
                       <Input
                         id="custom-title"
                         placeholder="e.g., Eternal Sunshine"
-                        className="h-12 mt-2 transition-all duration-200 focus:ring-2 focus:ring-primary/20"
+                        className="h-12 mt-2"
                         maxLength={100}
                         {...customForm.register('title')}
                       />
-                      <AnimatePresence mode="wait">
-                        {customForm.formState.errors.title && (
-                          <motion.p 
-                            initial={{ opacity: 0, height: 0, y: -5 }}
-                            animate={{ opacity: 1, height: 'auto', y: 0 }}
-                            exit={{ opacity: 0, height: 0, y: -5 }}
-                            transition={{ duration: 0.2 }}
-                            className="text-destructive text-sm mt-2 font-nunito"
-                          >
-                            {customForm.formState.errors.title.message}
-                          </motion.p>
-                        )}
-                      </AnimatePresence>
+                      {customForm.formState.errors.title && (
+                        <p className="text-destructive text-sm mt-2 font-nunito">
+                          {customForm.formState.errors.title.message}
+                        </p>
+                      )}
                     </div>
 
-                    <div className="relative z-50">
+                    <div>
                       <Label htmlFor="custom-mood" className="text-lg font-nunito">Mood</Label>
                       <Select
                         onValueChange={(value) => {
@@ -837,56 +714,27 @@ export function CommissionForm({ pricing }: CommissionFormProps) {
                       >
                         <SelectTrigger 
                           id="custom-mood" 
-                          className="h-12 mt-2 transition-all duration-200 focus:ring-2 focus:ring-primary/20"
+                          className="h-12 mt-2"
                         >
                           <SelectValue placeholder="Select mood" />
                         </SelectTrigger>
-                        <SelectContent 
-                          className="glass-card border-border"
-                          position="popper"
-                          sideOffset={4}
-                        >
-                          <motion.div
-                            initial={false}
-                            animate={isMoodOpen ? { opacity: 1, y: 0 } : { opacity: 0, y: -10 }}
-                            transition={{ duration: 0.2, ease: smoothEasing }}
-                          >
-                            {MOODS.map((mood, index) => (
-                              <motion.div
-                                key={mood}
-                                initial={{ opacity: 0, x: -10 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                transition={{ delay: index * 0.03, duration: 0.2 }}
-                              >
-                                <SelectItem value={mood}>
-                                  {mood}
-                                </SelectItem>
-                              </motion.div>
-                            ))}
-                          </motion.div>
+                        <SelectContent>
+                          {MOODS.map((mood) => (
+                            <SelectItem key={mood} value={mood}>
+                              {mood}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
-                      <AnimatePresence mode="wait">
-                        {customForm.formState.errors.mood && (
-                          <motion.p 
-                            initial={{ opacity: 0, height: 0, y: -5 }}
-                            animate={{ opacity: 1, height: 'auto', y: 0 }}
-                            exit={{ opacity: 0, height: 0, y: -5 }}
-                            transition={{ duration: 0.2 }}
-                            className="text-destructive text-sm mt-2 font-nunito"
-                          >
-                            {customForm.formState.errors.mood.message}
-                          </motion.p>
-                        )}
-                      </AnimatePresence>
+                      {customForm.formState.errors.mood && (
+                        <p className="text-destructive text-sm mt-2 font-nunito">
+                          {customForm.formState.errors.mood.message}
+                        </p>
+                      )}
                     </div>
-                  </motion.div>
+                  </div>
 
-                  <motion.div
-                    initial={{ opacity: 0, y: 15 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.35, duration: 0.4, ease: smoothEasing }}
-                  >
+                  <div>
                     <Label htmlFor="custom-instructions" className="text-lg font-nunito">
                       Special Instructions <span className="text-muted-foreground text-sm">(Optional)</span>
                     </Label>
@@ -894,16 +742,13 @@ export function CommissionForm({ pricing }: CommissionFormProps) {
                       id="custom-instructions"
                       placeholder="Any specific themes, references, or style preferences..."
                       rows={4}
-                      className="mt-2 transition-all duration-200 focus:ring-2 focus:ring-primary/20 resize-none"
+                      maxLength={1000}
+                      className="mt-2 resize-none"
                       {...customForm.register('instructions')}
                     />
-                  </motion.div>
+                  </div>
 
-                  <motion.div
-                    initial={{ opacity: 0, y: 15 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.4, duration: 0.4, ease: smoothEasing }}
-                  >
+                  <div>
                     <Label htmlFor="custom-budget" className="text-base mb-2 block font-nunito">
                       Your Budget
                     </Label>
@@ -918,7 +763,7 @@ export function CommissionForm({ pricing }: CommissionFormProps) {
                         value={customBudget}
                         onChange={handleBudgetChange}
                         onBlur={handleBudgetBlur}
-                        className="h-14 text-2xl font-bold pl-14 pr-4 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none transition-all duration-200 focus:ring-2 focus:ring-primary/20"
+                        className="h-14 text-2xl font-bold pl-14 pr-4"
                         placeholder={(currency === 'USD' ? pricing.custom.minUsd : pricing.custom.minKes).toString()}
                       />
                     </div>
@@ -926,70 +771,46 @@ export function CommissionForm({ pricing }: CommissionFormProps) {
                       <span className="text-muted-foreground">
                         Range: {formatCurrency(currency === 'USD' ? pricing.custom.minUsd : pricing.custom.minKes, currency)} - {formatCurrency(currency === 'USD' ? pricing.custom.maxUsd : pricing.custom.maxKes, currency)}
                       </span>
-                      <motion.span 
-                        key={deliveryTime}
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ duration: 0.3, ease: smoothEasing }}
-                        className="font-bold text-primary"
-                      >
+                      <span className="font-bold text-primary">
                         ≈ {deliveryTime} hours delivery
-                      </motion.span>
+                      </span>
                     </div>
                     
                     <div className="mt-3 flex gap-2">
-                      <motion.button
+                      <button
                         type="button"
                         onClick={setBudgetToMin}
-                        whileHover={{ scale: 1.05, y: -2 }}
-                        whileTap={{ scale: 0.95 }}
-                        transition={{ duration: 0.2 }}
-                        className="px-3 py-1 text-xs rounded-lg glass-card glass-hover font-nunito transition-colors duration-200"
+                        className="px-3 py-1 text-xs rounded-lg glass-card font-nunito"
                       >
                         Min ({formatCurrency(currency === 'USD' ? pricing.custom.minUsd : pricing.custom.minKes, currency)})
-                      </motion.button>
-                      <motion.button
+                      </button>
+                      <button
                         type="button"
                         onClick={setBudgetToMid}
-                        whileHover={{ scale: 1.05, y: -2 }}
-                        whileTap={{ scale: 0.95 }}
-                        transition={{ duration: 0.2 }}
-                        className="px-3 py-1 text-xs rounded-lg glass-card glass-hover font-nunito transition-colors duration-200"
+                        className="px-3 py-1 text-xs rounded-lg glass-card font-nunito"
                       >
                         Mid
-                      </motion.button>
-                      <motion.button
+                      </button>
+                      <button
                         type="button"
                         onClick={setBudgetToMax}
-                        whileHover={{ scale: 1.05, y: -2 }}
-                        whileTap={{ scale: 0.95 }}
-                        transition={{ duration: 0.2 }}
-                        className="px-3 py-1 text-xs rounded-lg glass-card glass-hover font-nunito transition-colors duration-200"
+                        className="px-3 py-1 text-xs rounded-lg glass-card font-nunito"
                       >
                         Max ({formatCurrency(currency === 'USD' ? pricing.custom.maxUsd : pricing.custom.maxKes, currency)})
-                      </motion.button>
+                      </button>
                     </div>
-                  </motion.div>
+                  </div>
 
-                  {/* Currency & Payment Selection */}
-                  <motion.div 
-                    initial={{ opacity: 0, y: 15 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.45, duration: 0.4, ease: smoothEasing }}
-                    className="space-y-4 pt-6 border-t border-border"
-                  >
+                  <div className="space-y-4 pt-6 border-t border-border">
                     <div>
                       <Label className="text-base font-nunito mb-3 block">Select Currency</Label>
                       <div className="grid grid-cols-2 gap-3">
-                        <motion.button
+                        <button
                           type="button"
                           onClick={() => handleCurrencyChange('KES')}
-                          whileHover={{ scale: 1.02, y: -2 }}
-                          whileTap={{ scale: 0.98 }}
-                          transition={{ duration: 0.2 }}
                           className={`p-4 rounded-lg font-nunito transition-all duration-300 border ${
                             currency === 'KES'
-                              ? 'bg-primary text-primary-foreground border-primary shadow-lg shadow-primary/25'
+                              ? 'bg-primary text-primary-foreground border-primary shadow-lg'
                               : 'glass-card border-border hover:border-primary/50'
                           }`}
                         >
@@ -997,16 +818,13 @@ export function CommissionForm({ pricing }: CommissionFormProps) {
                           <div className="text-sm opacity-80">
                             {formatCurrency(pricing.custom.minKes, 'KES')} - {formatCurrency(pricing.custom.maxKes, 'KES')}
                           </div>
-                        </motion.button>
-                        <motion.button
+                        </button>
+                        <button
                           type="button"
                           onClick={() => handleCurrencyChange('USD')}
-                          whileHover={{ scale: 1.02, y: -2 }}
-                          whileTap={{ scale: 0.98 }}
-                          transition={{ duration: 0.2 }}
                           className={`p-4 rounded-lg font-nunito transition-all duration-300 border ${
                             currency === 'USD'
-                              ? 'bg-primary text-primary-foreground border-primary shadow-lg shadow-primary/25'
+                              ? 'bg-primary text-primary-foreground border-primary shadow-lg'
                               : 'glass-card border-border hover:border-primary/50'
                           }`}
                         >
@@ -1014,21 +832,15 @@ export function CommissionForm({ pricing }: CommissionFormProps) {
                           <div className="text-sm opacity-80">
                             {formatCurrency(pricing.custom.minUsd, 'USD')} - {formatCurrency(pricing.custom.maxUsd, 'USD')}
                           </div>
-                        </motion.button>
+                        </button>
                       </div>
                     </div>
 
-                    {/* Payment Method Selection */}
                     <div>
                       <Label className="text-base font-nunito mb-3 block">Payment Method</Label>
                       
                       {currency === 'KES' ? (
-                        <motion.div 
-                          initial={{ opacity: 0, scale: 0.95 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          transition={{ duration: 0.3, ease: smoothEasing }}
-                          className="p-4 rounded-lg glass-card border border-primary bg-primary/5"
-                        >
+                        <div className="p-4 rounded-lg glass-card border border-primary bg-primary/5">
                           <div className="flex items-center gap-3">
                             <Smartphone className="w-5 h-5 text-primary" />
                             <div className="flex-1">
@@ -1038,18 +850,15 @@ export function CommissionForm({ pricing }: CommissionFormProps) {
                               </div>
                             </div>
                           </div>
-                        </motion.div>
+                        </div>
                       ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                          <motion.button
+                          <button
                             type="button"
                             onClick={() => setPaymentMethod('STRIPE')}
-                            whileHover={{ scale: 1.02, y: -2 }}
-                            whileTap={{ scale: 0.98 }}
-                            transition={{ duration: 0.2 }}
                             className={`p-4 rounded-lg font-nunito transition-all duration-300 border flex items-center gap-3 ${
                               paymentMethod === 'STRIPE'
-                                ? 'bg-primary text-primary-foreground border-primary shadow-lg shadow-primary/25'
+                                ? 'bg-primary text-primary-foreground border-primary shadow-lg'
                                 : 'glass-card border-border hover:border-primary/50'
                             }`}
                           >
@@ -1058,17 +867,14 @@ export function CommissionForm({ pricing }: CommissionFormProps) {
                               <div className="font-bold text-sm">Credit / Debit Card</div>
                               <div className="text-xs opacity-80">Stripe</div>
                             </div>
-                          </motion.button>
+                          </button>
 
-                          <motion.button
+                          <button
                             type="button"
                             onClick={() => setPaymentMethod('PAYPAL')}
-                            whileHover={{ scale: 1.02, y: -2 }}
-                            whileTap={{ scale: 0.98 }}
-                            transition={{ duration: 0.2 }}
                             className={`p-4 rounded-lg font-nunito transition-all duration-300 border flex items-center gap-3 ${
                               paymentMethod === 'PAYPAL'
-                                ? 'bg-primary text-primary-foreground border-primary shadow-lg shadow-primary/25'
+                                ? 'bg-primary text-primary-foreground border-primary shadow-lg'
                                 : 'glass-card border-border hover:border-primary/50'
                             }`}
                           >
@@ -1077,94 +883,55 @@ export function CommissionForm({ pricing }: CommissionFormProps) {
                               <div className="font-bold text-sm">PayPal</div>
                               <div className="text-xs opacity-80">USD</div>
                             </div>
-                          </motion.button>
+                          </button>
                         </div>
                       )}
                     </div>
 
-                    {/* Conversion Notice */}
-                    <AnimatePresence mode="wait">
-                      {((currency === 'KES' && paymentMethod === 'PAYPAL') || 
-                        (currency === 'USD' && paymentMethod === 'PAYSTACK')) && (
-                        <motion.div 
-                          initial={{ opacity: 0, height: 0, y: -10 }}
-                          animate={{ opacity: 1, height: 'auto', y: 0 }}
-                          exit={{ opacity: 0, height: 0, y: -10 }}
-                          transition={{ duration: 0.25, ease: smoothEasing }}
-                          className="p-3 rounded-lg bg-blue-500/10 border border-blue-500/20 flex gap-2"
-                        >
-                          <AlertCircle className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
-                          <p className="text-sm font-nunito text-blue-200">
-                            Your payment will be converted to {paymentMethod === 'PAYPAL' ? 'USD' : 'KES'} at checkout
-                          </p>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </motion.div>
+                    {((currency === 'KES' && paymentMethod === 'PAYPAL') || 
+                      (currency === 'USD' && paymentMethod === 'PAYSTACK')) && (
+                      <div className="p-3 rounded-lg bg-blue-500/10 border border-blue-500/20 flex gap-2">
+                        <AlertCircle className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
+                        <p className="text-sm font-nunito text-blue-200">
+                          Your payment will be converted to {paymentMethod === 'PAYPAL' ? 'USD' : 'KES'} at checkout
+                        </p>
+                      </div>
+                    )}
+                  </div>
 
-                  {/* Summary section */}
-                  <motion.div 
-                    initial={{ opacity: 0, y: 15 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.5, duration: 0.4, ease: smoothEasing }}
-                    className="glass-light rounded-xl p-6 space-y-3"
-                  >
+                  <div className="glass-light rounded-xl p-6 space-y-3">
                     <div className="flex justify-between items-center">
                       <span className="font-nunito text-muted-foreground">Your Price:</span>
-                      <motion.span 
-                        key={`${currency}-${customBudget}`}
-                        initial={{ opacity: 0, y: 10, scale: 0.9 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        transition={{ duration: 0.3, ease: smoothEasing }}
-                        className="text-3xl font-bold"
-                      >
+                      <span className="text-3xl font-bold">
                         {currency === 'KES' 
                           ? `KES ${Math.round(customBudget)}` 
                           : `$${customBudget.toFixed(2)}`}
-                      </motion.span>
+                      </span>
                     </div>
                     <div className="flex justify-between items-center text-sm">
                       <span className="font-nunito text-muted-foreground">Delivery:</span>
-                      <motion.span 
-                        key={deliveryTime}
-                        initial={{ opacity: 0, x: -10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ duration: 0.3, ease: smoothEasing }}
-                        className="font-nunito"
-                      >
+                      <span className="font-nunito">
                         ≈ {deliveryTime} hours
-                      </motion.span>
+                      </span>
                     </div>
-                  </motion.div>
+                  </div>
 
-                  <motion.div
-                    initial={{ opacity: 0, y: 15 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.55, duration: 0.4, ease: smoothEasing }}
+                  <Button 
+                    type="submit" 
+                    className="w-full h-12 text-lg font-nunito" 
+                    size="lg" 
+                    disabled={isSubmitting}
                   >
-                    <Button 
-                      type="submit" 
-                      className="w-full h-12 text-lg font-nunito relative overflow-hidden group transition-all duration-300 hover:shadow-lg hover:shadow-primary/25" 
-                      size="lg" 
-                      disabled={isSubmitting}
-                    >
-                      <motion.span
-                        className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
-                        initial={{ x: '-100%' }}
-                        whileHover={{ x: '100%' }}
-                        transition={{ duration: 0.6, ease: 'easeInOut' }}
-                      />
-                      {isSubmitting ? (
-                        <span className="flex items-center justify-center">
-                          <Loader2 className="w-5 h-5 animate-spin mr-2" />
-                          Processing...
-                        </span>
-                      ) : (
-                        'Proceed to Payment'
-                      )}
-                    </Button>
-                  </motion.div>
-                </motion.form>
+                    {isSubmitting ? (
+                      <span className="flex items-center justify-center">
+                        <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                        Processing...
+                      </span>
+                    ) : (
+                      'Proceed to Payment'
+                    )}
+                  </Button>
+                </form>
               )}
             </GlassCard>
           </motion.div>
