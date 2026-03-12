@@ -8,7 +8,6 @@ import {
   toggleSampleWorkVisibility,
 } from '@/services/sample-works';
 
-// Create a new sample work
 export async function createSampleWorkAction(data: {
   title: string;
   content: string;
@@ -18,12 +17,13 @@ export async function createSampleWorkAction(data: {
   try {
     const sampleWork = await createSampleWork(data);
     revalidatePath('/admin/dashboard/samples');
+    revalidatePath('/');
     return {
       success: true,
       id: sampleWork.id,
     };
   } catch (error) {
-    console.error('Create sample work error:', error);
+    console.error('[SAMPLE_WORK] Create error:', error);
     return {
       success: false,
       error: 'Failed to create sample work',
@@ -31,7 +31,6 @@ export async function createSampleWorkAction(data: {
   }
 }
 
-// Update a sample work
 export async function updateSampleWorkAction(
   id: string,
   data: {
@@ -50,7 +49,7 @@ export async function updateSampleWorkAction(
       success: true,
     };
   } catch (error) {
-    console.error('Update sample work error:', error);
+    console.error('[SAMPLE_WORK] Update error:', error);
     return {
       success: false,
       error: 'Failed to update sample work',
@@ -58,7 +57,6 @@ export async function updateSampleWorkAction(
   }
 }
 
-// Delete a sample work
 export async function deleteSampleWorkAction(id: string) {
   try {
     await deleteSampleWork(id);
@@ -68,7 +66,7 @@ export async function deleteSampleWorkAction(id: string) {
       success: true,
     };
   } catch (error) {
-    console.error('Delete sample work error:', error);
+    console.error('[SAMPLE_WORK] Delete error:', error);
     return {
       success: false,
       error: 'Failed to delete sample work',
@@ -76,7 +74,6 @@ export async function deleteSampleWorkAction(id: string) {
   }
 }
 
-// Toggle sample work visibility
 export async function toggleSampleWorkVisibilityAction(id: string) {
   try {
     await toggleSampleWorkVisibility(id);
@@ -86,7 +83,7 @@ export async function toggleSampleWorkVisibilityAction(id: string) {
       success: true,
     };
   } catch (error) {
-    console.error('Toggle visibility error:', error);
+    console.error('[SAMPLE_WORK] Toggle visibility error:', error);
     return {
       success: false,
       error: 'Failed to toggle visibility',

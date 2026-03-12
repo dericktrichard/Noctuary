@@ -39,6 +39,11 @@ export function DeliverPoemModal({ order, onClose }: DeliverPoemModalProps) {
       return;
     }
 
+    if (poemContent.trim().length < 20) {
+      toast.error('Poem must be at least 20 characters');
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -63,14 +68,14 @@ export function DeliverPoemModal({ order, onClose }: DeliverPoemModalProps) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
       <GlassCard className="w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-        <div className="p-8">
+        <div className="p-6 sm:p-8">
           <div className="flex items-center justify-between mb-6">
             <div>
               <h2 className="text-2xl font-bold">
                 {order.poemContent ? 'View Poem' : 'Deliver Poem'}
               </h2>
               <p className="font-nunito text-sm text-muted-foreground mt-1">
-                Order ID: {order.id.slice(0, 8)}...
+                {order.type} • {order.currency} {order.pricePaid.toFixed(2)}
               </p>
             </div>
             <button
@@ -82,20 +87,15 @@ export function DeliverPoemModal({ order, onClose }: DeliverPoemModalProps) {
             </button>
           </div>
 
-          {/* Order Details */}
           <div className="mb-6 p-4 rounded-lg bg-muted/50 border border-border">
             <div className="flex items-start gap-2 mb-3">
               <Info className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
               <div className="flex-1">
                 <h3 className="font-semibold font-nunito mb-2">Order Details</h3>
-                <div className="grid md:grid-cols-2 gap-3 text-sm font-nunito">
+                <div className="grid sm:grid-cols-2 gap-3 text-sm font-nunito">
                   <div>
                     <span className="text-muted-foreground">Customer:</span>
                     <span className="ml-2 font-medium">{order.email}</span>
-                  </div>
-                  <div>
-                    <span className="text-muted-foreground">Type:</span>
-                    <span className="ml-2 font-medium">{order.type}</span>
                   </div>
                   {isCustomPoem && order.title && (
                     <div>
@@ -110,18 +110,11 @@ export function DeliverPoemModal({ order, onClose }: DeliverPoemModalProps) {
                     </div>
                   )}
                   <div>
-                    <span className="text-muted-foreground">Amount:</span>
-                    <span className="ml-2 font-medium">
-                      {order.currency} {order.pricePaid.toFixed(2)}
-                    </span>
-                  </div>
-                  <div>
                     <span className="text-muted-foreground">Delivery Time:</span>
                     <span className="ml-2 font-medium">{order.deliveryHours}h</span>
                   </div>
                 </div>
 
-                {/* Special Instructions */}
                 {isCustomPoem && order.instructions && (
                   <div className="mt-4 pt-4 border-t border-border">
                     <span className="text-muted-foreground font-semibold block mb-2">
@@ -136,7 +129,6 @@ export function DeliverPoemModal({ order, onClose }: DeliverPoemModalProps) {
             </div>
           </div>
 
-          {/* Poem Editor */}
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <Label htmlFor="poem-content" className="text-base font-nunito">
@@ -148,9 +140,12 @@ export function DeliverPoemModal({ order, onClose }: DeliverPoemModalProps) {
                 onChange={(e) => setPoemContent(e.target.value)}
                 placeholder="Write your poem here..."
                 rows={16}
-                className="mt-2 font-serif text-base leading-relaxed"
+                className="mt-2 font-serif text-base leading-relaxed resize-none"
                 disabled={!!order.poemContent || isSubmitting}
               />
+              <p className="text-xs text-muted-foreground mt-2 font-nunito">
+                {poemContent.length} characters
+              </p>
             </div>
 
             {!order.poemContent && (
@@ -167,7 +162,7 @@ export function DeliverPoemModal({ order, onClose }: DeliverPoemModalProps) {
                 <Button
                   type="submit"
                   className="flex-1 font-nunito"
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || poemContent.trim().length < 20}
                 >
                   {isSubmitting ? 'Delivering...' : 'Deliver Poem'}
                 </Button>

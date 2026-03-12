@@ -1,4 +1,7 @@
-import { Package, Clock, Pencil, CheckCircle, TrendingUp, DollarSign } from 'lucide-react';
+'use client';
+
+import { Package, Clock, Pencil, CheckCircle, TrendingUp } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface DashboardStatsProps {
   stats: {
@@ -85,8 +88,4 @@ export function DashboardStats({ stats }: DashboardStatsProps) {
       })}
     </div>
   );
-}
-
-function cn(...classes: (string | boolean | undefined)[]) {
-  return classes.filter(Boolean).join(' ');
 }

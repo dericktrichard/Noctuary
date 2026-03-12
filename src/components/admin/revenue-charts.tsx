@@ -20,7 +20,6 @@ export function RevenueCharts({ orders }: RevenueChartsProps) {
   const stats = useMemo(() => {
     const deliveredOrders = orders.filter(o => o.status === 'DELIVERED');
     
-    // Last 7 days revenue
     const last7Days = Array.from({ length: 7 }, (_, i) => {
       const date = new Date();
       date.setDate(date.getDate() - i);
@@ -41,7 +40,6 @@ export function RevenueCharts({ orders }: RevenueChartsProps) {
       return { date, usd, kes, total: dayOrders.length };
     });
 
-    // Average order value
     const avgUSD = deliveredOrders
       .filter(o => o.currency === 'USD')
       .reduce((sum, o) => sum + o.pricePaid, 0) / 
@@ -52,7 +50,6 @@ export function RevenueCharts({ orders }: RevenueChartsProps) {
       .reduce((sum, o) => sum + o.pricePaid, 0) / 
       (deliveredOrders.filter(o => o.currency === 'KES').length || 1);
 
-    // This week vs last week
     const thisWeekStart = new Date();
     thisWeekStart.setDate(thisWeekStart.getDate() - 7);
     
@@ -84,7 +81,6 @@ export function RevenueCharts({ orders }: RevenueChartsProps) {
 
   return (
     <div className="space-y-6">
-      {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="rounded-lg border border-border bg-card p-4">
           <div className="flex items-center gap-3">
@@ -125,7 +121,6 @@ export function RevenueCharts({ orders }: RevenueChartsProps) {
         </div>
       </div>
 
-      {/* Daily Revenue Chart */}
       <div className="rounded-lg border border-border bg-card p-6">
         <h3 className="font-semibold mb-6 flex items-center gap-2">
           <Calendar className="w-5 h-5" />
@@ -133,7 +128,7 @@ export function RevenueCharts({ orders }: RevenueChartsProps) {
         </h3>
         
         <div className="space-y-3">
-          {stats.dailyRevenue.map((day, index) => (
+          {stats.dailyRevenue.map((day) => (
             <div key={day.date} className="space-y-2">
               <div className="flex justify-between text-sm">
                 <span className="font-nunito">
@@ -148,7 +143,6 @@ export function RevenueCharts({ orders }: RevenueChartsProps) {
                 </span>
               </div>
               
-              {/* Bar Chart */}
               <div className="flex gap-2 items-center">
                 <div className="flex-1 bg-muted rounded-full h-6 overflow-hidden">
                   <div 

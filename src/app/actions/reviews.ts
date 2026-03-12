@@ -6,18 +6,16 @@ import { revalidatePath } from 'next/cache';
 
 const ReviewSchema = z.object({
   orderId: z.string().uuid(),
-  email: z.string().email(),
-  name: z.string().max(50).nullable(),
-  rating: z.number().min(1).max(5),
-  comment: z.string().min(10).max(500),
+  email: z.string().email().transform(val => val.toLowerCase().trim()),
+  name: z.string().max(50).trim().nullable(),
+  rating: z.number().int().min(1).max(5),
+  comment: z.string().min(10).max(500).trim(),
 });
 
 export async function submitReviewAction(input: z.infer<typeof ReviewSchema>) {
   try {
-    // Validate input
     const validated = ReviewSchema.parse(input);
 
-    // Check if order exists and is delivered
     const order = await prisma.order.findUnique({
       where: { id: validated.orderId },
       select: { status: true, email: true },
@@ -30,15 +28,14 @@ export async function submitReviewAction(input: z.infer<typeof ReviewSchema>) {
       };
     }
 
-    // Verify email matches
-    if (order.email !== validated.email) {
+    const normalizedOrderEmail = order.email.toLowerCase().trim();
+    if (normalizedOrderEmail !== validated.email) {
       return {
         success: false,
         error: 'Invalid order access',
       };
     }
 
-    // Check if review already exists
     const existing = await prisma.testimonial.findUnique({
       where: { orderId: validated.orderId },
     });
@@ -50,7 +47,6 @@ export async function submitReviewAction(input: z.infer<typeof ReviewSchema>) {
       };
     }
 
-    // Create testimonial
     await prisma.testimonial.create({
       data: {
         orderId: validated.orderId,
@@ -58,11 +54,10 @@ export async function submitReviewAction(input: z.infer<typeof ReviewSchema>) {
         name: validated.name,
         rating: validated.rating,
         comment: validated.comment,
-        isVisible: false, // Requires admin approval
+        isVisible: false,
       },
     });
 
-    // Revalidate homepage to show new testimonial (once approved)
     revalidatePath('/');
 
     return { success: true };
