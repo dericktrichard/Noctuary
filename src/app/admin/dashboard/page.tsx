@@ -13,7 +13,6 @@ export default async function AdminDashboardPage() {
     getRevenueStats(),
   ]);
 
-  // Calculate order stats
   const orderStats = {
     total: orders.length,
     pending: orders.filter(o => o.status === OrderStatus.PENDING).length,
@@ -27,7 +26,6 @@ export default async function AdminDashboardPage() {
     }).length,
   };
 
-  // Serialize orders for client component
   const serializedOrders = orders.map((order) => ({
     ...order,
     createdAt: order.createdAt.toISOString(),
@@ -38,7 +36,6 @@ export default async function AdminDashboardPage() {
     pricePaid: Number(order.pricePaid),
   }));
 
-  // Get urgent orders count
   const urgentOrders = orders.filter(o => {
     if (o.status !== OrderStatus.PAID || !o.paidAt) return false;
     
@@ -62,7 +59,6 @@ export default async function AdminDashboardPage() {
 
   return (
     <div className="space-y-6 lg:space-y-8">
-      {/* Header - Mobile Responsive */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Dashboard</h1>
@@ -79,7 +75,6 @@ export default async function AdminDashboardPage() {
         </Link>
       </div>
 
-      {/* Alert Banners - Mobile Responsive */}
       {(overdueOrders > 0 || urgentOrders > 0) && (
         <div className="space-y-3">
           {overdueOrders > 0 && (
@@ -130,16 +125,12 @@ export default async function AdminDashboardPage() {
         </div>
       )}
 
-      {/* Order Stats */}
       <DashboardStats stats={orderStats} />
 
-      {/* Revenue Analytics */}
       <div className="space-y-4">
         <h2 className="text-xl sm:text-2xl font-bold tracking-tight">Revenue Overview</h2>
         
-        {/* Revenue Cards - Mobile: Stack, Tablet+: Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-          {/* USD Revenue Card */}
           <div className="rounded-lg border border-border bg-card p-4 sm:p-6">
             <h3 className="font-semibold font-nunito text-sm text-muted-foreground mb-4">
               USD Revenue
@@ -160,7 +151,6 @@ export default async function AdminDashboardPage() {
             </div>
           </div>
 
-          {/* KES Revenue Card */}
           <div className="rounded-lg border border-border bg-card p-4 sm:p-6">
             <h3 className="font-semibold font-nunito text-sm text-muted-foreground mb-4">
               KES Revenue
@@ -181,7 +171,6 @@ export default async function AdminDashboardPage() {
             </div>
           </div>
 
-          {/* Payment Providers Card */}
           <div className="rounded-lg border border-border bg-card p-4 sm:p-6 sm:col-span-2 lg:col-span-1">
             <h3 className="font-semibold font-nunito text-sm text-muted-foreground mb-4">
               Payment Methods
@@ -207,7 +196,6 @@ export default async function AdminDashboardPage() {
           </div>
        </div>
 
-        {/* Revenue Charts */}
         <RevenueCharts orders={serializedOrders} />
       </div>
     </div>

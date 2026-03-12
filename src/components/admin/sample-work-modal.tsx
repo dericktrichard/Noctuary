@@ -28,7 +28,6 @@ interface SampleWorkModalProps {
 export function SampleWorkModal({ sampleWork, onClose }: SampleWorkModalProps) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState('');
 
   const [formData, setFormData] = useState({
     title: sampleWork?.title || '',
@@ -39,7 +38,6 @@ export function SampleWorkModal({ sampleWork, onClose }: SampleWorkModalProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
     setIsSubmitting(true);
 
     if (!formData.title.trim() || !formData.content.trim()) {
@@ -48,14 +46,18 @@ export function SampleWorkModal({ sampleWork, onClose }: SampleWorkModalProps) {
       return;
     }
 
+    if (formData.content.trim().length < 20) {
+      toast.error('Poem must be at least 20 characters');
+      setIsSubmitting(false);
+      return;
+    }
+
     try {
       let result;
       
       if (sampleWork) {
-        // Update existing
         result = await updateSampleWorkAction(sampleWork.id, formData);
       } else {
-        // Create new
         result = await createSampleWorkAction(formData);
       }
 
@@ -75,7 +77,7 @@ export function SampleWorkModal({ sampleWork, onClose }: SampleWorkModalProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-      <GlassCard className="w-full max-w-2xl max-h-[90vh] overflow-y-auto p-8">
+      <GlassCard className="w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6 sm:p-8">
         <div className="flex items-center justify-between mb-6">
           <div>
             <h2 className="text-2xl font-bold">
@@ -104,6 +106,7 @@ export function SampleWorkModal({ sampleWork, onClose }: SampleWorkModalProps) {
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
               placeholder="e.g., Whispers of Dawn"
+              maxLength={100}
               className="h-12 mt-2"
               disabled={isSubmitting}
             />
@@ -133,9 +136,13 @@ export function SampleWorkModal({ sampleWork, onClose }: SampleWorkModalProps) {
               onChange={(e) => setFormData({ ...formData, content: e.target.value })}
               placeholder="Write your poem here..."
               rows={12}
-              className="mt-2 font-serif text-base leading-relaxed"
+              maxLength={5000}
+              className="mt-2 font-serif text-base leading-relaxed resize-none"
               disabled={isSubmitting}
             />
+            <p className="text-xs text-muted-foreground mt-2 font-nunito">
+              {formData.content.length} / 5000 characters
+            </p>
           </div>
 
           <div>

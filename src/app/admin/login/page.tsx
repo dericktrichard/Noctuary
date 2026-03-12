@@ -40,7 +40,6 @@ export default function AdminLoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        {/* Back to Home Link */}
         <div className="mb-8 text-center">
           <Link href="/" className="inline-flex items-center gap-2 text-sm font-nunito text-muted-foreground hover:text-foreground transition-colors">
             <Home className="w-4 h-4" />
@@ -62,9 +61,10 @@ export default function AdminLoginPage() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="email@gmail.com"
+                placeholder="admin@noctuary.ink"
                 className="mt-2 h-12"
                 required
+                autoComplete="email"
               />
             </div>
 
@@ -78,6 +78,7 @@ export default function AdminLoginPage() {
                 placeholder="Enter your password"
                 className="mt-2 h-12"
                 required
+                autoComplete="current-password"
               />
             </div>
 
