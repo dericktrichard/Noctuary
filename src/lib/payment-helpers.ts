@@ -16,7 +16,6 @@ export async function processPayment({
     if (method === 'PAYPAL') {
       const result = await createPayPalOrderAction(orderId, amount);
       
-      // Check if the server successfully returned an approvalUrl
       if (!result.success || !result.approvalUrl) {
         toast.error(result.error || 'Failed to create PayPal order');
         return { success: false };
@@ -27,12 +26,10 @@ export async function processPayment({
         sessionStorage.setItem('noctuaryPaypalOrderId', result.paypalOrderId || '');
       }
 
-      // REDIRECT: Use the official URL from the PayPal API
       window.location.href = result.approvalUrl;
       return { success: true };
       
     } else {
-      // Paystack logic remains the same
       const result = await initializePaystackPaymentAction(orderId, email, amount);
       
       if (!result.success || !result.authorizationUrl) {
@@ -49,7 +46,7 @@ export async function processPayment({
       return { success: true };
     }
   } catch (error) {
-    console.error('Payment processing error:', error);
+    console.error('[PAYMENT] Processing error:', error);
     toast.error('Failed to initialize payment. Please try again.');
     return { success: false };
   }
