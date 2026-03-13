@@ -8,6 +8,7 @@ import { SampleWorks } from '@/components/features/sample-works-wrapper';
 import { Testimonials } from '@/components/features/testimonials-wrapper';
 import { CommissionForm } from '@/components/features/commission-form';
 import { getCurrentPricing } from '@/app/actions/pricing';
+import { PenLine, BookOpen } from 'lucide-react';
 
 export default async function HomePage() {
   const pricing = await getCurrentPricing();
@@ -23,29 +24,54 @@ export default async function HomePage() {
         <AuthorsPact />
         <HowItWorks />
         
-        <section id="commission" className="py-16 px-4">
-          <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl md:text-4xl font-bold mb-3">
+        {/* Commission Section - Centered */}
+        <section id="commission" className="py-24 px-4 relative overflow-hidden">
+          <div className="max-w-7xl mx-auto relative z-10">
+            {/* Centered Header */}
+            <div className="text-center mb-16">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full glass-card mb-4">
+                <PenLine className="w-4 h-4" />
+                <span className="font-nunito text-xs uppercase tracking-widest">Get Started</span>
+              </div>
+
+              <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4">
                 Commission Your Poem
               </h2>
-              <p className="font-nunito text-base max-w-2xl mx-auto text-muted-foreground">
-                Choose a quick poetic piece or a custom art poetry below.
+
+              <p className="text-lg font-nunito text-muted-foreground max-w-2xl mx-auto">
+                Choose a quick poetic surprise or craft a custom masterpiece tailored to your vision.
               </p>
             </div>
-            <CommissionForm pricing={pricing} />
+
+            {/* Form Container */}
+            <div className="max-w-4xl mx-auto">
+              <CommissionForm pricing={pricing} />
+            </div>
           </div>
         </section>
 
         <Testimonials />
         
-        <section id="about" className="py-12 px-4">
+        {/* About Section - With Uniform Elements */}
+        <section id="about" className="py-24 px-4">
           <div className="max-w-2xl mx-auto">
-            <div className="pt-10 pb-8 px-10 md:px-20">
-              <h2 className="text-3xl md:text-5xl font-bold mb-3 text-center">
+            {/* Centered Header with Badge & Subheading */}
+            <div className="text-center mb-12">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full glass-card mb-4">
+                <BookOpen className="w-4 h-4" />
+                <span className="font-nunito text-xs uppercase tracking-widest">Our Story</span>
+              </div>
+
+              <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4">
                 Noctuary&apos;s Essence
               </h2>
+
+              <p className="text-lg font-nunito text-muted-foreground">
+                The vision behind the craft.
+              </p>
             </div>
+
+            {/* Notebook Paper Content */}
             <div className="notebook-paper notebook-line pt-8 pb-5">              
               <div className="px-8 md:px-16 pb-12 text-muted-foreground">
                 <p className="notebook-line mb-7">
