@@ -26,13 +26,8 @@ export function TestimonialsClient({ testimonials }: TestimonialsProps) {
 
   return (
     <section id="testimonials" className="py-24 px-4 relative overflow-hidden">
-      <div className="absolute inset-0">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-[120px]" />
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-primary/5 rounded-full blur-[120px]" />
-      </div>
-
       <div className="max-w-7xl mx-auto relative z-10">
-        {/* Offset Header */}
+        {/* Left-aligned Header */}
         <div className="flex flex-col md:flex-row md:items-end md:justify-between mb-16 gap-6 md:pl-12">
           <div className="max-w-2xl">
             <motion.div
@@ -109,14 +104,11 @@ export function TestimonialsClient({ testimonials }: TestimonialsProps) {
                 className="group"
               >
                 <div className="relative p-8 rounded-2xl glass-card border border-border hover:border-primary/50 transition-all duration-500 h-full">
-                  {/* Large Quote Mark Background */}
                   <div className="absolute top-6 right-6 opacity-5 group-hover:opacity-10 transition-opacity">
                     <Quote className="w-24 h-24" strokeWidth={1} />
                   </div>
 
-                  {/* Content */}
                   <div className="relative z-10">
-                    {/* Stars */}
                     <div className="flex gap-1 mb-6">
                       {[1, 2, 3, 4, 5].map((star) => (
                         <motion.div
@@ -136,7 +128,6 @@ export function TestimonialsClient({ testimonials }: TestimonialsProps) {
                       ))}
                     </div>
 
-                    {/* Quote */}
                     <blockquote className="mb-6">
                       <p className="font-nunito text-base leading-relaxed relative">
                         <span className="text-primary text-2xl absolute -left-2 -top-2">"</span>
@@ -145,7 +136,6 @@ export function TestimonialsClient({ testimonials }: TestimonialsProps) {
                       </p>
                     </blockquote>
 
-                    {/* Author */}
                     <div className="flex items-center gap-3 pt-4 border-t border-border">
                       <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
                         <span className="font-bold text-sm">
@@ -163,7 +153,6 @@ export function TestimonialsClient({ testimonials }: TestimonialsProps) {
                     </div>
                   </div>
 
-                  {/* Hover Glow */}
                   <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none">
                     <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-primary/5 via-transparent to-primary/5" />
                   </div>

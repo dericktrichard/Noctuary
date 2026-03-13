@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { GlassCard } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Sparkles, ArrowRight } from 'lucide-react';
+import { Sparkles, ArrowRight, ChevronUp } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface SampleWork {
@@ -28,58 +28,55 @@ export function SampleWorksClient({ samples }: SampleWorksProps) {
 
   return (
     <section id="samples" className="py-24 px-4 relative overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-primary/5 to-transparent pointer-events-none" />
-      
       <div className="container mx-auto max-w-7xl relative z-10">
-        {/* Asymmetric Header */}
-        <div className="flex flex-col md:flex-row md:items-end md:justify-between mb-16 gap-6">
-          <div className="max-w-2xl">
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
-              className="inline-flex items-center gap-2 px-3 py-1 rounded-full glass-card mb-4"
-            >
-              <Sparkles className="w-4 h-4" />
-              <span className="font-nunito text-xs uppercase tracking-widest">Portfolio</span>
-            </motion.div>
-            
-            <motion.h2
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.1 }}
-              className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4"
-            >
-              Sample Works
-            </motion.h2>
-            
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="text-lg font-nunito text-muted-foreground"
-            >
-              A glimpse into the craft. Each piece, a testament to human creativity.
-            </motion.p>
-          </div>
+        {/* Centered Header */}
+        <div className="text-center mb-16">
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="inline-flex items-center gap-2 px-3 py-1 rounded-full glass-card mb-4"
+          >
+            <Sparkles className="w-4 h-4" />
+            <span className="font-nunito text-xs uppercase tracking-widest">Portfolio</span>
+          </motion.div>
+          
+          <motion.h2
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+            className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4"
+          >
+            Sample Works
+          </motion.h2>
+          
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="text-lg font-nunito text-muted-foreground max-w-2xl mx-auto"
+          >
+            A glimpse into the craft. Each piece, a testament to human creativity.
+          </motion.p>
 
-          {samples.length > 4 && (
+          {/* View More - Only if not showing all */}
+          {samples.length > 4 && !showAll && (
             <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.3 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.3 }}
+              className="mt-6"
             >
               <Button
-                onClick={() => setShowAll(!showAll)}
+                onClick={() => setShowAll(true)}
                 variant="outline"
                 size="lg"
                 className="font-nunito gap-2 group"
               >
-                {showAll ? 'Show Less' : `View All ${samples.length}`}
+                View All {samples.length}
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </Button>
             </motion.div>
@@ -108,7 +105,6 @@ export function SampleWorksClient({ samples }: SampleWorksProps) {
                 className="group"
               >
                 <div className="relative h-[400px] rounded-2xl overflow-hidden glass-card border border-border hover:border-primary/50 transition-all duration-500 cursor-pointer">
-                  {/* Full Background Image */}
                   <div className="absolute inset-0">
                     {work.imageUrl ? (
                       <img
@@ -121,10 +117,8 @@ export function SampleWorksClient({ samples }: SampleWorksProps) {
                     )}
                   </div>
 
-                  {/* Gradient Overlay */}
                   <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-transparent opacity-90" />
 
-                  {/* Content */}
                   <div className="absolute inset-0 p-6 flex flex-col justify-end">
                     {work.mood && (
                       <motion.div
@@ -156,7 +150,6 @@ export function SampleWorksClient({ samples }: SampleWorksProps) {
                       {work.content}
                     </motion.p>
 
-                    {/* Hover Reveal: Read More */}
                     <motion.div
                       initial={{ opacity: 0, y: 10 }}
                       whileHover={{ opacity: 1, y: 0 }}
@@ -169,7 +162,6 @@ export function SampleWorksClient({ samples }: SampleWorksProps) {
                     </motion.div>
                   </div>
 
-                  {/* Shimmer Effect on Hover */}
                   <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
                     <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
                   </div>
@@ -178,6 +170,26 @@ export function SampleWorksClient({ samples }: SampleWorksProps) {
             ))}
           </AnimatePresence>
         </motion.div>
+
+        {/* View Less - At Bottom when showing all */}
+        {samples.length > 4 && showAll && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="text-center mt-12"
+          >
+            <Button
+              onClick={() => setShowAll(false)}
+              variant="outline"
+              size="lg"
+              className="font-nunito gap-2"
+            >
+              <ChevronUp className="w-4 h-4" />
+              Show Less
+            </Button>
+          </motion.div>
+        )}
       </div>
     </section>
   );

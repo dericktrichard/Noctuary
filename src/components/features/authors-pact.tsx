@@ -30,10 +30,10 @@ export function AuthorsPact() {
       </div>
 
       <div className="max-w-7xl mx-auto relative z-10">
-        {/* Left-aligned Header */}
-        <div className="mb-16 md:pl-12">
+        {/* Right-aligned Header */}
+        <div className="mb-16 md:pr-12 flex flex-col items-end text-right">
           <motion.div
-            initial={{ opacity: 0, x: -20 }}
+            initial={{ opacity: 0, x: 20 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
