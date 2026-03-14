@@ -3,6 +3,7 @@
 import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { verifyPayPalPaymentAction } from '@/app/actions/orders';
+import { Loader2, CheckCircle2, XCircle } from 'lucide-react';
 
 function VerifyContent() {
   const searchParams = useSearchParams();
@@ -13,7 +14,7 @@ function VerifyContent() {
   useEffect(() => {
     const verify = async () => {
       const paypalOrderId = searchParams.get('token');
-      const orderId = typeof window !== 'undefined' ? sessionStorage.getItem('noctuaryOrderId') : null;
+      const orderId = sessionStorage.getItem('noctuaryOrderId');
 
       if (!paypalOrderId || !orderId) {
         setStatus('error');
@@ -27,11 +28,8 @@ function VerifyContent() {
         setStatus('success');
         setMessage('Payment verified successfully!');
         
-        // Clean up session storage
-        if (typeof window !== 'undefined') {
-          sessionStorage.removeItem('noctuaryOrderId');
-          sessionStorage.removeItem('noctuaryPaypalOrderId');
-        }
+        sessionStorage.removeItem('noctuaryOrderId');
+        sessionStorage.removeItem('noctuaryPaypalOrderId');
 
         setTimeout(() => {
           router.push(`/order/${result.accessToken}`);
@@ -47,25 +45,35 @@ function VerifyContent() {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
-      <div className="max-w-md w-full text-center">
+      <div className="max-w-md w-full text-center glass-card p-8 rounded-2xl border border-border">
         {status === 'verifying' && (
           <>
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-foreground mx-auto mb-4" />
-            <p className="text-muted-foreground">{message}</p>
+            <Loader2 className="w-16 h-16 animate-spin mx-auto mb-4 text-primary" />
+            <h2 className="text-2xl font-bold mb-2">Verifying Payment</h2>
+            <p className="text-muted-foreground font-nunito">{message}</p>
           </>
         )}
         {status === 'success' && (
           <>
-            <div className="text-6xl mb-4">✓</div>
-            <h1 className="text-2xl font-bold mb-4">Payment Successful!</h1>
-            <p className="text-muted-foreground">{message}</p>
+            <CheckCircle2 className="w-16 h-16 mx-auto mb-4 text-green-500" />
+            <h1 className="text-2xl font-bold mb-2 text-green-500">Payment Successful!</h1>
+            <p className="text-muted-foreground font-nunito mb-2">{message}</p>
+            <p className="text-sm text-muted-foreground font-nunito">
+              Redirecting you to your order...
+            </p>
           </>
         )}
         {status === 'error' && (
           <>
-            <div className="text-6xl mb-4">✗</div>
-            <h1 className="text-2xl font-bold mb-4">Payment Failed</h1>
-            <p className="text-muted-foreground">{message}</p>
+            <XCircle className="w-16 h-16 mx-auto mb-4 text-red-500" />
+            <h1 className="text-2xl font-bold mb-2 text-red-500">Payment Failed</h1>
+            <p className="text-muted-foreground font-nunito mb-6">{message}</p>
+            
+            <a href="/"
+              className="inline-block px-6 py-3 bg-primary text-primary-foreground rounded-lg font-nunito hover:opacity-90 transition"
+            >
+              Return to Homepage
+            </a>
           </>
         )}
       </div>
@@ -77,7 +85,7 @@ export default function VerifyPayPalPage() {
   return (
     <Suspense fallback={
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-foreground" />
+        <Loader2 className="w-16 h-16 animate-spin text-primary" />
       </div>
     }>
       <VerifyContent />

@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { deliverPoemAction, acceptOrderAction, rejectOrderAction } from '@/app/actions/admin';
 import { toast } from 'sonner';
 import { formatCurrency } from '@/lib/utils';
-import { Search, Eye, Send, ChevronDown, ChevronUp, Clock, Mail, Calendar } from 'lucide-react';
+import { Search, Eye, Send, ChevronDown, ChevronUp, Clock, Mail, Calendar, AlertTriangle, Timer } from 'lucide-react';
 import React from 'react';
 
 type Order = {
@@ -21,7 +21,7 @@ type Order = {
   mood: string | null;
   instructions: string | null;
   pricePaid: number;
-  currency: string;
+  currency: 'USD' | 'KES'; 
   deliveryHours: number;
   paidAt: string | null;
   deliveredAt: string | null;
@@ -34,6 +34,15 @@ interface OrdersListProps {
   orders: Order[];
 }
 
+// Fixed date formatter - consistent server/client
+function formatDate(dateString: string): string {
+  const date = new Date(dateString);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 function getDeadlineStatus(order: Order) {
   let startTime: string | null = null;
 
@@ -43,7 +52,7 @@ function getDeadlineStatus(order: Order) {
     startTime = order.paidAt;
   }
 
-  if (!startTime) return { status: 'none', color: '', text: '', icon: '' };
+  if (!startTime) return { status: 'none', badge: null };
 
   const deadline = new Date(startTime);
   deadline.setHours(deadline.getHours() + order.deliveryHours);
@@ -54,27 +63,36 @@ function getDeadlineStatus(order: Order) {
   if (hoursRemaining < 0) {
     return { 
       status: 'overdue', 
-      color: 'bg-red-500/10 text-red-500 border-red-500',
-      text: 'OVERDUE',
-      icon: '🚨'
+      badge: (
+        <Badge variant="destructive" className="font-nunito gap-1">
+          <AlertTriangle className="w-3 h-3" />
+          OVERDUE
+        </Badge>
+      )
     };
   } else if (hoursRemaining < 2) {
     return { 
       status: 'urgent', 
-      color: 'bg-orange-500/10 text-orange-500 border-orange-500',
-      text: 'URGENT',
-      icon: '⚠️'
+      badge: (
+        <Badge className="bg-orange-500/10 text-orange-500 border-orange-500 font-nunito gap-1">
+          <Timer className="w-3 h-3" />
+          URGENT
+        </Badge>
+      )
     };
   } else if (hoursRemaining < 6) {
     return { 
       status: 'soon', 
-      color: 'bg-yellow-500/10 text-yellow-500 border-yellow-500',
-      text: 'SOON',
-      icon: '⏰'
+      badge: (
+        <Badge className="bg-yellow-500/10 text-yellow-500 border-yellow-500 font-nunito gap-1">
+          <Clock className="w-3 h-3" />
+          SOON
+        </Badge>
+      )
     };
   }
 
-  return { status: 'normal', color: '', text: '', icon: '' };
+  return { status: 'normal', badge: null };
 }
 
 function calculateTimeRemaining(order: Order) {
@@ -148,14 +166,20 @@ export function OrdersList({ orders }: OrdersListProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<Order['status'] | 'ALL'>('ALL');
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
+  const [acceptingOrderId, setAcceptingOrderId] = useState<string | null>(null);
 
   const handleAcceptOrder = async (orderId: string) => {
-    if (!confirm('Accept this order and start writing? The deadline timer will start now.')) return;
+    setAcceptingOrderId(orderId);
+  };
 
-    const result = await acceptOrderAction(orderId);
+  const confirmAcceptOrder = async () => {
+    if (!acceptingOrderId) return;
+
+    const result = await acceptOrderAction(acceptingOrderId);
     
     if (result.success) {
       toast.success('Order accepted! Deadline countdown started.');
+      setAcceptingOrderId(null);
       router.refresh();
     } else {
       toast.error(result.error || 'Failed to accept order');
@@ -211,28 +235,39 @@ export function OrdersList({ orders }: OrdersListProps) {
   const filteredOrders = orders.filter((order) => {
     const matchesSearch = 
       order.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      order.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      order.title?.toLowerCase().includes(searchQuery.toLowerCase());
-    
+      order.id.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = statusFilter === 'ALL' || order.status === statusFilter;
-    
     return matchesSearch && matchesStatus;
   });
 
   const sortedOrders = [...filteredOrders].sort((a, b) => {
+    const statusPriority = { PAID: 0, WRITING: 1, PENDING: 2, DELIVERED: 3, CANCELLED: 4 };
+    const typePriority = { CUSTOM: 0, QUICK: 1 };
+    
+    if (statusPriority[a.status] !== statusPriority[b.status]) {
+      return statusPriority[a.status] - statusPriority[b.status];
+    }
+    
+    if (typePriority[a.type] !== typePriority[b.type]) {
+      return typePriority[a.type] - typePriority[b.type];
+    }
+    
+    if (a.pricePaid !== b.pricePaid) {
+      return b.pricePaid - a.pricePaid;
+    }
+    
     const aTime = calculateTimeRemaining(a);
     const bTime = calculateTimeRemaining(b);
-
-    if (!aTime && !bTime) return 0;
-    if (!aTime) return 1;
-    if (!bTime) return -1;
-
-    return aTime.minutes - bTime.minutes;
+    if (aTime && bTime) {
+      return aTime.minutes - bTime.minutes;
+    }
+    
+    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
   });
 
   if (orders.length === 0) {
     return (
-      <div className="text-center py-12 glass-card rounded-lg border border-border">
+      <div className="text-center py-16 glass-card rounded-lg border border-border">
         <p className="font-nunito text-muted-foreground">No orders yet</p>
       </div>
     );
@@ -240,206 +275,54 @@ export function OrdersList({ orders }: OrdersListProps) {
 
   return (
     <>
-      {/* Filters - Mobile Responsive */}
-      <div className="mb-6 flex flex-col gap-4">
-        <div className="relative w-full">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Search by email, order ID, or title..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9 font-nunito w-full"
-          />
-        </div>
-        
-        <div className="flex gap-2 flex-wrap">
-          {(['ALL', 'PENDING', 'PAID', 'WRITING', 'DELIVERED', 'CANCELLED'] as const).map((status) => (
-            <Button
-              key={status}
-              variant={statusFilter === status ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setStatusFilter(status)}
-              className="font-nunito text-xs sm:text-sm"
-            >
-              {status}
-            </Button>
-          ))}
-        </div>
-      </div>
-
-      {/* Mobile Card View */}
-      <div className="lg:hidden space-y-4">
-        {sortedOrders.map((order) => {
-          const timeRemaining = calculateTimeRemaining(order);
-          const deadlineAlert = getDeadlineStatus(order);
-          const hasDetails = order.title || order.mood || order.instructions;
+      <div className="space-y-4">
+        <div className="flex flex-col sm:flex-row gap-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              placeholder="Search by email or order ID..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9 font-nunito"
+            />
+          </div>
           
-          return (
-            <div
-              key={order.id}
-              className="glass-card p-4 rounded-lg border border-border"
-            >
-              {/* Header */}
-              <div className="flex items-start justify-between mb-3">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2 flex-wrap">
-                    <Badge className={getStatusColor(order.status)}>
-                      {order.status}
-                    </Badge>
-                    <Badge variant="outline" className="text-xs">
-                      {order.type}
-                    </Badge>
-                    {deadlineAlert.status !== 'none' && (
-                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md border text-xs font-bold ${deadlineAlert.color}`}>
-                        {deadlineAlert.icon} {deadlineAlert.text}
-                      </span>
-                    )}
-                  </div>
-                  {order.title && (
-                    <h3 className="font-bold text-base mb-1">{order.title}</h3>
-                  )}
-                </div>
-              </div>
-
-              {/* Details */}
-              <div className="space-y-2 text-sm mb-4">
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <Mail className="w-3.5 h-3.5 flex-shrink-0" />
-                  <span className="truncate">{order.email}</span>
-                </div>
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <Calendar className="w-3.5 h-3.5 flex-shrink-0" />
-                  <span>{order.createdAt.split('T')[0]}</span>
-                </div>
-                {timeRemaining && (
-                  <div className="flex items-center gap-2">
-                    <Clock className={`w-3.5 h-3.5 flex-shrink-0 ${timeRemaining.color}`} />
-                    <span className={`font-semibold ${timeRemaining.color}`}>
-                      {timeRemaining.text}
-                    </span>
-                  </div>
-                )}
-              </div>
-
-              {/* Amount */}
-              <div className="mb-4 p-3 bg-muted/50 rounded-lg">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">Amount</span>
-                  <span className="font-bold text-lg">
-                    {formatCurrency(order.pricePaid, order.currency as 'USD' | 'KES')}
-                  </span>
-                </div>
-              </div>
-
-              {/* Expandable Details */}
-              {hasDetails && (
-                <div className="mb-4">
-                  <button
-                    onClick={() => setExpandedOrder(expandedOrder === order.id ? null : order.id)}
-                    className="w-full flex items-center justify-between p-2 hover:bg-accent rounded-lg transition-colors text-sm font-semibold"
-                  >
-                    <span>Order Details</span>
-                    {expandedOrder === order.id ? (
-                      <ChevronUp className="w-4 h-4" />
-                    ) : (
-                      <ChevronDown className="w-4 h-4" />
-                    )}
-                  </button>
-                  {expandedOrder === order.id && (
-                    <div className="mt-2 p-3 bg-muted/30 rounded-lg space-y-2 text-sm">
-                      {order.title && (
-                        <div>
-                          <span className="font-semibold">Title:</span> {order.title}
-                        </div>
-                      )}
-                      {order.mood && (
-                        <div>
-                          <span className="font-semibold">Mood:</span> {order.mood}
-                        </div>
-                      )}
-                      {order.instructions && (
-                        <div>
-                          <span className="font-semibold">Instructions:</span>
-                          <p className="mt-1 whitespace-pre-wrap">{order.instructions}</p>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Actions */}
-              <div className="flex flex-col gap-2">
-                {order.status === 'PAID' && (
-                  <>
-                    <Button
-                      size="sm"
-                      onClick={() => handleAcceptOrder(order.id)}
-                      className="w-full bg-blue-500 hover:bg-blue-600"
-                    >
-                      Accept & Start
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="destructive"
-                      onClick={() => handleRejectOrder(order.id)}
-                      className="w-full"
-                    >
-                      Reject
-                    </Button>
-                  </>
-                )}
-
-                {order.status === 'WRITING' && (
-                  <Button
-                    onClick={() => setDeliveringOrderId(order.id)}
-                    size="sm"
-                    className="w-full bg-green-500 hover:bg-green-600"
-                  >
-                    <Send className="h-3.5 w-3.5 mr-1.5" />
-                    Deliver Poem
-                  </Button>
-                )}
-
-                {order.status === 'DELIVERED' && order.poemContent && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setViewingOrder(order)}
-                    className="w-full"
-                  >
-                    <Eye className="h-3.5 w-3.5 mr-1.5" />
-                    View Poem
-                  </Button>
-                )}
-              </div>
-            </div>
-          );
-        })}
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value as any)}
+            className="px-4 py-2 rounded-lg glass-card border border-border font-philosopher text-sm"
+          >
+            <option value="ALL">All Status</option>
+            <option value="PENDING">Pending</option>
+            <option value="PAID">Paid</option>
+            <option value="WRITING">Writing</option>
+            <option value="DELIVERED">Delivered</option>
+            <option value="CANCELLED">Cancelled</option>
+          </select>
+        </div>
       </div>
 
-      {/* Desktop Table View */}
-      <div className="hidden lg:block rounded-lg border border-border bg-card shadow-sm overflow-hidden">
+      <div className="hidden lg:block overflow-hidden rounded-lg border border-border glass-card">
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="border-b border-border bg-muted/50">
+            <thead className="bg-muted/30 border-b border-border">
               <tr>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider font-nunito">
-                  Order
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider font-nunito">
+                <th className="px-6 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                   Customer
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider font-nunito">
-                  Status
+                <th className="px-6 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                  Type
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider font-nunito">
+                <th className="px-6 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                   Amount
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider font-nunito">
+                <th className="px-6 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                   Deadline
                 </th>
-                <th className="px-6 py-4 text-right text-xs font-semibold text-muted-foreground uppercase tracking-wider font-nunito">
+                <th className="px-6 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                  Status
+                </th>
+                <th className="px-6 py-3 text-right text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                   Actions
                 </th>
               </tr>
@@ -447,77 +330,67 @@ export function OrdersList({ orders }: OrdersListProps) {
             <tbody className="divide-y divide-border">
               {sortedOrders.map((order) => {
                 const timeRemaining = calculateTimeRemaining(order);
-                const deadlineAlert = getDeadlineStatus(order);
+                const deadlineStatus = getDeadlineStatus(order);
                 const hasDetails = order.title || order.mood || order.instructions;
-                
+
                 return (
                   <React.Fragment key={order.id}>
-                    <tr className="hover:bg-muted/30 transition-colors group">
-                      <td className="px-6 py-4">
+                    <tr className="hover:bg-muted/20 transition-colors">
+                      <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center gap-3">
                           {hasDetails && (
                             <button
                               onClick={() => setExpandedOrder(expandedOrder === order.id ? null : order.id)}
-                              className="p-1.5 hover:bg-accent rounded transition-colors flex-shrink-0"
+                              className="text-muted-foreground hover:text-foreground transition-colors"
                             >
                               {expandedOrder === order.id ? (
-                                <ChevronUp className="w-4 h-4 text-muted-foreground" />
+                                <ChevronUp className="w-4 h-4" />
                               ) : (
-                                <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                                <ChevronDown className="w-4 h-4" />
                               )}
                             </button>
                           )}
-                          
-                          <div className="flex flex-col min-w-0">
-                            <div className="flex items-center gap-2 mb-1">
-                              <Badge variant="outline" className="text-xs font-mono">
-                                {order.type}
-                              </Badge>
-                              {deadlineAlert.status !== 'none' && (
-                                <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md border text-xs font-bold ${deadlineAlert.color}`}>
-                                  <span className="text-sm">{deadlineAlert.icon}</span>
-                                  {deadlineAlert.text}
-                                </span>
-                              )}
+                          <div>
+                            <div className="text-sm font-medium font-nunito">{order.email}</div>
+                            <div className="text-xs text-muted-foreground font-nunito">
+                              {formatDate(order.createdAt)}
                             </div>
-                            {order.title && (
-                              <span className="text-sm font-semibold truncate">{order.title}</span>
-                            )}
-                            <span className="text-xs text-muted-foreground font-mono">
-                              #{order.id.slice(0, 8)}
-                            </span>
                           </div>
                         </div>
                       </td>
 
-                      <td className="px-6 py-4">
-                        <span className="text-sm font-nunito truncate">{order.email}</span>
-                      </td>
-
-                      <td className="px-6 py-4">
-                        <Badge className={getStatusColor(order.status)}>
-                          {order.status}
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <Badge variant={order.type === 'CUSTOM' ? 'default' : 'outline'} className="font-nunito">
+                          {order.type}
                         </Badge>
                       </td>
 
-                      <td className="px-6 py-4">
-                        <span className="text-sm font-semibold font-mono">
-                          {formatCurrency(order.pricePaid, order.currency as 'USD' | 'KES')}
-                        </span>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm font-semibold font-nunito">
+                          {formatCurrency(order.pricePaid, order.currency)}
+                        </div>
+                        <div className="text-xs text-muted-foreground font-nunito">
+                          {order.deliveryHours}h delivery
+                        </div>
                       </td>
 
-                      <td className="px-6 py-4">
-                        {timeRemaining ? (
-                          <span className={`text-sm font-nunito font-semibold ${timeRemaining.color}`}>
-                            {timeRemaining.text}
-                          </span>
-                        ) : (
-                          <span className="text-sm font-nunito text-muted-foreground">
-                            {order.status === 'DELIVERED' ? 'Complete' : 
-                             order.status === 'CANCELLED' ? 'Cancelled' : 
-                             order.status === 'PAID' ? 'Awaiting accept' : 'Pending'}
-                          </span>
-                        )}
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center gap-2">
+                          {deadlineStatus.badge}
+                          {timeRemaining && (
+                            <span className={`text-sm font-nunito ${timeRemaining.color}`}>
+                              {timeRemaining.text}
+                            </span>
+                          )}
+                        </div>
+                      </td>
+
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <Badge className={`${getStatusColor(order.status)} font-nunito`}>
+                          {order.status === 'DELIVERED' ? 'Complete' : 
+                           order.status === 'CANCELLED' ? 'Cancelled' : 
+                           order.status === 'PAID' ? 'Awaiting accept' : order.status}
+                        </Badge>
                       </td>
 
                       <td className="px-6 py-4 text-right">
@@ -610,14 +483,34 @@ export function OrdersList({ orders }: OrdersListProps) {
         )}
       </div>
 
-      {/* Empty State for Mobile */}
-      {sortedOrders.length === 0 && (
-        <div className="lg:hidden p-12 text-center glass-card rounded-lg border border-border">
-          <p className="font-nunito text-muted-foreground">No orders match your filters</p>
+      {/* Modals truncated for space - same as before */}
+      {acceptingOrderId && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-card rounded-lg border border-border p-6 max-w-md w-full shadow-xl">
+            <h3 className="text-lg font-bold mb-2">Accept Order?</h3>
+            <p className="text-sm text-muted-foreground mb-6">
+              This will start the deadline timer immediately. Make sure you're ready to begin writing.
+            </p>
+            <div className="flex gap-3">
+              <Button
+                variant="outline"
+                onClick={() => setAcceptingOrderId(null)}
+                className="flex-1 font-nunito"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={confirmAcceptOrder}
+                className="flex-1 bg-blue-500 hover:bg-blue-600 font-nunito"
+              >
+                Yes, Accept
+              </Button>
+            </div>
+          </div>
         </div>
       )}
 
-      {/* Modals (unchanged) */}
+      {/* Deliver Poem Modal */}
       {deliveringOrderId && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-card rounded-lg border border-border p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-xl">
@@ -640,14 +533,14 @@ export function OrdersList({ orders }: OrdersListProps) {
                   setPoemContent('');
                 }}
                 disabled={isSubmitting}
-                className="flex-1"
+                className="flex-1 font-nunito"
               >
                 Cancel
               </Button>
               <Button
                 onClick={handleDeliverPoem}
                 disabled={isSubmitting || !poemContent.trim()}
-                className="flex-1 bg-green-500 hover:bg-green-600"
+                className="flex-1 bg-green-500 hover:bg-green-600 font-nunito"
               >
                 <Send className="w-4 h-4 mr-2" />
                 {isSubmitting ? 'Sending...' : 'Deliver to Customer'}
@@ -657,6 +550,7 @@ export function OrdersList({ orders }: OrdersListProps) {
         </div>
       )}
 
+      {/* View Poem Modal */}
       {viewingOrder && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-card rounded-lg border border-border p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-xl">
@@ -677,7 +571,7 @@ export function OrdersList({ orders }: OrdersListProps) {
             <Button
               variant="outline"
               onClick={() => setViewingOrder(null)}
-              className="w-full"
+              className="w-full font-nunito"
             >
               Close
             </Button>
@@ -685,6 +579,7 @@ export function OrdersList({ orders }: OrdersListProps) {
         </div>
       )}
 
+      {/* Reject Order Modal */}
       {rejectingOrderId && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-card rounded-lg border border-border p-6 max-w-md w-full shadow-xl">
@@ -697,16 +592,16 @@ export function OrdersList({ orders }: OrdersListProps) {
               value={rejectReason}
               onChange={(e) => setRejectReason(e.target.value)}
               rows={3}
-              className="mb-4"
+              className="mb-4 font-nunito"
             />
-            <div className="flex gap-2">
+            <div className="flex gap-3">
               <Button
                 variant="outline"
                 onClick={() => {
                   setRejectingOrderId(null);
                   setRejectReason('');
                 }}
-                className="flex-1"
+                className="flex-1 font-nunito"
               >
                 Cancel
               </Button>
@@ -714,9 +609,9 @@ export function OrdersList({ orders }: OrdersListProps) {
                 variant="destructive"
                 onClick={submitRejectOrder}
                 disabled={!rejectReason.trim()}
-                className="flex-1"
+                className="flex-1 font-nunito"
               >
-                Reject Order
+                Reject
               </Button>
             </div>
           </div>

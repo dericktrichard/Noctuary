@@ -3,7 +3,7 @@
 import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { verifyPayPalPaymentAction, verifyStripePaymentAction } from '@/app/actions/orders';
-import { Loader2 } from 'lucide-react';
+import { Loader2, CheckCircle2, XCircle } from 'lucide-react';
 
 function PaymentSuccessContent() {
   const router = useRouter();
@@ -18,14 +18,12 @@ function PaymentSuccessContent() {
         const paypalToken = searchParams.get('token');
 
         if (stripeSessionId) {
-          // Verify Stripe payment
           const result = await verifyStripePaymentAction(stripeSessionId);
           
-          if (result.success) {
+          if (result.success && result.accessToken) {
             setStatus('success');
             setMessage('Payment verified! Redirecting...');
             
-            // Clear session storage
             sessionStorage.removeItem('noctuaryOrderId');
             sessionStorage.removeItem('noctuaryStripeSessionId');
             
@@ -37,7 +35,6 @@ function PaymentSuccessContent() {
             setMessage(result.error || 'Payment verification failed');
           }
         } else if (paypalToken) {
-          // Existing PayPal verification
           const orderId = sessionStorage.getItem('noctuaryOrderId');
           const payerId = searchParams.get('PayerID');
 
@@ -49,7 +46,7 @@ function PaymentSuccessContent() {
 
           const result = await verifyPayPalPaymentAction(orderId, paypalToken);
           
-          if (result.success) {
+          if (result.success && result.accessToken) {
             setStatus('success');
             setMessage('Payment verified! Redirecting...');
             
@@ -68,7 +65,7 @@ function PaymentSuccessContent() {
           setMessage('Invalid payment callback');
         }
       } catch (error) {
-        console.error('Payment verification error:', error);
+        console.error('[PAYMENT] Verification error:', error);
         setStatus('error');
         setMessage('An error occurred during verification');
       }
@@ -79,7 +76,7 @@ function PaymentSuccessContent() {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
-      <div className="max-w-md w-full text-center glass-card p-8 rounded-lg border border-border">
+      <div className="max-w-md w-full text-center glass-card p-8 rounded-2xl border border-border">
         {status === 'loading' && (
           <>
             <Loader2 className="w-16 h-16 animate-spin mx-auto mb-4 text-primary" />
@@ -90,7 +87,7 @@ function PaymentSuccessContent() {
 
         {status === 'success' && (
           <>
-            <div className="text-6xl mb-4">✓</div>
+            <CheckCircle2 className="w-16 h-16 mx-auto mb-4 text-green-500" />
             <h1 className="text-2xl font-bold mb-2 text-green-500">Payment Successful!</h1>
             <p className="font-nunito text-muted-foreground">{message}</p>
           </>
@@ -98,9 +95,15 @@ function PaymentSuccessContent() {
 
         {status === 'error' && (
           <>
-            <div className="text-6xl mb-4">✗</div>
+            <XCircle className="w-16 h-16 mx-auto mb-4 text-red-500" />
             <h1 className="text-2xl font-bold mb-2 text-red-500">Payment Failed</h1>
-            <p className="font-nunito text-muted-foreground">{message}</p>
+            <p className="font-nunito text-muted-foreground mb-4">{message}</p>
+            <a 
+              href="/" 
+              className="inline-block px-6 py-3 bg-primary text-primary-foreground rounded-lg font-nunito hover:opacity-90 transition"
+            >
+              Return to Homepage
+            </a>
           </>
         )}
       </div>

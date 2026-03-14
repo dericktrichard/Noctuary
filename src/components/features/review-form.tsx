@@ -36,6 +36,11 @@ export function ReviewForm({ orderId, email }: ReviewFormProps) {
       return;
     }
 
+    if (comment.trim().length > 500) {
+      toast.error('Comment must be 500 characters or less');
+      return;
+    }
+
     setIsSubmitting(true);
 
     const result = await submitReviewAction({
@@ -55,9 +60,11 @@ export function ReviewForm({ orderId, email }: ReviewFormProps) {
     }
   };
 
+  const isCommentValid = comment.trim().length >= 10;
+  const commentLength = comment.length;
+
   return (
-    <form onSubmit={handleSubmit} className="glass-card p-8 rounded-lg border border-border space-y-6">
-      {/* Rating */}
+    <form onSubmit={handleSubmit} className="glass-card p-8 rounded-2xl border border-border space-y-6">
       <div>
         <Label className="font-nunito mb-3 block">How was your experience?</Label>
         <div className="flex gap-2 justify-center">
@@ -69,6 +76,7 @@ export function ReviewForm({ orderId, email }: ReviewFormProps) {
               onMouseEnter={() => setHoveredRating(star)}
               onMouseLeave={() => setHoveredRating(0)}
               className="transition-transform hover:scale-110"
+              aria-label={`Rate ${star} stars`}
             >
               <Star
                 className={`w-10 h-10 ${
@@ -82,7 +90,6 @@ export function ReviewForm({ orderId, email }: ReviewFormProps) {
         </div>
       </div>
 
-      {/* Name (Optional) */}
       <div>
         <Label htmlFor="name" className="font-nunito">
           Your Name <span className="text-muted-foreground">(optional)</span>
@@ -101,7 +108,6 @@ export function ReviewForm({ orderId, email }: ReviewFormProps) {
         </p>
       </div>
 
-      {/* Comment */}
       <div>
         <Label htmlFor="comment" className="font-nunito">
           Your Feedback
@@ -116,17 +122,20 @@ export function ReviewForm({ orderId, email }: ReviewFormProps) {
           className="mt-2"
           required
         />
-        <p className="text-xs text-muted-foreground mt-1 font-nunito">
-          {comment.length}/500 characters
+        <p className={`text-xs mt-1 font-nunito ${
+          commentLength > 500 ? 'text-red-500' : 
+          !isCommentValid && commentLength > 0 ? 'text-yellow-500' : 
+          'text-muted-foreground'
+        }`}>
+          {commentLength}/500 characters {!isCommentValid && commentLength > 0 && '(minimum 10)'}
         </p>
       </div>
 
-      {/* Submit */}
       <Button
         type="submit"
         size="lg"
         className="w-full font-nunito"
-        disabled={isSubmitting}
+        disabled={isSubmitting || rating === 0 || !isCommentValid}
       >
         {isSubmitting ? 'Submitting...' : 'Submit Review'}
       </Button>

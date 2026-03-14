@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
 import { ReviewForm } from '@/components/features/review-form';
+import { CheckCircle2 } from 'lucide-react';
 
 interface ReviewPageProps {
   params: Promise<{ orderId: string }>;
@@ -9,14 +10,11 @@ interface ReviewPageProps {
 export default async function ReviewPage({ params }: ReviewPageProps) {
   const { orderId } = await params;
 
-  // Get order details
   const order = await prisma.order.findUnique({
     where: { id: orderId },
     select: {
       id: true,
       email: true,
-      type: true,
-      title: true,
       status: true,
       deliveredAt: true,
     },
@@ -26,7 +24,6 @@ export default async function ReviewPage({ params }: ReviewPageProps) {
     notFound();
   }
 
-  // Check if review already exists
   const existingReview = await prisma.testimonial.findUnique({
     where: { orderId },
   });
@@ -42,8 +39,8 @@ export default async function ReviewPage({ params }: ReviewPageProps) {
         </div>
 
         {existingReview ? (
-          <div className="glass-card p-8 rounded-lg border border-border text-center">
-            <div className="text-5xl mb-4">✓</div>
+          <div className="glass-card p-8 rounded-2xl border border-border text-center">
+            <CheckCircle2 className="w-16 h-16 mx-auto mb-4 text-green-500" />
             <h2 className="text-xl font-bold mb-2">Thank You!</h2>
             <p className="font-nunito text-muted-foreground">
               Your feedback has been submitted. We appreciate your time and support!
