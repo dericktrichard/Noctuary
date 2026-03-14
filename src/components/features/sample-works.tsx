@@ -27,7 +27,7 @@ export function SampleWorksClient({ samples }: SampleWorksProps) {
   }
 
   return (
-    <section id="samples" className="py-24 px-4 relative overflow-hidden">
+    <section id="samples" className="py-10 px-4 relative overflow-hidden">
       <div className="container mx-auto max-w-7xl relative z-10">
         {/* Centered Header */}
         <div className="text-center mb-16">
@@ -59,7 +59,7 @@ export function SampleWorksClient({ samples }: SampleWorksProps) {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="text-lg font-nunito text-muted-foreground max-w-2xl mx-auto"
           >
-            A glimpse into the craft. Each piece, a testament to human creativity.
+            Each a piece, a flawed creativity.
           </motion.p>
 
           {/* View More - Only if not showing all */}
@@ -76,7 +76,7 @@ export function SampleWorksClient({ samples }: SampleWorksProps) {
                 size="lg"
                 className="font-nunito gap-2 group"
               >
-                View All {samples.length}
+                View All
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </Button>
             </motion.div>
@@ -171,7 +171,7 @@ export function SampleWorksClient({ samples }: SampleWorksProps) {
           </AnimatePresence>
         </motion.div>
 
-        {/* View Less - At Bottom when showing all */}
+        {/* View Less */}
         {samples.length > 4 && showAll && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}

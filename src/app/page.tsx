@@ -24,8 +24,8 @@ export default async function HomePage() {
         <AuthorsPact />
         <HowItWorks />
         
-        {/* Commission Section - Centered */}
-        <section id="commission" className="py-24 px-4 relative overflow-hidden">
+        {/* Commission Section */}
+        <section id="commission" className="py-10 px-4 relative overflow-hidden">
           <div className="max-w-7xl mx-auto relative z-10">
             {/* Centered Header */}
             <div className="text-center mb-16">
@@ -39,7 +39,7 @@ export default async function HomePage() {
               </h2>
 
               <p className="text-lg font-nunito text-muted-foreground max-w-2xl mx-auto">
-                Choose a quick poetic surprise or craft a custom masterpiece tailored to your vision.
+                Choose a quick poetic surprise or craft a custom piece.
               </p>
             </div>
 
@@ -53,7 +53,7 @@ export default async function HomePage() {
         <Testimonials />
         
         {/* About Section - With Uniform Elements */}
-        <section id="about" className="py-24 px-4">
+        <section id="about" className="py-5 px-4">
           <div className="max-w-2xl mx-auto">
             {/* Centered Header with Badge & Subheading */}
             <div className="text-center mb-12">

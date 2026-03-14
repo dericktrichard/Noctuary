@@ -25,7 +25,7 @@ export function TestimonialsClient({ testimonials }: TestimonialsProps) {
   }
 
   return (
-    <section id="testimonials" className="py-24 px-4 relative overflow-hidden">
+    <section id="testimonials" className="py-8 px-4 relative overflow-hidden">
       <div className="max-w-7xl mx-auto relative z-10">
         {/* Left-aligned Header */}
         <div className="flex flex-col md:flex-row md:items-end md:justify-between mb-16 gap-6 md:pl-12">
@@ -58,7 +58,7 @@ export function TestimonialsClient({ testimonials }: TestimonialsProps) {
               transition={{ duration: 0.6, delay: 0.2 }}
               className="text-lg font-nunito text-muted-foreground"
             >
-              Real stories from people who commissioned with us.
+              From people who commissioned with us.
             </motion.p>
           </div>
 
@@ -130,9 +130,7 @@ export function TestimonialsClient({ testimonials }: TestimonialsProps) {
 
                     <blockquote className="mb-6">
                       <p className="font-nunito text-base leading-relaxed relative">
-                        <span className="text-primary text-2xl absolute -left-2 -top-2">"</span>
                         <span className="inline-block pl-4">{testimonial.comment}</span>
-                        <span className="text-primary text-2xl">"</span>
                       </p>
                     </blockquote>
 
@@ -147,7 +145,7 @@ export function TestimonialsClient({ testimonials }: TestimonialsProps) {
                           {testimonial.name || 'Anonymous'}
                         </p>
                         <p className="text-xs text-muted-foreground font-nunito">
-                          Verified Customer
+                          Noctuary Customer
                         </p>
                       </div>
                     </div>

@@ -30,7 +30,7 @@ const socialLinks = [
 
 export function Footer() {
   return (
-    <footer className="relative border-t border-border bg-background/95 backdrop-blur-sm">
+    <footer className="relative bg-background/95 backdrop-blur-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Main Footer Content */}
         <div className="py-12 lg:py-16">
@@ -41,8 +41,8 @@ export function Footer() {
                 <Logo />
               </Link>
               <p className="text-sm font-nunito text-muted-foreground leading-relaxed max-w-md mb-6">
-                Preserving the human touch in poetry. Every word crafted with intention, 
-                emotion, and authenticity.
+                Preserving the human touch in poetry. Every word crafted by heart, 
+                to your mind, for your soul.
               </p>
               
               {/* Social Links */}

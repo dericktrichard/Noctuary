@@ -19,7 +19,7 @@ const beliefs = [
 
 export function AuthorsPact() {
   return (
-    <section id="pact" className="py-24 px-4 relative overflow-hidden">
+    <section id="pact" className="py-10 px-4 relative overflow-hidden">
       <div className="absolute inset-0 opacity-5">
         <div 
           className="absolute inset-0" 
