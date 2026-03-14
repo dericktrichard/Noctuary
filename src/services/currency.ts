@@ -1,14 +1,11 @@
 import 'server-only';
 
-// Stripe's current rate is more accurate
-const FALLBACK_RATE = 129; 
-
-// Cache duration: 1 hour
+const FALLBACK_RATE = 129;
 const CACHE_DURATION = 60 * 60 * 1000;
+
 let cachedRate: { rate: number; timestamp: number } | null = null;
 
 export async function getUSDtoKESRate(): Promise<number> {
-  // Check cache
   if (cachedRate && Date.now() - cachedRate.timestamp < CACHE_DURATION) {
     console.log(`[CURRENCY] Using cached rate: ${cachedRate.rate}`);
     return cachedRate.rate;
@@ -27,7 +24,6 @@ export async function getUSDtoKESRate(): Promise<number> {
 
     if (!rate || isNaN(rate)) throw new Error('Invalid rate');
 
-    // Round to nearest whole number for consistency
     const roundedRate = Math.round(rate);
     cachedRate = { rate: roundedRate, timestamp: Date.now() };
 
@@ -47,10 +43,10 @@ export async function getUSDtoKESRate(): Promise<number> {
 
 export async function convertUSDtoKES(usd: number): Promise<number> {
   const rate = await getUSDtoKESRate();
-  return Math.round(usd * rate); 
+  return Math.round(usd * rate);
 }
 
 export async function convertKEStoUSD(kes: number): Promise<number> {
   const rate = await getUSDtoKESRate();
-  return Math.round((kes / rate) * 100) / 100; 
+  return Math.round((kes / rate) * 100) / 100;
 }

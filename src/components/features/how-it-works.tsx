@@ -27,7 +27,7 @@ export function HowItWorks() {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <section id="how-it-works" className="py-12 px-4 relative">
+    <section id="how-it-works" className="py-4 px-4 relative">
       <div className="max-w-6xl mx-auto">
         {/* Collapsed State: CTA Button */}
         <AnimatePresence mode="wait">
@@ -76,7 +76,7 @@ export function HowItWorks() {
                   How It Works
                 </h2>
                 <p className="font-nunito text-lg max-w-2xl mx-auto text-muted-foreground">
-                  Three simple steps to your personalized poem
+                  Three simple steps to your poem
                 </p>
 
                 <Button

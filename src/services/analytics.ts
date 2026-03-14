@@ -18,12 +18,11 @@ interface RevenueStats {
   byProvider: {
     paypal: number;
     paystack: number;
-    stripe: number; 
+    stripe: number;
   };
   totalOrders: number;
 }
 
-//Get revenue statistics
 export async function getRevenueStats(
   startDate?: Date,
   endDate?: Date
@@ -49,7 +48,7 @@ export async function getRevenueStats(
   let kesGross = 0;
   let paypalCount = 0;
   let paystackCount = 0;
-  let stripeCount = 0; 
+  let stripeCount = 0;
 
   orders.forEach((order) => {
     const amount = Number(order.pricePaid);
@@ -60,20 +59,18 @@ export async function getRevenueStats(
       kesGross += amount;
     }
 
-    // Count by provider
     if (order.paymentProvider === 'PAYPAL') {
       paypalCount++;
     } else if (order.paymentProvider === 'PAYSTACK') {
       paystackCount++;
     } else if (order.paymentProvider === 'STRIPE') {
-      stripeCount++; 
+      stripeCount++;
     }
   });
 
-  // Calculate fees
   const paypalFees = usdGross * 0.029 + (paypalCount * 0.30);
   const paystackFees = kesGross * 0.035;
-  const stripeFees = usdGross * 0.029 + (stripeCount * 0.30); 
+  const stripeFees = usdGross * 0.029 + (stripeCount * 0.30);
 
   const usdFees = paypalFees + stripeFees;
   const kesFees = paystackFees;
@@ -94,13 +91,12 @@ export async function getRevenueStats(
     byProvider: {
       paypal: paypalCount,
       paystack: paystackCount,
-      stripe: stripeCount, 
+      stripe: stripeCount,
     },
     totalOrders: orders.length,
   };
 }
 
-//Export transactions for accounting
 export async function exportTransactions(format: 'csv' | 'json' = 'csv') {
   const orders = await prisma.order.findMany({
     where: { status: OrderStatus.DELIVERED },
@@ -122,7 +118,6 @@ export async function exportTransactions(format: 'csv' | 'json' = 'csv') {
     return orders;
   }
 
-  // CSV format for Excel/accounting software
   const headers = 'Order ID,Date,Customer,Type,Amount,Currency,Provider,Transaction ID,Delivered\n';
   const rows = orders.map(o => 
     `${o.id},${o.paidAt?.toISOString()},${o.email},${o.type},${o.pricePaid},${o.currency},${o.paymentProvider},${o.paymentId},${o.deliveredAt?.toISOString()}`
