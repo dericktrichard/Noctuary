@@ -91,7 +91,8 @@ export async function createOrderAction(input: OrderInput) {
       validatedData.type,
       validatedData.currency,
       pricePaid,
-      deliveryHours
+      deliveryHours,
+      pricing
     );
 
     if (!isPriceValid) {
