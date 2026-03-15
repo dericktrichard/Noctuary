@@ -338,6 +338,12 @@ export function OrdersList({ orders }: OrdersListProps) {
                     <tr className="hover:bg-muted/20 transition-colors">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center gap-3">
+                          <div>
+                            <div className="text-sm font-medium font-nunito">{order.email}</div>
+                            <div className="text-xs text-muted-foreground font-nunito">
+                              {formatDate(order.createdAt)}
+                            </div>
+                          </div>
                           {hasDetails && (
                             <button
                               onClick={() => setExpandedOrder(expandedOrder === order.id ? null : order.id)}
@@ -350,12 +356,6 @@ export function OrdersList({ orders }: OrdersListProps) {
                               )}
                             </button>
                           )}
-                          <div>
-                            <div className="text-sm font-medium font-nunito">{order.email}</div>
-                            <div className="text-xs text-muted-foreground font-nunito">
-                              {formatDate(order.createdAt)}
-                            </div>
-                          </div>
                         </div>
                       </td>
 
