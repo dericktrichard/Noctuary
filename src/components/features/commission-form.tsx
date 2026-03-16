@@ -379,7 +379,7 @@ export function CommissionForm({ pricing }: CommissionFormProps) {
         className="mb-2 text-center"
       >
         <p className="text-xs font-nunito text-muted-foreground">
-          The USD; PayPal and Stripe Payment Options are currently Unavailable
+          The USD: PayPal and Stripe are currently Unavailable
         </p>
       </motion.div>
 
@@ -413,7 +413,7 @@ export function CommissionForm({ pricing }: CommissionFormProps) {
               
               <h3 className="text-2xl font-bold mb-2">Quick Poem</h3>
               <p className="font-nunito text-sm mb-4 text-muted-foreground">
-                A poetic surprise ; no details needed
+                A poetic surprise, no details.
               </p>
               
               <div className="space-y-1">

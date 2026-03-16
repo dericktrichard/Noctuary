@@ -39,7 +39,7 @@ export default async function HomePage() {
               </h2>
 
               <p className="text-lg font-nunito text-muted-foreground max-w-2xl mx-auto">
-                Choose a quick poetic surprise or craft a custom piece.
+                A quick poetic surprise or a custom piece.
               </p>
             </div>
 
