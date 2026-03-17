@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { GlassCard } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Sparkles, ArrowRight, ChevronUp } from 'lucide-react';
+import { Sparkles, ArrowRight, ChevronUp, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface SampleWork {
@@ -20,14 +20,14 @@ interface SampleWorksProps {
 
 export function SampleWorksClient({ samples }: SampleWorksProps) {
   const [showAll, setShowAll] = useState(false);
+  const [selectedWork, setSelectedWork] = useState<SampleWork | null>(null);
+  
   const displayCount = showAll ? samples.length : Math.min(4, samples.length);
 
-  if (samples.length === 0) {
-    return null;
-  }
+  if (samples.length === 0) return null;
 
   return (
-    <section id="samples" className="py-10 px-4 relative overflow-hidden">
+    <section id="samples" className="py-20 px-4 relative overflow-hidden">
       <div className="container mx-auto max-w-7xl relative z-10">
         {/* Centered Header */}
         <div className="text-center mb-16">
@@ -35,10 +35,9 @@ export function SampleWorksClient({ samples }: SampleWorksProps) {
             initial={{ opacity: 0, y: -10 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
             className="inline-flex items-center gap-2 px-3 py-1 rounded-full glass-card mb-4"
           >
-            <Sparkles className="w-4 h-4" />
+            <Sparkles className="w-4 h-4 text-primary" />
             <span className="font-nunito text-xs uppercase tracking-widest">Portfolio</span>
           </motion.div>
           
@@ -46,8 +45,7 @@ export function SampleWorksClient({ samples }: SampleWorksProps) {
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.1 }}
-            className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4"
+            className="text-4xl md:text-6xl font-bold mb-4"
           >
             Sample Works
           </motion.h2>
@@ -56,34 +54,13 @@ export function SampleWorksClient({ samples }: SampleWorksProps) {
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="text-lg font-nunito text-muted-foreground max-w-2xl mx-auto"
+            className="text-lg font-nunito text-muted-foreground max-w-2xl mx-auto italic"
           >
-            Each a piece, a flawed creativity.
+            "Each a piece, a flawed creativity."
           </motion.p>
-
-          {/* View More - Only if not showing all */}
-          {samples.length > 4 && !showAll && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.3 }}
-              className="mt-6"
-            >
-              <Button
-                onClick={() => setShowAll(true)}
-                variant="outline"
-                size="lg"
-                className="font-nunito gap-2 group"
-              >
-                View All
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-              </Button>
-            </motion.div>
-          )}
         </div>
 
-        {/* 4-Column Grid with Stagger Animation */}
+        {/* 4-Column Grid */}
         <motion.div 
           layout
           className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
@@ -96,74 +73,48 @@ export function SampleWorksClient({ samples }: SampleWorksProps) {
                 initial={{ opacity: 0, scale: 0.9, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.9, y: -20 }}
-                transition={{
-                  duration: 0.5,
-                  delay: index * 0.05,
-                  layout: { duration: 0.3 },
-                  ease: [0.4, 0, 0.2, 1]
-                }}
-                className="group"
+                transition={{ duration: 0.5, delay: index * 0.05 }}
+                onClick={() => setSelectedWork(work)}
+                className="group cursor-pointer"
               >
-                <div className="relative h-[400px] rounded-2xl overflow-hidden glass-card border border-border hover:border-primary/50 transition-all duration-500 cursor-pointer">
-                  <div className="absolute inset-0">
+                <div className="relative h-[450px] rounded-2xl overflow-hidden glass-card border border-border group-hover:border-primary/50 transition-all duration-500 shadow-xl">
+                  {/* Background Image/Fallback */}
+                  <div className="absolute inset-0 z-0">
                     {work.imageUrl ? (
                       <img
                         src={work.imageUrl}
                         alt={work.title}
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000"
                       />
                     ) : (
-                      <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/5" />
+                      <div className="w-full h-full bg-gradient-to-br from-primary/20 to-secondary/20" />
                     )}
+                    {/* Darker Overlay for Text Readability */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent" />
                   </div>
 
-                  <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-transparent opacity-90" />
-
-                  <div className="absolute inset-0 p-6 flex flex-col justify-end">
+                  {/* Content Overlay */}
+                  <div className="absolute inset-0 p-6 flex flex-col justify-end z-10">
                     {work.mood && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: index * 0.05 + 0.2 }}
-                        className="inline-flex w-fit items-center gap-1.5 px-2.5 py-1 rounded-full glass-card mb-3"
-                      >
-                        <div className="w-1.5 h-1.5 rounded-full bg-primary" />
-                        <span className="text-xs font-nunito">{work.mood}</span>
-                      </motion.div>
+                      <div className="inline-flex w-fit items-center gap-1.5 px-2.5 py-1 rounded-full glass-card mb-3 border-white/10">
+                        <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                        <span className="text-[10px] font-bold uppercase tracking-wider font-nunito">{work.mood}</span>
+                      </div>
                     )}
 
-                    <motion.h3
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: index * 0.05 + 0.3 }}
-                      className="text-xl font-bold mb-2 group-hover:text-primary transition-colors"
-                    >
+                    <h3 className="text-2xl font-bold mb-3 group-hover:text-primary transition-colors duration-300">
                       {work.title}
-                    </motion.h3>
+                    </h3>
 
-                    <motion.p
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: index * 0.05 + 0.4 }}
-                      className="font-serif text-sm leading-relaxed line-clamp-3 text-muted-foreground"
-                    >
+                    {/* FIXED: Using whitespace-pre-line to respect admin line breaks */}
+                    <p className="font-serif text-sm leading-relaxed line-clamp-6 text-gray-200 whitespace-pre-line opacity-80 group-hover:opacity-100 transition-opacity">
                       {work.content}
-                    </motion.p>
+                    </p>
 
-                    <motion.div
-                      initial={{ opacity: 0, y: 10 }}
-                      whileHover={{ opacity: 1, y: 0 }}
-                      className="mt-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                    >
-                      <div className="flex items-center gap-2 text-xs font-nunito text-primary">
-                        <span>Read Full Poem</span>
-                        <ArrowRight className="w-3 h-3" />
-                      </div>
-                    </motion.div>
-                  </div>
-
-                  <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+                    <div className="mt-4 pt-4 border-t border-white/10 flex items-center gap-2 text-xs font-nunito text-primary font-bold tracking-widest uppercase">
+                      <span>Read Full Work</span>
+                      <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
+                    </div>
                   </div>
                 </div>
               </motion.div>
@@ -171,26 +122,90 @@ export function SampleWorksClient({ samples }: SampleWorksProps) {
           </AnimatePresence>
         </motion.div>
 
-        {/* View Less */}
-        {samples.length > 4 && showAll && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="text-center mt-12"
-          >
+        {/* View Controls */}
+        <div className="text-center mt-12">
+          {samples.length > 4 && (
             <Button
-              onClick={() => setShowAll(false)}
+              onClick={() => setShowAll(!showAll)}
               variant="outline"
               size="lg"
-              className="font-nunito gap-2"
+              className="font-nunito gap-2 group border-primary/20 hover:bg-primary/5"
             >
-              <ChevronUp className="w-4 h-4" />
-              Show Less
+              {showAll ? <ChevronUp className="w-4 h-4" /> : <ArrowRight className="w-4 h-4" />}
+              {showAll ? 'Show Less' : `View All ${samples.length} Samples`}
             </Button>
-          </motion.div>
-        )}
+          )}
+        </div>
       </div>
+
+      {/* FULL SAMPLE MODAL */}
+      <AnimatePresence>
+        {selectedWork && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-10">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setSelectedWork(null)}
+              className="absolute inset-0 bg-black/90 backdrop-blur-xl"
+            />
+            
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="relative w-full max-w-5xl max-h-[90vh] glass-card border-border overflow-hidden rounded-3xl shadow-2xl flex flex-col md:flex-row"
+            >
+              {/* Close Button */}
+              <button 
+                onClick={() => setSelectedWork(null)}
+                className="absolute top-4 right-4 z-50 p-2 rounded-full glass-card hover:bg-red-500/20 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              {/* Modal Image Section */}
+              <div className="w-full md:w-1/2 h-64 md:h-auto overflow-hidden relative">
+                {selectedWork.imageUrl ? (
+                  <img
+                    src={selectedWork.imageUrl}
+                    alt={selectedWork.title}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-gradient-to-br from-primary/30 to-background" />
+                )}
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent to-black/20" />
+              </div>
+
+              {/* Modal Text Section */}
+              <div className="w-full md:w-1/2 p-8 md:p-12 overflow-y-auto bg-card/50 custom-scrollbar">
+                <div className="max-w-md mx-auto">
+                  {selectedWork.mood && (
+                    <span className="text-primary text-xs font-bold uppercase tracking-[0.2em] mb-4 block">
+                      {selectedWork.mood}
+                    </span>
+                  )}
+                  <h2 className="text-3xl md:text-5xl font-bold mb-8 leading-tight">
+                    {selectedWork.title}
+                  </h2>
+                  
+                  {/* RESPECTED LINE BREAKS */}
+                  <div className="font-serif text-lg md:text-xl leading-[1.8] text-foreground/90 whitespace-pre-line pb-12">
+                    {selectedWork.content}
+                  </div>
+                  
+                  <div className="pt-8 border-t border-border/50">
+                    <p className="font-nunito text-xs text-muted-foreground uppercase tracking-widest">
+                      Composed by Noctuary
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </section>
   );
 }
