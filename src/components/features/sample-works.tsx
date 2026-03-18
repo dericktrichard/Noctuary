@@ -106,7 +106,7 @@ export function SampleWorksClient({ samples }: SampleWorksProps) {
                       {work.title}
                     </h3>
 
-                    {/* FIXED: Using whitespace-pre-line to respect admin line breaks */}
+                    {/* Using whitespace-pre-line to respect admin line breaks */}
                     <p className="font-serif text-sm leading-relaxed line-clamp-6 text-gray-200 whitespace-pre-line opacity-80 group-hover:opacity-100 transition-opacity">
                       {work.content}
                     </p>
@@ -132,7 +132,7 @@ export function SampleWorksClient({ samples }: SampleWorksProps) {
               className="font-nunito gap-2 group border-primary/20 hover:bg-primary/5"
             >
               {showAll ? <ChevronUp className="w-4 h-4" /> : <ArrowRight className="w-4 h-4" />}
-              {showAll ? 'Show Less' : `View All ${samples.length} Samples`}
+              {showAll ? 'Show Less' : `View All`}
             </Button>
           )}
         </div>
