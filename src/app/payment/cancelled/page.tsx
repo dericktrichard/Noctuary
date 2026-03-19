@@ -22,6 +22,7 @@ export default function PaymentCancelledPage() {
       sessionStorage.removeItem('noctuaryPaypalOrderId');
       sessionStorage.removeItem('noctuaryPaystackReference');
       sessionStorage.removeItem('noctuaryStripeSessionId');
+      sessionStorage.removeItem(`noctuary_pending_${orderId}`); 
     }
   }, []);
 

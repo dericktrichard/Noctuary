@@ -16,6 +16,12 @@ function PaymentSuccessContent() {
       try {
         const stripeSessionId = searchParams.get('session_id');
         const paypalToken = searchParams.get('token');
+        const orderId = searchParams.get('orderId');
+
+        // ✅ CLEAR AUTO-CANCEL SESSION STORAGE
+        if (orderId) {
+          sessionStorage.removeItem(`noctuary_pending_${orderId}`);
+        }
 
         if (stripeSessionId) {
           const result = await verifyStripePaymentAction(stripeSessionId);
@@ -35,16 +41,16 @@ function PaymentSuccessContent() {
             setMessage(result.error || 'Payment verification failed');
           }
         } else if (paypalToken) {
-          const orderId = sessionStorage.getItem('noctuaryOrderId');
+          const storedOrderId = sessionStorage.getItem('noctuaryOrderId');
           const payerId = searchParams.get('PayerID');
 
-          if (!orderId || !payerId) {
+          if (!storedOrderId || !payerId) {
             setStatus('error');
             setMessage('Missing payment information');
             return;
           }
 
-          const result = await verifyPayPalPaymentAction(orderId, paypalToken);
+          const result = await verifyPayPalPaymentAction(storedOrderId, paypalToken);
           
           if (result.success && result.accessToken) {
             setStatus('success');
@@ -52,6 +58,8 @@ function PaymentSuccessContent() {
             
             sessionStorage.removeItem('noctuaryOrderId');
             sessionStorage.removeItem('noctuaryPaypalOrderId');
+            // ✅ ALSO CLEAR AUTO-CANCEL FOR STORED ORDER ID
+            sessionStorage.removeItem(`noctuary_pending_${storedOrderId}`);
             
             setTimeout(() => {
               router.push(`/order/${result.accessToken}`);
