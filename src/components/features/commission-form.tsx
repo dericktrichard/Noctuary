@@ -87,6 +87,31 @@ const cardVariants = {
 
 const smoothEasing = [0.4, 0, 0.2, 1];
 
+const scheduleAutoCancelOrder = (orderId: string) => {
+  if (typeof window !== 'undefined') {
+    sessionStorage.setItem(`noctuary_pending_${orderId}`, 'true');
+  }
+
+  setTimeout(async () => {
+    try {
+      const isPending = sessionStorage.getItem(`noctuary_pending_${orderId}`);
+      
+      if (isPending) {
+        await fetch('/api/cancel-pending-order', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ orderId }),
+        });
+        
+        console.log(`[AUTO-CANCEL] Order ${orderId} cancelled after 3 minutes`);
+        sessionStorage.removeItem(`noctuary_pending_${orderId}`);
+      }
+    } catch (error) {
+      console.error('[AUTO-CANCEL] Failed:', error);
+    }
+  }, 3 * 60 * 1000);
+};
+
 export function CommissionForm({ pricing }: CommissionFormProps) {
   const getDefaultCurrency = useCallback((): Currency => {
     try {
@@ -233,6 +258,8 @@ export function CommissionForm({ pricing }: CommissionFormProps) {
         return;
       }
 
+      scheduleAutoCancelOrder(result.orderId);
+
       if (paymentMethod === 'PAYPAL') {
         await initiatePayPalPayment(result.orderId, paymentDetails.amount);
       } else if (paymentMethod === 'PAYSTACK') {
@@ -285,6 +312,8 @@ export function CommissionForm({ pricing }: CommissionFormProps) {
         setIsSubmitting(false);
         return;
       }
+
+      scheduleAutoCancelOrder(result.orderId);
 
       if (paymentMethod === 'PAYPAL') {
         await initiatePayPalPayment(result.orderId, paymentDetails.amount);
@@ -413,7 +442,7 @@ export function CommissionForm({ pricing }: CommissionFormProps) {
               
               <h3 className="text-2xl font-bold mb-2">Quick Poem</h3>
               <p className="font-nunito text-sm mb-4 text-muted-foreground">
-                A poetic surprise, no details.
+                A poetic surprise - no details.
               </p>
               
               <div className="space-y-1">
