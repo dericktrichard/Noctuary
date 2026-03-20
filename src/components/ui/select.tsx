@@ -83,7 +83,7 @@ const SelectContent = React.forwardRef<
         'data-[side=bottom]:data-[state=open]:slide-in-from-top-1',
         'data-[side=top]:data-[state=open]:slide-in-from-bottom-1',
         'data-[state=open]:zoom-in-95 data-[state=closed]:zoom-out-95',
-        'duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]',
+        'duration-300 ease-smooth',
         position === 'popper' &&
           'data-[side=bottom]:translate-y-1 data-[side=top]:-translate-y-1',
         className
