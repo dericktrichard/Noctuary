@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { GlassCard } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Sparkles, ArrowRight, ChevronUp, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';

@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Nunito, Philosopher } from 'next/font/google';
 import Script from 'next/script';
 import { Toaster } from '@/components/ui/toaster';
@@ -18,13 +18,23 @@ const philosopher = Philosopher({
   display: 'swap',
 });
 
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+  userScalable: true,
+  themeColor: [
+    { media: '(prefers-color-scheme: dark)', color: '#0a0a0a' },
+    { media: '(prefers-color-scheme: light)', color: '#ffffff' },
+  ],
+};
+
 export const metadata: Metadata = {
   title: 'Noctuary Ink - Soul Scripted',
   description: 'Premium poetry commission platform. Every poem is crafted by human hands. Order custom or quick poems for any occasion.',
   keywords: ['poetry', 'custom poems', 'commission poetry', 'human-written', 'poet for hire', 'bespoke poetry'],
   authors: [{ name: 'Noctuary' }],
   
-  // Favicon configuration
   icons: {
     icon: [
       { url: '/favicon.svg', type: 'image/svg+xml' },
@@ -34,6 +44,8 @@ export const metadata: Metadata = {
       { url: '/icon.png', sizes: '180x180', type: 'image/png' },
     ],
   },
+
+  manifest: '/manifest.json',
   
   openGraph: {
     title: 'Noctuary Ink - Soul Scripted',
@@ -60,17 +72,19 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <script
+        <Script
+          id="theme-init"
+          strategy="beforeInteractive"
           dangerouslySetInnerHTML={{
             __html: `
-              try {
-                const theme = localStorage.getItem('theme') || 'dark';
-                if (theme === 'dark') {
-                  document.documentElement.classList.add('dark');
-                } else {
-                  document.documentElement.classList.remove('dark');
-                }
-              } catch (e) {}
+              (function() {
+                try {
+                  const theme = localStorage.getItem('theme') || 'dark';
+                  if (theme === 'dark') {
+                    document.documentElement.classList.add('dark');
+                  }
+                } catch (e) {}
+              })();
             `,
           }}
         />
@@ -84,7 +98,7 @@ export default function RootLayout({
         >
           <Script
             src={`https://www.paypal.com/sdk/js?client-id=${process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID}&currency=USD`}
-            strategy="lazyOnload"
+            strategy="afterInteractive"
           />
           {children}
           <Toaster />
