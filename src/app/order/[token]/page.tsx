@@ -161,11 +161,8 @@ export default async function OrderTrackingPage({
 
         {order.status !== 'DELIVERED' && (
           <div className="mt-8 text-center">
-            <p className="font-nunito text-sm text-muted-foreground">
-              Bookmark this page or save the link - you'll need it to view your completed poem
-            </p>
             <p className="font-nunito text-xs text-muted-foreground mt-2">
-              We'll also send you an email when your poem is ready
+              We'll send you an email when your poem is ready
             </p>
           </div>
         )}

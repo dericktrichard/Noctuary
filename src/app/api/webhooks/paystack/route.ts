@@ -36,31 +36,13 @@ export async function POST(request: NextRequest) {
         currency,
       });
 
-      const order = await prisma.order.findFirst({
+      const paidAmount = amount / 100;
+
+      const result = await prisma.order.updateMany({
         where: {
           paymentId: reference,
           status: 'PENDING',
         },
-      });
-
-      if (!order) {
-        console.error('[PAYSTACK WEBHOOK] Order not found for reference:', reference);
-        return NextResponse.json({ error: 'Order not found' }, { status: 404 });
-      }
-
-      const paidAmount = amount / 100;
-      const expectedAmount = Number(order.pricePaid);
-
-      if (Math.abs(paidAmount - expectedAmount) > 0.01) {
-        console.error('[PAYSTACK WEBHOOK] Amount mismatch:', {
-          expected: expectedAmount,
-          received: paidAmount,
-        });
-        return NextResponse.json({ error: 'Amount mismatch' }, { status: 400 });
-      }
-
-      await prisma.order.update({
-        where: { id: order.id },
         data: {
           status: 'PAID',
           paidAt: new Date(),
@@ -68,21 +50,48 @@ export async function POST(request: NextRequest) {
         },
       });
 
+      if (result.count === 0) {
+        console.log('[PAYSTACK WEBHOOK] Order already processed or not found');
+        return NextResponse.json({ 
+          success: true,
+          message: 'Already processed or not found' 
+        });
+      }
+
+      const order = await prisma.order.findFirst({
+        where: { paymentId: reference },
+      });
+
+      if (!order) {
+        console.error('[PAYSTACK WEBHOOK] Order not found after update');
+        return NextResponse.json({ error: 'Order not found' }, { status: 404 });
+      }
+
+      const expectedAmount = Number(order.pricePaid);
+
+      if (Math.abs(paidAmount - expectedAmount) > 0.01) {
+        console.error('[PAYSTACK WEBHOOK] Amount mismatch:', {
+          expected: expectedAmount,
+          received: paidAmount,
+        });
+        
+        await prisma.order.update({
+          where: { id: order.id },
+          data: { status: 'CANCELLED', paymentStatus: 'amount_mismatch' },
+        });
+
+        return NextResponse.json({ error: 'Amount mismatch' }, { status: 400 });
+      }
+
       console.log('[PAYSTACK WEBHOOK] Order marked as PAID:', order.id);
 
-      try {
-        await sendPaymentConfirmation(order.email, {
+      Promise.all([
+        sendPaymentConfirmation(order.email, {
           accessToken: order.accessToken,
           amount: Number(order.pricePaid),
           currency: order.currency,
-        });
-        console.log('[PAYSTACK WEBHOOK] Payment confirmation email sent');
-      } catch (emailError) {
-        console.error('[PAYSTACK WEBHOOK] Email failed (non-critical):', emailError);
-      }
-
-      try {
-        await sendAdminOrderNotification({
+        }),
+        sendAdminOrderNotification({
           orderId: order.id,
           type: order.type,
           amount: Number(order.pricePaid),
@@ -90,11 +99,10 @@ export async function POST(request: NextRequest) {
           customerEmail: order.email,
           title: order.title,
           deliveryHours: order.deliveryHours,
-        });
-        console.log('[PAYSTACK WEBHOOK] Admin notification sent');
-      } catch (emailError) {
-        console.error('[PAYSTACK WEBHOOK] Admin email failed (non-critical):', emailError);
-      }
+        }),
+      ]).catch((error) => {
+        console.error('[PAYSTACK WEBHOOK] Email error (non-critical):', error);
+      });
 
       return NextResponse.json({ 
         success: true,
@@ -107,24 +115,18 @@ export async function POST(request: NextRequest) {
 
       console.log('[PAYSTACK WEBHOOK] Payment failed:', reference);
 
-      const order = await prisma.order.findFirst({
+      await prisma.order.updateMany({
         where: {
           paymentId: reference,
           status: 'PENDING',
         },
+        data: {
+          status: 'CANCELLED',
+          paymentStatus: 'failed',
+        },
       });
 
-      if (order) {
-        await prisma.order.update({
-          where: { id: order.id },
-          data: {
-            status: 'CANCELLED',
-            paymentStatus: 'failed',
-          },
-        });
-
-        console.log('[PAYSTACK WEBHOOK] Order marked as CANCELLED:', order.id);
-      }
+      console.log('[PAYSTACK WEBHOOK] Order marked as CANCELLED');
 
       return NextResponse.json({ success: true });
     }
